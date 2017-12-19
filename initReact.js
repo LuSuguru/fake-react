@@ -37,6 +37,7 @@ ReactDomComponent.prototype.mountComponent = function (rootID) {
     if (/^on[A-Za-z]/.test(propKey)) {
       var eventType = propKey.replace('on', '')
       $(document).delegate('[data-reactid="' + this._rootNodeId + '"]', eventType + '.' + this._rootNodeId, props[propKey])
+      console.log($(document))
     }
 
     //除了事件和children属性，其余属性进行字符串拼接
@@ -54,7 +55,7 @@ ReactDomComponent.prototype.mountComponent = function (rootID) {
   $.each(children, function (key, child) {
     //这里再次调用了instantiateReactComponent实例化子节点component类，拼接好返回
     var childComponentInstance = instantiateReactComponent(child)
-    childrenInstances._mountIndex = key
+    childComponentInstance._mountIndex = key
 
     childrenInstances.push(childComponentInstance)
     //子节点的rootId是父节点的rootId加上新的Key也就是顺序拼接的值
@@ -86,9 +87,10 @@ ReactCompositeComponent.prototype.mountComponent = function (rootId) {
   var publicProps = this._currentElement.props
   //拿到对应的reactClass
   var ReactClass = this._currentElement.type
-  //获取reactClass实例
+  //获取reactClass实例(createClass里的constructor)
   var inst = new ReactClass(publicProps)
   this._instance = inst
+  
   //保留对当前comonent的引用，下面更新时会用到
   inst._reactInternalInstance = this
 
@@ -97,7 +99,7 @@ ReactCompositeComponent.prototype.mountComponent = function (rootId) {
   }
 
   //调用ReactClass的实例的render方法，返回一个element或者一个文本节点
-  var renderedElement = this._instance.render()
+  var renderedElement = inst.render()
 
   //得到renderedElement对应的component类实例
   var renderedComponentInstance = instantiateReactComponent(renderedElement)
@@ -149,6 +151,10 @@ var ReactClass = function () { }
 //留给子类继承去继承覆盖
 ReactClass.prototype.render = function () { }
 
+//setState
+ReactClass.prototype.setState = function (newState) {
+
+}
 
 React = {
   nextReactRootIndex: 0,
@@ -197,6 +203,10 @@ React = {
     return new ReactElement(type, key, props)
   },
 
+  /**
+   * @param element ReactElement对象
+   * @param container 父对象
+   */
   render: function (element, container) {
     var componentInstance = instantiateReactComponent(element)
     var markup = componentInstance.mountComponent(React.nextReactRootIndex++)
