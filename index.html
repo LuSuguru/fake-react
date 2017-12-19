@@ -14,37 +14,45 @@
   <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
   <script src="./initReact.js"></script>
   <script>
-    var HelloMessage = React.createClass({
+    var TodoList = React.createClass({
       getInitialState: function () {
         return {
-          type: 'say:'
+          items: []
         }
       },
-
-      componentWillMount: function () {
-        console.log('我就要开始渲染了。。。')
-      },
-
-      componentDidMount: function () {
-        console.log('我已经渲染好了。。。')
-      },
-
-      changeType: function () {
+      add: function () {
+        var nextItems = this.state.items.concat([this.state.text])
         this.setState({
-          type: 'shout:'
+          items: nextItems,
+          text: ''
         })
       },
-
+      onChange: function (e) {
+        this.setState({
+          text: e.target.value
+        })
+      },
       render: function () {
-        return React.createElement("div", {
-          onclick: this.changeType.bind(this)
-        }, this.state.type, "Hello ", this.props.name);
+        var createItem = function (itemText) {
+          return React.createElement('div', null, itemText)
+        }
+        var lists = this.state.items.map(createItem)
+        var input = React.createElement('input', {
+          onkeyup: this.onChange.bind(this),
+          value: this.state.text
+        })
+        var button = React.createElement('p', {
+            onclick: this.add.bind(this)
+          },
+          'Add#' + (this.state.items.length + 1))
+        var children = lists.concat([input, button])
+
+        console.log(children)
+        return React.createElement('div', null, children)
       }
     })
 
-    React.render(React.createElement(HelloMessage, {
-      name: 'John'
-    }), document.getElementById('container'))
+    React.render(React.createElement(TodoList), document.getElementById('container'))
   </script>
 </body>
 

@@ -47,7 +47,6 @@ ReactDomComponent.prototype.mountComponent = function (rootID) {
     if (/^on[A-Za-z]/.test(propKey)) {
       var eventType = propKey.replace('on', '')
       $(document).delegate('[data-reactid="' + this._rootNodeId + '"]', eventType + '.' + this._rootNodeId, props[propKey])
-      console.log($(document))
     }
 
     //除了事件和children属性，其余属性进行字符串拼接
@@ -59,9 +58,9 @@ ReactDomComponent.prototype.mountComponent = function (rootID) {
   //获取子节点渲染出的内容
   var content = ''
   var children = props.children || []
-
   var childrenInstances = [] //用于保存所有的子节点的component实例，以后会用到
   var that = this
+
   $.each(children, function (key, child) {
     //这里再次调用了instantiateReactComponent实例化子节点component类，拼接好返回
     var childComponentInstance = instantiateReactComponent(child)
@@ -223,6 +222,7 @@ ReactDomComponent.prototype._diff = function (diffQueue, nextChildrenElements) {
     self._renderedChildren.push(instance)
   })
 
+  var lastIndex = 0 //代表访问的最后一次的老的集合的位置
   var nextIndex = 0 //代表到达的新的节点的index
 
   //通过对比两个集合的差异，组装差异节点添加到队列中
@@ -237,13 +237,14 @@ ReactDomComponent.prototype._diff = function (diffQueue, nextChildrenElements) {
     //相同的话，说明是使用的同一个component，所以需要做移动的操作
     if (prevChild === nextChild) {
       //添加差异对象，类型：MOVE_EXISTING
-      diffQueue.push({
+      prevChild._mountIndex < lastIndex && diffQueue.push({
         parentId: self._rootNodeId,
         parentNode: $('[data-reactid=' + self._rootNodeId + ']'),
         type: UPATE_TYPES.MOVE_EXISTING,
         fromIndex: prevChild._mountIndex,
         toIndex: nextIndex
       })
+      lastIndex = Math.max(prevChild._mountIndex, lastIndex)
     } else { //如果不相同，说明是新增加的节点
       //如果老的还在，就是element不同，但是component一样。我们需要把它对应的老的element删除
       if (prevChild) {
@@ -259,6 +260,7 @@ ReactDomComponent.prototype._diff = function (diffQueue, nextChildrenElements) {
         if (prevChild._rootNodeId) {
           $(document).undelegate('.' + prevChild._rootNodeId)
         }
+        lastIndex = Math.max(prevChild._mountIndex, lastIndex)
       }
 
       //新增加的节点，也组装差异对象放到队列里
@@ -269,7 +271,7 @@ ReactDomComponent.prototype._diff = function (diffQueue, nextChildrenElements) {
         type: UPATE_TYPES.INSERT_MARKUP,
         fromIndex: null,
         toIndex: nextIndex,
-        markup: nextChild.mountComponent()
+        markup: nextChild.mountComponent(self._rootNodeId + '.' + name)
       })
     }
     //更新mount的index
@@ -530,6 +532,7 @@ React = {
       }
       props.children = childArray
     }
+
     return new ReactElement(type, key, props)
   },
 
