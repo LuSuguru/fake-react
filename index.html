@@ -37,7 +37,7 @@
 
       render: function () {
         return React.createElement("div", {
-          onclick: this.changeType
+          onclick: this.changeType.bind(this)
         }, this.state.type, "Hello ", this.props.name);
       }
     })
