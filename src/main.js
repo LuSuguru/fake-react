@@ -7,8 +7,9 @@ class TodoList extends React.Component {
   }
 
   add() {
-    const nextItems = this.state.items.concat([this.state.text])
-    this.setState({ items: nextItems, text: '' })
+    let { items, text } = this.state
+    items = [...items, text]
+    this.setState({ items, text: '' })
   }
 
   onChange(e) {
@@ -20,7 +21,7 @@ class TodoList extends React.Component {
     const input = React.createElement('input', { onkeyup: this.onChange.bind(this), value: this.state.text })
     const button = React.createElement('p', { onclick: this.add.bind(this) }, 'Add#' + (this.state.items.length + 1))
 
-    const children = list.concat([input, button])
+    const children = [...list, input, button]
     return React.createElement('div', null, children)
   }
 }

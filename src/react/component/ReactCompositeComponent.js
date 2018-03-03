@@ -48,7 +48,7 @@ export default class extends ReactComponent {
     this._vDom = nextVDom || this._vDom
     const inst = this._instance
     // 获取新的state,props
-    const nextState = Object.assign(inst.state, newState)
+    const nextState = { ...inst.state, ...newState }
     const nextProps = this._vDom.props
 
     // 判断shouldComponentUpdate

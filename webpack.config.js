@@ -22,13 +22,8 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        use: ['eslint-loader'],
+        use: ['babel-loader', 'eslint-loader'],
         include: path.resolve(__dirname, './src')
-      },
-      {
-        test: /\.js$/,
-        use: ['babel-loader'],
-        include: path.resolve(__dirname, '../src')
       }
     ]
   },

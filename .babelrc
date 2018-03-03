@@ -1,4 +1,17 @@
 {
+  "plugins": [
+    ["transform-object-rest-spread", {
+      "useBuiltIns": true
+    }],
+    [
+      "transform-runtime",
+      {
+        "helpers": false,
+        "polyfill": false,
+        "regenerator": true
+      }
+    ]
+  ],
   "presets": [
     ["env",
       {
@@ -8,17 +21,6 @@
         },
         "useBuiltIns": false,
         "modules": false
-      }
-    ]
-  ],
-  "plugins": [
-    ["transform-object-rest-spread", {
-      "useBuiltIns": true
-    }],
-    [
-      "transform-runtime",
-      {
-        "polyfill": false
       }
     ]
   ]
