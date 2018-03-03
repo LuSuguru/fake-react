@@ -10,9 +10,10 @@ function VDom(type, key, props) {
   this.props = props
 }
 
-export default function createElement(type, config = {}, children) {
+export default function createElement(type, config, children) {
   const props = {}
 
+  config = config || {}
   // 获取key，用来标识element，方便以后高效的更新
   const { key = null } = config
 

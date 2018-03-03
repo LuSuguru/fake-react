@@ -19,3 +19,40 @@ export default function instantiateReactComponent(node) {
     return new ReactCompositeComponent(node)
   }
 }
+
+// 判断是更新还是渲染
+export function shouldUpdateReactComponent(prevVDom, nextVDom) {
+  if (prevVDom != null && nextVDom != null) {
+    const prevType = typeof prevVDom
+    const nextType = typeof nextVDom
+
+    if (prevType === 'string' || prevType === 'number') {
+      return nextType === 'string' || nextType === 'number'
+    } else {
+      return nextType === 'object' && prevVDom.type === nextVDom.type && prevVDom.key === nextVDom.key
+    }
+  }
+}
+
+// 将children数组转化为map
+export function arrayToMap(array) {
+  array = array || []
+  const childMap = {}
+
+  array.forEach((item, index) => {
+    const name = item && item._vDom && item._vDom.key ? item._vDom.key : index.toString(36)
+    childMap[name] = item
+  })
+  return childMap
+}
+
+// 用于将childNode插入到指定位置
+export function insertChildAt(parentNode, childNode, index) {
+  var beforeChild = parentNode.children().get(index)
+  beforeChild ? childNode.insertBefore(beforeChild) : childNode.appendTo(parentNode)
+}
+
+// 删除节点
+export function deleteChild(child) {
+  child && child.remove()
+}

@@ -11,7 +11,7 @@ export default {
     var componentInstance = instantiateReactComponent(element)
     var markup = componentInstance.mountComponent(this.nextReactRootIndex++)
 
-    $(container).html(markup)
+    container.innerHTML = markup
     $(document).trigger('mountReady')
   }
 }

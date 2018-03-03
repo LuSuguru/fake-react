@@ -421,6 +421,8 @@ ReactCompositeComponent.prototype.receiveComponent = function (nextElement, newS
   if (_shouldUpdateReactComponent(prevRenderElement, nextRenderElement)) {
     //如果需要更新，就调用子节点的receiveComponent,传入新的element更新子节点
     prevComponentInstance.receiveComponent(nextRenderElement)
+    //调用componentDidUpdate表示更新完成了
+    inst.componentDidUpdate && inst.componentDidUpdate()
   } else {
     //如果发现是不同的两种element,就重新渲染
     var thisId = this._rootNodeId
@@ -478,30 +480,30 @@ function ReactElement(type, key, props) {
   this.props = props
 }
 
-//定义ReactClass类，所有自定义组件的父类
+// 定义ReactClass类，所有自定义组件的父类
 var ReactClass = function () { }
-//留给子类继承去继承覆盖
+// 留给子类继承去继承覆盖
 ReactClass.prototype.render = function () { }
 
-//setState
+// setState
 ReactClass.prototype.setState = function (newState) {
   this._reactInternalInstance.receiveComponent(null, newState)
 }
 
-React = {
+var React = {
   nextReactRootIndex: 0,
 
   createClass: function (spec) {
-    //生成一个子类
+    // 生成一个子类
     var Constructor = function (props) {
       this.props = props
       this.state = this.getInitialState ? this.getInitialState() : null
     }
 
-    //原型继承，继承父类
+    // 原型继承，继承父类
     Constructor.prototype = new ReactClass()
     Constructor.prototype.constructor = Constructor
-    //混入spec到原型
+    // 混入spec到原型
     $.extend(Constructor.prototype, spec)
     return Constructor
   },
@@ -510,18 +512,18 @@ React = {
     var props = {}, propName
     config = config || {}
 
-    //看看有没有key,用来标识element的类型，方便以后高效的更新
+    // 看看有没有key,用来标识element的类型，方便以后高效的更新
     var key = config.key || null
 
-    //复制config里的内容到props
+    // 复制config里的内容到props
     for (propName in config) {
       if (config.hasOwnProperty(propName) && propName !== 'key') {
         props[propName] = config[propName]
       }
     }
 
-    //处理children，全部挂载到props的children属性上
-    //支持两种写法，如果只有一个参数，直接赋值给children,否则做合并处理
+    // 处理children，全部挂载到props的children属性上
+    // 支持两种写法，如果只有一个参数，直接赋值给children,否则做合并处理
     var childrenLength = arguments.length - 2
     if (childrenLength === 1) {
       props.children = $.isArray(children) ? children : [children]
