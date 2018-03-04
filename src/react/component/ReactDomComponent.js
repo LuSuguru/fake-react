@@ -235,11 +235,10 @@ export default class extends ReactComponent {
 
       switch (type) {
         case UPDATE_TYPES.INSERT_MARKUP:
-          insertChildAt(parentNode, $(markup), toIndex)
+          insertChildAt(parentNode, $(markup), toIndex) // 插入
           break
         case UPDATE_TYPES.MOVE_EXISTING:
-          console.log(updatedChild)
-          deleteChild(updatedChild)
+          deleteChild(updatedChild) // 删除
           insertChildAt(parentNode, updatedChild, toIndex)
           break
         case UPDATE_TYPES.REMOVE_NODE:

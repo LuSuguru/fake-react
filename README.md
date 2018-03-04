@@ -5,6 +5,11 @@
 2. 虚拟dom
 3. 检查差异的diff算法
 
+#### 从头实现一个简易版React博客
+1. https://segmentfault.com/a/1190000013504156
+2. https://segmentfault.com/a/1190000013508562
+3. https://segmentfault.com/a/1190000013510464
+
 #### 文件目录介绍
 1. index.js 外部引用react的入口
 2. ReactElement.js 用于创建虚拟DOM

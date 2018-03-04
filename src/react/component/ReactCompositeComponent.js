@@ -34,7 +34,7 @@ export default class extends ReactComponent {
     // 得到渲染之后的内容
     const renderMarkup = renderedComponent.mountComponent(this._rootNodeId)
 
-    // 在ReactDom.render方法最后触发了mountReady事件，所在在这里监听，在渲染完成后触发
+    // 在React.render方法最后触发了mountReady事件，所在在这里监听，在渲染完成后触发
     $(document).on('mountReady', () => {
       inst.componentDidMount && inst.componentDidMount()
     })
