@@ -1,4 +1,4 @@
-import ReactDomTextComponent from './ReactDomTextComponent'
+import ReactTextComponent from './ReactTextComponent'
 import ReactDomComponent from './ReactDomComponent'
 import ReactCompositeComponent from './ReactCompositeComponent'
 
@@ -6,7 +6,7 @@ import ReactCompositeComponent from './ReactCompositeComponent'
 export default function instantiateReactComponent(node) {
   // 文本节点的情况
   if (typeof node === 'string' || typeof node === 'number') {
-    return new ReactDomTextComponent(node)
+    return new ReactTextComponent(node)
   }
 
   // 浏览器默认节点的情况

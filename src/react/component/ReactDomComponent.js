@@ -69,7 +69,7 @@ export default class extends ReactComponent {
   }
 
   // 更新
-  receiveComponent(nextVDom) {
+  updateComponent(nextVDom) {
     const lastProps = this._vDom.props
     const nextProps = nextVDom.props
 
@@ -254,7 +254,7 @@ export default class extends ReactComponent {
 
 /**
  * 用来生成子节点的component
- * 如果是更新，就会继续使用以前的component，调用对应的receiveComponent
+ * 如果是更新，就会继续使用以前的component，调用对应的updateComponent
  * 如果是新的节点，就会重新生成一个新的componentInstance
  */
 function generateComponentsMap(prevChildComponents, nextChildVDoms = []) {
@@ -269,8 +269,8 @@ function generateComponentsMap(prevChildComponents, nextChildVDoms = []) {
 
     // 判断是更新还是重新渲染
     if (shouldUpdateReactComponent(prevVdom, nextVdom)) {
-      // 更新的话直接递归调用子节点的receiveComponent
-      prevChildComponent.receiveComponent(nextVdom)
+      // 更新的话直接递归调用子节点的updateComponent
+      prevChildComponent.updateComponent(nextVdom)
       nextChildComponents[name] = prevChildComponent
     } else {
       // 重新渲染的话重新生成component

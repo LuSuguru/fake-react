@@ -10,7 +10,7 @@ export default class extends ReactComponent {
   }
 
   // 更新
-  receiveComponent(nextVDom) {
+  updateComponent(nextVDom) {
     const nextText = '' + nextVDom
 
     if (nextText !== this._vDom) {

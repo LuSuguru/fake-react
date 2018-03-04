@@ -27,7 +27,7 @@ export default class extends ReactComponent {
     // 调用自定义组件的render方法，返回一个Vdom
     const renderedVdom = inst.render()
 
-    // 获取renderedElement的component
+    // 获取renderedComponent的component
     const renderedComponent = instantiateReactComponent(renderedVdom)
     this._renderedComponent = renderedComponent
 
@@ -43,7 +43,7 @@ export default class extends ReactComponent {
   }
 
   // 更新
-  receiveComponent(nextVDom, newState) {
+  updateComponent(nextVDom, newState) {
     // 如果有新的vDom,就使用新的
     this._vDom = nextVDom || this._vDom
     const inst = this._instance
@@ -69,7 +69,7 @@ export default class extends ReactComponent {
     // 判断是需要更新还是重新渲染
     if (shouldUpdateReactComponent(prevRenderVDom, nextRenderVDom)) {
       // 更新
-      prevComponent.receiveComponent(nextRenderVDom)
+      prevComponent.updateComponent(nextRenderVDom)
       inst.componentDidUpdate && inst.componentDidUpdate()
     } else {
       // 重新渲染

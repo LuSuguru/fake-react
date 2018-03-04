@@ -11,6 +11,6 @@
 3. Component.js 所有react的组件的父类，包含最基本的构造函数和setState方法
 4. ReactComponent.js</br>
    ReactCompositeComponent.js</br>
-   ReactDomTextComponent.js </br>
-   ReactDomTextComponent.js component类用来包裹虚拟dom，包含了渲染，更新的逻辑，按照虚拟dom类型分为三种，text类型，原生dom类型，自定义组件类型
+   ReactTextComponent.js </br>
+   ReactTextComponent.js component类用来包裹虚拟dom，包含了渲染，更新的逻辑，按照虚拟dom类型分为三种，text类型，原生dom类型，自定义组件类型
 5. util.js 渲染，更新需要的工具类
