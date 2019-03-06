@@ -5,4 +5,4 @@ function getNumber(ceshi: number) {
   console.log(ceshi)
 }
 
-export default ceshi
+export default getNumber
