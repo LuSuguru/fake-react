@@ -1,11 +1,11 @@
 {
   "name": "fake-react",
   "version": "1.0.0",
-  "description": "模拟的一个react小玩具",
+  "description": "react 16.0.0",
   "main": "initReact.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rollup -c ./rollup.config.js"
+    "build": "rollup -c ./rollup.config.js -w"
   },
   "repository": {
     "type": "git",

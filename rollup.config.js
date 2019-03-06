@@ -8,6 +8,9 @@ module.exports = {
     file: path.resolve(__dirname, './dist/react.js'),
     format: 'es'
   },
+  watch: {
+    include: 'src/**'
+  },
   plugins: [
     typescript({
       lib: ['es2017', 'dom'],
