@@ -5,7 +5,7 @@
   "main": "initReact.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack-dev-server  --hot"
+    "build": "rollup -c ./rollup.config.js"
   },
   "repository": {
     "type": "git",
@@ -24,9 +24,7 @@
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.6.1",
     "eslint": "^4.18.1",
-    "eslint-loader": "^2.0.0",
-    "html-webpack-plugin": "^3.0.4",
-    "webpack": "3.10.0"
+    "eslint-loader": "^2.0.0"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.2",
@@ -36,6 +34,6 @@
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
-    "webpack-dev-server": "^2.11.1"
+    "rollup-plugin-buble": "^0.19.6"
   }
 }
