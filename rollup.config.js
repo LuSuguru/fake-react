@@ -1,14 +1,18 @@
 const path = require('path')
-const buble = require('rollup-plugin-buble')
+import typescript from 'rollup-plugin-typescript'
 
 
 module.exports = {
-  input: path.resolve(__dirname, './src/index.js'),
+  input: path.resolve(__dirname, './src/index.ts'),
   output: {
     file: path.resolve(__dirname, './dist/react.js'),
-    format: 'iife'
+    format: 'es'
   },
   plugins: [
-    buble()
+    typescript({
+      lib: ['es2017', 'dom'],
+      target: 'es5',
+      include: 'src/**/*'
+    })
   ],
 }
