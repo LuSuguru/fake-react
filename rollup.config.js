@@ -1,6 +1,5 @@
 const path = require('path')
-import typescript from 'rollup-plugin-typescript'
-
+const typescript = require('rollup-plugin-typescript')
 
 module.exports = {
   input: path.resolve(__dirname, './src/index.ts'),
@@ -17,5 +16,5 @@ module.exports = {
       target: 'es5',
       include: 'src/**/*'
     })
-  ],
+  ]
 }
