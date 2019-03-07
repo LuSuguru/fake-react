@@ -5,7 +5,7 @@ class ReactNoopUpdateQueue {
     return false
   }
 
-  enqueueForceUpdate() {
+  enqueueForceUpdate(publicInstance?: Component, callback?: any, callerName?: any) {
 
   }
 
@@ -13,7 +13,7 @@ class ReactNoopUpdateQueue {
 
   }
 
-  enqueueSetState(publicInstance: Component, partialState: any, callback: any, callerName?: any) {
+  enqueueSetState(publicInstance?: Component, partialState?: any, callback?: any, callerName?: any) {
 
   }
 }
