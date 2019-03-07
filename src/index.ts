@@ -1,5 +1,6 @@
-import React from './react/index'
+import * as React from './react'
+import ReactDOM from './react-dom'
 
 export {
-  React
+  React, ReactDOM
 }
