@@ -4,7 +4,7 @@ const typescript = require('rollup-plugin-typescript')
 module.exports = {
   input: path.resolve(__dirname, './src/index.ts'),
   output: {
-    file: path.resolve(__dirname, './dist/react.js'),
+    file: path.resolve(__dirname, './dist/index.js'),
     format: 'es'
   },
   watch: {

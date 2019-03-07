@@ -1,9 +1,5 @@
-
-import { Component, PureComponent } from './react/react-component'
-import { createElement } from './react/react'
+import React from './react/index'
 
 export {
-  Component,
-  PureComponent,
-  createElement
+  React
 }
