@@ -1,8 +1,9 @@
 
-const ceshi: number = 1
+import { Component, PureComponent } from './react/react-component'
+import { createElement } from './react/react'
 
-function getNumber(ceshi: number) {
-  console.log(ceshi)
+export {
+  Component,
+  PureComponent,
+  createElement
 }
-
-export default getNumber
