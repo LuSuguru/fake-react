@@ -1,13 +1,25 @@
+import { FiberRoot } from '../react-fiber/fiber-root'
+import { createContainer, updateContainer } from '../reconciler'
 import { ReactNodeList } from '../type/react-type'
 import ReactWork from './react-work'
-import { createContainer, updateContainer } from '../reconciler'
-import { FiberRoot } from '../react-fiber/fiber-root'
 
 class ReactRoot {
-  internalRoot: FiberRoot
+  public internalRoot: FiberRoot
 
   constructor(container: Element, hydrate: boolean) {
     this.internalRoot = createContainer(container, hydrate)
+  }
+
+  public render(children: ReactNodeList, callback?: Function): ReactWork {
+    return this.update(true, children, callback)
+  }
+
+  public unmount(callback?: Function): ReactWork {
+    return this.update(false, null, callback)
+  }
+
+  public createBatch() {
+    // 待实现
   }
 
   private update(isMount: boolean, children: ReactNodeList, callback?: Function): ReactWork {
@@ -25,18 +37,6 @@ class ReactRoot {
     }
 
     return work
-  }
-
-  render(children: ReactNodeList, callback?: Function): ReactWork {
-    return this.update(true, children, callback)
-  }
-
-  unmount(callback?: Function): ReactWork {
-    return this.update(false, null, callback)
-  }
-
-  createBatch() {
-    // 待实现
   }
 }
 

@@ -1,9 +1,9 @@
-import { ExpirationTime, NoWork } from './expiration-time'
 import { HostRoot } from '../type/tag-type'
 import { NoContext } from '../type/work-type'
+import { ExpirationTime, NoWork } from './expiration-time'
 import { Fiber } from './fiber'
 
-type Batch = {
+interface Batch {
   _defer: boolean,
   _expirationTime: ExpirationTime,
   _onComplete: Function,
