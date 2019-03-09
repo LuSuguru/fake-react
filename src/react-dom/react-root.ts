@@ -1,15 +1,16 @@
 import { ReactNodeList } from '../type/react-type'
 import ReactWork from './react-work'
-import { updateContainer } from '../reconciler'
+import { createContainer, updateContainer } from '../reconciler'
+import { FiberRoot } from '../react-fiber/react-fiber-root'
 
 class ReactRoot {
-  internalRoot: root
+  internalRoot: FiberRoot
 
-  constructor(container: Element, isConcurrent: boolean, hydrate: boolean) {
-    // 待实现
+  constructor(container: Element, hydrate: boolean) {
+    this.internalRoot = createContainer(container, hydrate)
   }
 
-  render(children: ReactNodeList, callback?: Function): ReactWork {
+  private update(isMount: boolean, children: ReactNodeList, callback?: Function): ReactWork {
     const { internalRoot: root } = this
     const work = new ReactWork()
 
@@ -17,16 +18,21 @@ class ReactRoot {
       work.then(callback)
     }
 
-    updateContainer(children, root, work.onCommit) // 待实现
+    if (isMount) {
+      updateContainer(children, root, work.onCommit) // 待实现
+    } else {
+      updateContainer(null, root, work.onCommit)
+    }
+
     return work
   }
 
-  unmount(callback?: Function): ReactWork {
-    const { internalRoot: root } = this
-    const work = new ReactWork()
+  render(children: ReactNodeList, callback?: Function): ReactWork {
+    return this.update(true, children, callback)
+  }
 
-    updateContainer(null, root, work.onCommit)
-    return work
+  unmount(callback?: Function): ReactWork {
+    return this.update(false, null, callback)
   }
 
   createBatch() {

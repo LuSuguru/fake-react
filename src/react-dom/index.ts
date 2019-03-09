@@ -1,7 +1,7 @@
 import * as htmlType from '../type/html-type'
 import ReactRoot from './react-root'
 
-function createRootfromContainer(container: any, forceHydrate: boolean): ReactRoot {
+function createRootFromContainer(container: any, forceHydrate: boolean): ReactRoot {
   if (!forceHydrate) {
     let rootSibling: ChildNode = null
     while ((rootSibling = container.lastChild)) {
@@ -9,7 +9,7 @@ function createRootfromContainer(container: any, forceHydrate: boolean): ReactRo
     }
   }
 
-  return new ReactRoot(container, false, forceHydrate)
+  return new ReactRoot(container, forceHydrate)
 }
 
 
@@ -18,7 +18,7 @@ function renderSubtreeIntoContainer(children: any, container: any, forceHydrate:
   let isMount: boolean = false
 
   if (!root) {
-    root = container._reactrootContainer = createRootfromContainer(container, forceHydrate)
+    root = container._reactrootContainer = createRootFromContainer(container, forceHydrate)
     isMount = true
   }
 
@@ -28,7 +28,7 @@ function renderSubtreeIntoContainer(children: any, container: any, forceHydrate:
   }
 
   if (isMount) {
-    unbatchedUpdates(() => { // 初始渲染，不需要放入更新队列
+    unbatchedUpdates(() => {
       root.render(children, callback)
     })
   } else {
