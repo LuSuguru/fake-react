@@ -1,5 +1,5 @@
-import { HostRoot } from '../type/tag-type'
-import { NoContext } from '../type/work-type'
+import { HostRoot } from '../react-type/tag-type'
+import { NoContext } from '../react-type/work-type'
 import { ExpirationTime, NoWork } from './expiration-time'
 import { Fiber } from './fiber'
 

@@ -9,7 +9,7 @@
     "new-parens": true,
     "no-arg": true,
     "no-bitwise": true,
-    "no-conditional-assignment": true,
+    "no-conditional-assignment": false,
     "no-consecutive-blank-lines": false,
     "no-console": {
       "severity": "warning",
@@ -31,7 +31,8 @@
       "single"
     ],
     "ban-types": false,
-    "member-access": false
+    "member-access": false,
+    "interface-name": false
   },
   "jsRules": {
     "max-line-length": {

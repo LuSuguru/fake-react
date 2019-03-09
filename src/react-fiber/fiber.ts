@@ -1,8 +1,8 @@
-import { WorkTag } from '../type/tag-type'
-import { UpdateQueue } from './update-queue'
-import { TypeOfMode } from '../type/work-type'
-import { SideEffectTag, NoEffect } from '../type/effect-type'
+import { NoEffect, SideEffectTag } from '../react-type/effect-type'
+import { WorkTag } from '../react-type/tag-type'
+import { TypeOfMode } from '../react-type/work-type'
 import { ExpirationTime, NoWork } from './expiration-time'
+import { UpdateQueue } from './update-queue'
 
 class Fiber {
   tag: WorkTag

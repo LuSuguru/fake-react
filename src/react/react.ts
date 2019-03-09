@@ -1,12 +1,12 @@
-import { REACT_ELEMENT_TYPE } from '../type/react-type'
+import { REACT_ELEMENT_TYPE } from '../react-type/react-type'
 
-type ReactElement = {
+interface ReactElement {
   $$typeof: string,
   type: any,
   key: string | null,
   ref: any,
   props: any,
-  _owner: any
+  _owner: any,
 }
 
 function createElement(type: any, config: any = {}, ...children: any[]): ReactElement {
@@ -22,7 +22,7 @@ function createElement(type: any, config: any = {}, ...children: any[]): ReactEl
   if (type && type.defaultProps) {
     const { defaultProps } = type
 
-    Object.keys(defaultProps).forEach(key => {
+    Object.keys(defaultProps).forEach((key) => {
       if (props[key] === undefined) {
         props[key] = defaultProps[key]
       }
@@ -35,7 +35,7 @@ function createElement(type: any, config: any = {}, ...children: any[]): ReactEl
     key,
     ref,
     props,
-    _owner: 'Fiber'
+    _owner: 'Fiber',
   }
 }
 

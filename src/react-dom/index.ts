@@ -1,4 +1,4 @@
-import * as htmlType from '../type/html-type'
+import * as htmlType from '../react-type/html-type'
 import ReactRoot from './react-root'
 
 function createRootFromContainer(container: any, forceHydrate: boolean): ReactRoot {
@@ -22,7 +22,7 @@ function renderSubtreeIntoContainer(children: any, container: any, forceHydrate:
     isMount = true
   }
 
-  callback = function () {
+  callback = () => {
     const instance = getPublicRootInstance(root.internalRoot) // 待实现
     callback.call(instance)
   }
@@ -39,7 +39,7 @@ function renderSubtreeIntoContainer(children: any, container: any, forceHydrate:
 const ReactDOM = {
   render(element: any, container: Element, callback?: Function) {
     return renderSubtreeIntoContainer(element, container, false, callback)
-  }
+  },
 }
 
 export { ReactDOM }
