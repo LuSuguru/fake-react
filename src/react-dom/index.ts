@@ -9,16 +9,17 @@ function createRootfromContainer(container: any, forceHydrate: boolean): ReactRo
     }
   }
 
-  return new ReactRoot()
+  return new ReactRoot(container, false, forceHydrate)
 }
 
-function renderSubtreeIntoContainer(element: any, container: Element | Document, forceHydrate: boolean, callback?: Function) {
+
+function renderSubtreeIntoContainer(element: any, container: Element, forceHydrate: boolean, callback?: Function) {
 
 
 }
 
 const ReactDOM = {
-  render(element: any, container: Element | Document, callback?: Function) {
+  render(element: any, container: Element, callback?: Function) {
     return renderSubtreeIntoContainer(element, container, false, callback)
   }
 }
