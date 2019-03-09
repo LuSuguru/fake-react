@@ -1,7 +1,7 @@
 import { ReactNodeList } from '../type/react-type'
 import ReactWork from './react-work'
 import { createContainer, updateContainer } from '../reconciler'
-import { FiberRoot } from '../react-fiber/react-fiber-root'
+import { FiberRoot } from '../react-fiber/fiber-root'
 
 class ReactRoot {
   internalRoot: FiberRoot

@@ -1,6 +1,6 @@
 import { REACT_ELEMENT_TYPE } from '../type/react-type'
 
-interface ReactElement {
+type ReactElement = {
   $$typeof: string,
   type: any,
   key: string | null,

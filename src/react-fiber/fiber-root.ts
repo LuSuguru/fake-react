@@ -1,4 +1,7 @@
 import { ExpirationTime, NoWork } from './expiration-time'
+import { HostRoot } from '../type/tag-type'
+import { NoContext } from '../type/work-type'
+import { Fiber } from './fiber'
 
 type Batch = {
   _defer: boolean,
@@ -6,6 +9,7 @@ type Batch = {
   _onComplete: Function,
   _next: Batch | null,
 }
+
 class FiberRoot {
   containerInfo: Element
   pendingChildren: any = null
@@ -42,7 +46,7 @@ class FiberRoot {
   nextScheduledRoot: FiberRoot = null
 
   constructor(containerInfo: Element, hydrate: boolean) {
-    this.current = new Fiber(HostRoot)
+    this.current = new Fiber(HostRoot, null, null, NoContext)
     this.containerInfo = containerInfo
     this.hydrate = hydrate
   }

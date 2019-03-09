@@ -1,5 +1,5 @@
 import { ReactNodeList } from '../type/react-type'
-import { FiberRoot } from '../react-fiber/react-fiber-root'
+import { FiberRoot } from '../react-fiber/fiber-root'
 
 function createContainer(container: Element, hydate: boolean): FiberRoot {
   return new FiberRoot(container, hydate)
