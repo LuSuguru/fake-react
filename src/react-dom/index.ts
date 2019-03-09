@@ -13,9 +13,27 @@ function createRootfromContainer(container: any, forceHydrate: boolean): ReactRo
 }
 
 
-function renderSubtreeIntoContainer(element: any, container: Element, forceHydrate: boolean, callback?: Function) {
+function renderSubtreeIntoContainer(children: any, container: any, forceHydrate: boolean, callback?: Function) {
+  let root: ReactRoot = container._reactrootContainer
+  let isMount: boolean = false
 
+  if (!root) {
+    root = container._reactrootContainer = createRootfromContainer(container, forceHydrate)
+    isMount = true
+  }
 
+  callback = function () {
+    const instance = getPublicRootInstance(root.internalRoot) // 待实现
+    callback.call(instance)
+  }
+
+  if (isMount) {
+    unbatchedUpdates(() => { // 初始渲染，不需要放入更新队列
+      root.render(children, callback)
+    })
+  } else {
+    root.render(children, callback)
+  }
 }
 
 const ReactDOM = {

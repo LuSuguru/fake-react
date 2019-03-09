@@ -3,7 +3,7 @@ import ReactWork from './react-work'
 import { updateContainer } from '../reconciler'
 
 class ReactRoot {
-  private internalRoot: root
+  internalRoot: root
 
   constructor(container: Element, isConcurrent: boolean, hydrate: boolean) {
     // 待实现
@@ -17,7 +17,7 @@ class ReactRoot {
       work.then(callback)
     }
 
-    updateContainer(children, root, null, work.onCommit) // 待实现
+    updateContainer(children, root, work.onCommit) // 待实现
     return work
   }
 
@@ -25,7 +25,12 @@ class ReactRoot {
     const { internalRoot: root } = this
     const work = new ReactWork()
 
-    updateContainer(null, root, null, work.onCommit)
+    updateContainer(null, root, work.onCommit)
+    return work
+  }
+
+  createBatch() {
+    // 待实现
   }
 }
 
