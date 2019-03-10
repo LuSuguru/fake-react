@@ -1,7 +1,9 @@
-import { React } from 'fake-react'
+import { React, ReactDOM } from 'fake-react'
 
-console.log(
+
+ReactDOM.render(
   <h1>
-    ceshi
-    <p>ceshi</p>
-  </h1>)
+    Hello World
+  </h1>,
+  document.getElementById('root')
+)

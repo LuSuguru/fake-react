@@ -4,6 +4,7 @@ import ReactRoot from './react-root'
 function createRootFromContainer(container: any, forceHydrate: boolean): ReactRoot {
   if (!forceHydrate) {
     let rootSibling: ChildNode = null
+
     while ((rootSibling = container.lastChild)) {
       container.remove(rootSibling)
     }
@@ -14,7 +15,7 @@ function createRootFromContainer(container: any, forceHydrate: boolean): ReactRo
 
 
 function renderSubtreeIntoContainer(children: any, container: any, forceHydrate: boolean, callback?: Function) {
-  let root: ReactRoot = container._reactrootContainer
+  let root: ReactRoot = null
   let isMount: boolean = false
 
   if (!root) {
@@ -42,4 +43,4 @@ const ReactDOM = {
   },
 }
 
-export { ReactDOM }
+export default ReactDOM

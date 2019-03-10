@@ -23,7 +23,7 @@ class ReactRoot {
   }
 
   private update(isMount: boolean, children: ReactNodeList, callback?: Function): ReactWork {
-    const { internalRoot: root } = this
+    const { internalRoot } = this
     const work = new ReactWork()
 
     if (callback) {
@@ -31,9 +31,9 @@ class ReactRoot {
     }
 
     if (isMount) {
-      updateContainer(children, root, work.onCommit) // 待实现
+      updateContainer(children, internalRoot, work.onCommit) // 待实现
     } else {
-      updateContainer(null, root, work.onCommit)
+      updateContainer(null, internalRoot, work.onCommit)
     }
 
     return work
