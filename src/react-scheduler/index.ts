@@ -1,12 +1,25 @@
-import { ExpirationTime, msToExpirationTime, Never, NoWork, Sync } from '../react-fiber/expiration-time'
+import {
+  computeAsyncExpiration, computeInteractiveExpiration, ExpirationTime, msToExpirationTime, Never, NoWork, Sync,
+} from '../react-fiber/expiration-time'
+import { Fiber } from '../react-fiber/fiber'
 import { FiberRoot } from '../react-fiber/fiber-root'
+import { ConcurrentMode } from '../react-type/work-type'
 import { now } from '../utils/browser'
 
 const isRendering: boolean = false
+const isWorking: boolean = false
+const isCommitting: boolean = false
+
 const originalStartTimeMs: number = now()
 
 let currentRendererTime: ExpirationTime = msToExpirationTime(originalStartTimeMs)
 let currentSchedulerTime: ExpirationTime = currentRendererTime
+
+const nextRenderExpirationTime: ExpirationTime = NoWork
+
+const expirationContext: ExpirationTime = NoWork
+
+const isBatchingInteractiveUpdates: boolean = false
 
 function recomputeCurrentRendererTime() {
   const currentTimeMs: number = now() - originalStartTimeMs
@@ -18,6 +31,43 @@ let lastScheduledRoot: FiberRoot = null
 
 let nextFlushedRoot: FiberRoot = null
 let nextFlushedExpirationTime: ExpirationTime = NoWork
+
+let lowestPriorityPendingInteractiveExpirationTime: ExpirationTime = NoWork
+
+const nextRoot: Fiber = null
+
+function computeExpirationTimeForFiber(currentTime: ExpirationTime, fiber: Fiber): ExpirationTime {
+  let expirationTime: ExpirationTime
+
+  if (expirationContext !== NoWork) {
+    expirationTime = expirationContext
+  } else if (isWorking) {
+    expirationTime = isCommitting ? Sync : nextRenderExpirationTime
+  } else {
+    if (fiber.mode === ConcurrentMode) {
+      if (isBatchingInteractiveUpdates) {
+        expirationTime = computeInteractiveExpiration(currentTime)
+      } else {
+        expirationTime = computeAsyncExpiration(currentTime)
+      }
+
+      if (nextRoot !== null && expirationTime === nextRenderExpirationTime) {
+        expirationTime -= 1
+      }
+    } else {
+      expirationTime = Sync
+    }
+  }
+
+  if (isBatchingInteractiveUpdates) {
+    if (lowestPriorityPendingInteractiveExpirationTime === NoWork
+      || expirationTime < lowestPriorityPendingInteractiveExpirationTime) {
+      lowestPriorityPendingInteractiveExpirationTime = expirationTime
+    }
+  }
+
+  return expirationTime
+}
 
 function findHighestPriorityRoot() {
   let highestPriorityWork: ExpirationTime = NoWork
@@ -81,7 +131,7 @@ function findHighestPriorityRoot() {
 
 function requestCurrentTime(): ExpirationTime {
   if (isRendering) {
-    return currentRendererTime
+    return currentSchedulerTime
   }
 
   findHighestPriorityRoot()
@@ -93,4 +143,9 @@ function requestCurrentTime(): ExpirationTime {
   }
 
   return currentSchedulerTime
+}
+
+export {
+  computeExpirationTimeForFiber,
+  requestCurrentTime,
 }

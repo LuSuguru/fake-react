@@ -1,7 +1,11 @@
 import { ExpirationTime } from './expiration-time'
 
+export const UpdateState = 0
+export const ReplaceState = 1
+export const ForceUpdate = 2
+export const CaptureUpdate = 3
 
-export type Update<State> = {
+export interface Update<State> {
   expirationTime: ExpirationTime,
 
   tag: 0 | 1 | 2 | 3,
@@ -12,7 +16,7 @@ export type Update<State> = {
   nextEffect: Update<State> | null,
 }
 
-export type UpdateQueue<State> = {
+export interface UpdateQueue<State> {
   baseState: State,
 
   firstUpdate: Update<State> | null,
@@ -27,3 +31,4 @@ export type UpdateQueue<State> = {
   firstCapturedEffect: Update<State> | null,
   lastCapturedEffect: Update<State> | null,
 }
+
