@@ -145,6 +145,15 @@ function requestCurrentTime(): ExpirationTime {
   return currentSchedulerTime
 }
 
+function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): FiberRoot | any {
+
+}
+
+
+function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
+  const root = scheduleWorkToRoot(fiber, expirationTime)
+}
+
 export {
   computeExpirationTimeForFiber,
   requestCurrentTime,

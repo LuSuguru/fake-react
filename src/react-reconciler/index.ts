@@ -42,12 +42,6 @@ function updateContainer(
   const currentTime: ExpirationTime = requestCurrentTime()
   const expirationTime: ExpirationTime = computeExpirationTimeForFiber(currentTime, current)
 
-  if (container.context === null) {
-    container.context = {}
-  } else {
-    container.pendingContext = {}
-  }
-
   updateContainerAtExpirationTime(element, container, expirationTime, callback || null)
 }
 

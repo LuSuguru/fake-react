@@ -49,6 +49,8 @@ class FiberRoot {
     this.current = new Fiber(HostRoot, null, null, NoContext)
     this.containerInfo = containerInfo
     this.hydrate = hydrate
+
+    this.current.stateNode = this
   }
 }
 

@@ -29,9 +29,9 @@ function renderSubtreeIntoContainer(children: any, container: any, forceHydrate:
   }
 
   if (isMount) {
-    unbatchedUpdates(() => {
+    // unbatchedUpdates(() => {
       root.render(children, callback)
-    })
+    // })
   } else {
     root.render(children, callback)
   }
