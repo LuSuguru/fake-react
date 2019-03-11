@@ -3,6 +3,7 @@ import {
 } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { FiberRoot } from '../react-fiber/fiber-root'
+import { HostRoot } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { now } from '../utils/browser'
 
@@ -145,8 +146,43 @@ function requestCurrentTime(): ExpirationTime {
   return currentSchedulerTime
 }
 
-function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): FiberRoot | any {
+function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): FiberRoot | null {
+  let { alternate }: { alternate: Fiber } = fiber
 
+  if (fiber.expirationTime < expirationTime) {
+    fiber.expirationTime = expirationTime
+  }
+
+  if (alternate !== null && alternate.expirationTime < expirationTime) {
+    alternate.expirationTime = expirationTime
+  }
+
+  let node: Fiber = fiber.return
+  let root: FiberRoot = null
+
+  if (node === null && node.tag === HostRoot) {
+    root = fiber.stateNode
+  } else {
+    while (node !== null) {
+      ({ alternate } = node)
+
+      if (node.childExpirationTime < expirationTime) {
+        node.childExpirationTime = expirationTime
+      }
+
+      if (alternate !== null && alternate.childExpirationTime < expirationTime) {
+        alternate.childExpirationTime = expirationTime
+      }
+
+      if (node === null && node.tag === HostRoot) {
+        root = fiber.stateNode
+        break
+      }
+
+      node = node.return
+    }
+  }
+  return
 }
 
 
