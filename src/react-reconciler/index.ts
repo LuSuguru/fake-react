@@ -1,6 +1,6 @@
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { FiberRoot } from '../react-fiber/fiber-root'
-import { computeExpirationTimeForFiber, requestCurrentTime } from '../react-scheduler'
+import { computeExpirationTimeForFiber, requestCurrentTime, scheduleWork } from '../react-scheduler'
 import { ReactNodeList } from '../react-type/react-type'
 import Update from '../react-update/update'
 import { enqueueUpdate } from '../react-update/update-queue'
@@ -23,9 +23,9 @@ function updateContainerAtExpirationTime(
   update.payload = { element }
   update.callback = callback
 
-  // flushPassiveEffects() hook待实现
+  flushPassiveEffects() // hook待实现
   enqueueUpdate(current, update)
-
+  scheduleWork(current, expirationTime)
 }
 
 function createContainer(container: Element, hydate: boolean): FiberRoot {

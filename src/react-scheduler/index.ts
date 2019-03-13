@@ -6,6 +6,11 @@ import { FiberRoot } from '../react-fiber/fiber-root'
 import { HostRoot } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { now } from '../utils/browser'
+import { markPendingPriorityLevel } from './pending-priority'
+
+const NESTED_UPDATE_LIMIT: number = 50
+let nestedUpdateCount: number = 0
+const lastCommittedRootDuringThisBatch: FiberRoot = null
 
 const isRendering: boolean = false
 const isWorking: boolean = false
@@ -35,7 +40,8 @@ let nextFlushedExpirationTime: ExpirationTime = NoWork
 
 let lowestPriorityPendingInteractiveExpirationTime: ExpirationTime = NoWork
 
-const nextRoot: Fiber = null
+const nextRoot: FiberRoot = null
+let interruptedBy: Fiber = null
 
 function computeExpirationTimeForFiber(currentTime: ExpirationTime, fiber: Fiber): ExpirationTime {
   let expirationTime: ExpirationTime
@@ -182,15 +188,45 @@ function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): Fiber
       node = node.return
     }
   }
-  return
+  return root
 }
 
 
 function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
   const root = scheduleWorkToRoot(fiber, expirationTime)
+
+  if (!isWorking && nextRenderExpirationTime !== NoWork && expirationTime > nextRenderExpirationTime) {
+    interruptedBy = fiber
+    resetStack() // 待实现
+  }
+
+  markPendingPriorityLevel(root, expirationTime) // 待实现
+
+  if (!isWorking || isCommitting || nextRoot !== root) {
+    const rootExpirationTime = root.expirationTime
+    requestWork(root, rootExpirationTime)
+  }
+
+  if (nestedUpdateCount > NESTED_UPDATE_LIMIT) {
+    nestedUpdateCount = 0
+  }
+}
+
+function requestWork(root: FiberRoot, expiration: ExpirationTime) {
+  addRootToSchedule(root, expiration)
+  if (isRendering) {
+    return
+  }
+}
+
+function addRootToSchedule(root: FiberRoot, expiration: ExpirationTime) {
+  if (root.nextScheduledRoot === null) {
+
+  }
 }
 
 export {
   computeExpirationTimeForFiber,
   requestCurrentTime,
+  scheduleWork,
 }
