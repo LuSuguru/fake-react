@@ -200,7 +200,7 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
     resetStack() // 待实现
   }
 
-  markPendingPriorityLevel(root, expirationTime) // 待实现
+  markPendingPriorityLevel(root, expirationTime)
 
   if (!isWorking || isCommitting || nextRoot !== root) {
     const rootExpirationTime = root.expirationTime
@@ -212,16 +212,30 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
   }
 }
 
-function requestWork(root: FiberRoot, expiration: ExpirationTime) {
-  addRootToSchedule(root, expiration)
+function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
+  addRootToSchedule(root, expirationTime)
   if (isRendering) {
     return
   }
 }
 
-function addRootToSchedule(root: FiberRoot, expiration: ExpirationTime) {
+function addRootToSchedule(root: FiberRoot, expirationTime: ExpirationTime) {
   if (root.nextScheduledRoot === null) {
+    root.expirationTime = expirationTime
 
+    if (lastScheduledRoot === null) {
+      firstScheduledRoot = lastScheduledRoot = root
+      root.nextScheduledRoot = root
+    } else {
+      lastScheduledRoot.nextScheduledRoot = root
+      lastScheduledRoot = root
+      root.nextScheduledRoot = firstScheduledRoot
+    }
+  } else {
+    const remainingExpirationTime = root.expirationTime
+    if (expirationTime > remainingExpirationTime) {
+      root.expirationTime = expirationTime
+    }
   }
 }
 
