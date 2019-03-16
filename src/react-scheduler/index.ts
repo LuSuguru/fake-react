@@ -4,8 +4,9 @@ import {
 import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { FiberRoot } from '../react-fiber/fiber-root'
 import { HostRoot } from '../react-type/tag-type'
-import { ConcurrentMode } from '../react-type/work-type'
+import { ConcurrentMode, ProfileMode } from '../react-type/work-type'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
+import { beginWork } from './begin-work'
 import { markPendingPriorityLevel } from './pending-priority'
 
 const NESTED_UPDATE_LIMIT: number = 50
@@ -318,8 +319,65 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
     nextRoot = root
     nextRenderExpirationTime = expirationTime
     nextUnitOfWork = createWorkInProgress(nextRoot.current, null, nextRenderExpirationTime)
+    root.pendingCommitExpirationTime = NoWork
   }
 
+  const didFatal: boolean = false
+
+  do {
+    try {
+      workLoop(isYieldy)
+    } catch (thrownValue) {
+      // 待实现
+    }
+    break
+  } while (true)
+
+  isWorking = false
+  // ReactCurrentDispatcher.current = previousDispatcher
+  resetContextDependences() // 待实现
+  resetHooks() // 待实现
+
+  if (didFatal) {
+    // 待实现
+    return
+  }
+}
+
+function workLoop(isYieldy: boolean) {
+  if (isYieldy) {
+    // 异步
+  } else {
+    while (nextUnitOfWork !== null) {
+      nextUnitOfWork = performUnitOfWork(nextUnitOfWork)
+    }
+  }
+}
+
+function performUnitOfWork(workInProgress: Fiber): Fiber {
+  const current = workInProgress.alternate
+
+  // startWorkTimer(workInProgress) // debug用，待实现
+
+  let next: Fiber = null
+
+  if (workInProgress.mode === ProfileMode) {
+    // startProfilerTimer(workInProgress) // 待实现
+  }
+
+  next = beginWork(current, workInProgress, nextRenderExpirationTime)
+  workInProgress.memoizedProps = workInProgress.pendingProps
+
+  if (workInProgress.mode === ProfileMode) {
+    // stopProfilerTimerIfRunningAndRecordDelta(workInProgress, true) // 待实现
+  }
+
+  if (next === null) {
+    next = completeUnitOfWork(workInProgress)
+  }
+
+  // ReactCurrentOwner.current = null
+  return next
 }
 
 export {
