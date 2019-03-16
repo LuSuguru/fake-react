@@ -1,5 +1,6 @@
 import { HostRoot } from '../react-type/tag-type'
 import { NoContext } from '../react-type/work-type'
+import { noTimeout } from '../utils/browser'
 import { ExpirationTime, NoWork } from './expiration-time'
 import { Fiber } from './fiber'
 
@@ -31,7 +32,7 @@ class FiberRoot {
 
   finishedWork: Fiber = null
 
-  timeoutHandle: number = -1
+  timeoutHandle: number = noTimeout
 
   context: Object = null
   pendingContext: Object = null

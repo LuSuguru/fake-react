@@ -25,6 +25,8 @@ const nextRenderExpirationTime: ExpirationTime = NoWork
 
 const expirationContext: ExpirationTime = NoWork
 
+const isBatchingUpdates: boolean = false
+const isUnbatchingUpdates: boolean = false
 const isBatchingInteractiveUpdates: boolean = false
 
 function recomputeCurrentRendererTime() {
@@ -217,6 +219,20 @@ function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
   if (isRendering) {
     return
   }
+
+  if (isBatchingUpdates) {
+    if (isUnbatchingUpdates) {
+      nextFlushedRoot = root
+      nextFlushedExpirationTime = expirationTime
+    }
+    return
+  }
+
+  if (expirationTime === Sync) {
+    performSyncWork() // 同步
+  } else {
+    scheduleCallbackWithExpirationTime(root, expirationTime) // 异步，待实现
+  }
 }
 
 function addRootToSchedule(root: FiberRoot, expirationTime: ExpirationTime) {
@@ -237,6 +253,18 @@ function addRootToSchedule(root: FiberRoot, expirationTime: ExpirationTime) {
       root.expirationTime = expirationTime
     }
   }
+}
+
+function performSyncWork() {
+  performWork(Sync, false)
+}
+
+/**
+ *
+ * @param isYieldy
+ */
+function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
+
 }
 
 export {
