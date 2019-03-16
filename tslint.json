@@ -3,9 +3,10 @@
   "rules": {
     "max-line-length": {
       "options": [
-        120
+        200
       ]
     },
+    "object-literal-sort-keys": false,
     "new-parens": true,
     "no-arg": true,
     "no-bitwise": false,

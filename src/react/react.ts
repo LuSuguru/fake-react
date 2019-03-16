@@ -22,19 +22,19 @@ function createElement(type: any, config: any = {}, ...children: any[]): ReactEl
   if (type && type.defaultProps) {
     const { defaultProps } = type
 
-    Object.keys(defaultProps).forEach((key) => {
-      if (props[key] === undefined) {
-        props[key] = defaultProps[key]
+    Object.keys(defaultProps).forEach((name) => {
+      if (props[name] === undefined) {
+        props[name] = defaultProps[name]
       }
     })
   }
 
   return {
     $$typeof: REACT_ELEMENT_TYPE,
-    type,
     key,
-    ref,
     props,
+    ref,
+    type,
     _owner: 'Fiber',
   }
 }
