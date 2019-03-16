@@ -1,4 +1,5 @@
 const noTimeout = -1
+const clearTimeout = window.clearTimeout
 
 export function now() {
   const havePerformance: boolean = typeof performance === 'object' && typeof performance.now === 'function'
@@ -12,4 +13,5 @@ export function now() {
 
 export {
   noTimeout,
+  clearTimeout,
 }

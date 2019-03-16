@@ -1,19 +1,19 @@
 import {
   computeAsyncExpiration, computeInteractiveExpiration, ExpirationTime, msToExpirationTime, Never, NoWork, Sync,
 } from '../react-fiber/expiration-time'
-import { Fiber } from '../react-fiber/fiber'
+import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { FiberRoot } from '../react-fiber/fiber-root'
 import { HostRoot } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
-import { now } from '../utils/browser'
+import { clearTimeout, noTimeout, now } from '../utils/browser'
 import { markPendingPriorityLevel } from './pending-priority'
 
 const NESTED_UPDATE_LIMIT: number = 50
 let nestedUpdateCount: number = 0
 const lastCommittedRootDuringThisBatch: FiberRoot = null
 
-const isRendering: boolean = false
-const isWorking: boolean = false
+let isRendering: boolean = false
+let isWorking: boolean = false
 const isCommitting: boolean = false
 
 const originalStartTimeMs: number = now()
@@ -21,7 +21,7 @@ const originalStartTimeMs: number = now()
 let currentRendererTime: ExpirationTime = msToExpirationTime(originalStartTimeMs)
 let currentSchedulerTime: ExpirationTime = currentRendererTime
 
-const nextRenderExpirationTime: ExpirationTime = NoWork
+let nextRenderExpirationTime: ExpirationTime = NoWork
 
 const expirationContext: ExpirationTime = NoWork
 
@@ -42,7 +42,8 @@ let nextFlushedExpirationTime: ExpirationTime = NoWork
 
 let lowestPriorityPendingInteractiveExpirationTime: ExpirationTime = NoWork
 
-const nextRoot: FiberRoot = null
+let nextUnitOfWork: Fiber = null
+let nextRoot: FiberRoot = null
 let interruptedBy: Fiber = null
 
 function computeExpirationTimeForFiber(currentTime: ExpirationTime, fiber: Fiber): ExpirationTime {
@@ -260,10 +261,64 @@ function performSyncWork() {
 }
 
 /**
- *
- * @param isYieldy
+ * @param isYieldy 是否可以中断
  */
 function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
+  findHighestPriorityRoot()
+
+  if (isYieldy) {
+    // 异步,待实现
+  } else { // 同步
+    while (nextFlushedRoot !== null && nextFlushedExpirationTime && minExpirationTime <= nextFlushedExpirationTime) {
+      performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, false)
+      findHighestPriorityRoot()
+    }
+  }
+}
+
+function performWorkOnRoot(root: FiberRoot, expirationTime: ExpirationTime, isYieldy: boolean) {
+  isRendering = true
+
+  if (isYieldy) {
+    // 异步，待实现
+  } else { // 同步
+    let { finishedWork }: { finishedWork: Fiber } = root
+
+    if (finishedWork !== null) {
+      completeRoot(root, finishedWork, expirationTime)
+    } else {
+      const { timeoutHandle } = root
+      if (timeoutHandle !== noTimeout) {
+        root.timeoutHandle = noTimeout
+        clearTimeout(timeoutHandle)
+      }
+
+      renderRoot(root, isYieldy)
+      finishedWork = root.finishedWork
+
+      if (finishedWork !== null) {
+        completeRoot(root, finishedWork, expirationTime)
+      }
+    }
+  }
+}
+
+function renderRoot(root: FiberRoot, isYieldy: boolean) {
+  flushPassiveEffects() // 待实现
+
+  isWorking = true
+  //  const previousDispatcher = ReactCurrentDispatcher.current
+  // ReactCurrentDispatcher.current = ContextOnlyDispatcher
+
+  const expirationTime = root.nextExpirationTimeToWorkOn
+
+  if (expirationTime !== nextRenderExpirationTime || root !== nextRoot || nextUnitOfWork === null) {
+    resetStack()
+
+    nextRoot = root
+    nextRenderExpirationTime = expirationTime
+    nextUnitOfWork = createWorkInProgress(nextRoot.current, null, nextRenderExpirationTime)
+  }
 
 }
 
