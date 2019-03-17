@@ -1,5 +1,5 @@
 import { ExpirationTime } from '../react-fiber/expiration-time'
-import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
+import { createFiberFromElement, createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Deletion } from '../react-type/effect-type'
 import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE } from '../react-type/react-type'
 import { Fragment } from '../react-type/tag-type'
@@ -69,7 +69,13 @@ function ChildReconciler(shouldTrackSideEffects) {
       child = child.sibling
     }
 
+    const created = createFiberFromElement(element, returnFiber.mode, expirationTime)
+    if (element.type !== REACT_FRAGMENT_TYPE) {
+      // created.ref = coerceRef(returnFiber, child, element) // 待实现，处理Ref
+    }
 
+    created.return = returnFiber
+    return created
   }
 
   return (returnFiber: Fiber, currentFirstChild: Fiber, newChild: any, expirationTime: ExpirationTime): Fiber => {
