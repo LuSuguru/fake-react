@@ -5,8 +5,8 @@ import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { FiberRoot } from '../react-fiber/fiber-root'
 import { HostRoot } from '../react-type/tag-type'
 import { ConcurrentMode, ProfileMode } from '../react-type/work-type'
+import { beginWork } from '../react-work/begin-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
-import { beginWork } from './begin-work'
 import { markPendingPriorityLevel } from './pending-priority'
 
 const NESTED_UPDATE_LIMIT: number = 50
@@ -318,7 +318,7 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
 
     nextRoot = root
     nextRenderExpirationTime = expirationTime
-    nextUnitOfWork = createWorkInProgress(nextRoot.current, null, nextRenderExpirationTime)
+    nextUnitOfWork = createWorkInProgress(nextRoot.current, null)
     root.pendingCommitExpirationTime = NoWork
   }
 

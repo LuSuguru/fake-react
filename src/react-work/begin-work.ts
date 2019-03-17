@@ -1,11 +1,11 @@
 import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
-import { reconcileChildren } from '../react-fiber/fiber-child'
 import { hasContextChanged } from '../react-fiber/fiber-context'
 import { renderWithHooks } from '../react-fiber/fiber-hook'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
 import { PerformedWork } from '../react-type/effect-type'
 import { FunctionComponent, HostRoot, IncompleteClassComponent, LazyComponent } from '../react-type/tag-type'
+import { reconcileChildren } from './child-work'
 
 let didReceiveUpdate: boolean = false
 

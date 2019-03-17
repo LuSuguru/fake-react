@@ -1,7 +1,8 @@
 import { NoEffect, SideEffectTag } from '../react-type/effect-type'
-import { WorkTag } from '../react-type/tag-type'
+import { Fragment, WorkTag } from '../react-type/tag-type'
 import { TypeOfMode } from '../react-type/work-type'
 import { UpdateQueue } from '../react-update/update-queue'
+import { ReactElement } from '../react/react'
 import { ExpirationTime, NoWork } from './expiration-time'
 
 class Fiber {
@@ -48,9 +49,7 @@ class Fiber {
   }
 }
 
-function createWorkInProgress(current: Fiber, pendingProps: any, expirationTime: ExpirationTime): Fiber {
-
-
+function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
   let workInProgress: Fiber = current.alternate
 
   if (workInProgress === null) {
@@ -89,5 +88,13 @@ function createWorkInProgress(current: Fiber, pendingProps: any, expirationTime:
 
   return workInProgress
 }
+
+function createFiberFromFragment(elements: ReactElement, mode: TypeOfMode, expirationTime: ExpirationTime, key: null | string): Fiber {
+  const fiber = new Fiber(Fragment, elements, key, mode)
+  fiber.expirationTime = expirationTime
+  return fiber
+}
+
+function createFiberFromProfiler(pendingProps: any, mode: TypeOfMode)
 
 export { Fiber, createWorkInProgress }

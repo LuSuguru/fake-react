@@ -8,7 +8,6 @@ class ReactRoot {
 
   constructor(container: Element, hydrate: boolean) {
     this.internalRoot = createContainer(container, hydrate)
-    console.log(this.internalRoot)
   }
 
   public render(children: ReactNodeList, callback?: Function): ReactWork {
