@@ -5,8 +5,7 @@ export interface ReactElement {
   type: any,
   key: string | null,
   ref: any,
-  props: any,
-  _owner: any,
+  props: any
 }
 
 function createElement(type: any, config: any = {}, ...children: any[]): ReactElement {
@@ -35,7 +34,6 @@ function createElement(type: any, config: any = {}, ...children: any[]): ReactEl
     props,
     ref,
     type,
-    _owner: 'Fiber',
   }
 }
 

@@ -1,9 +1,17 @@
+import { isFunction } from 'util'
 import { NoEffect, SideEffectTag } from '../react-type/effect-type'
-import { Fragment, WorkTag } from '../react-type/tag-type'
-import { TypeOfMode } from '../react-type/work-type'
+import { REACT_CONCURRENT_MODE_TYPE, REACT_CONTEXT_TYPE, REACT_FORWARD_REF_TYPE, REACT_FRAGMENT_TYPE, REACT_LAZY_TYPE, REACT_MEMO_TYPE, REACT_PROFILER_TYPE, REACT_PROVIDER_TYPE, REACT_STRICT_MODE_TYPE, REACT_SUSPENSE_TYPE } from '../react-type/react-type'
+import { ClassComponent, ContextConsumer, ContextProvider, ForwardRef, Fragment, HostComponent, HostText, IndeterminateComponent, LazyComponent, MemoComponent, Mode, Profiler, SuspenseComponent, WorkTag } from '../react-type/tag-type'
+import { ConcurrentMode, NoContext, StrictMode, TypeOfMode } from '../react-type/work-type'
 import { UpdateQueue } from '../react-update/update-queue'
 import { ReactElement } from '../react/react'
+import { isObject, isString } from '../utils/getType'
 import { ExpirationTime, NoWork } from './expiration-time'
+
+function shouldConstruct(Component: Function) {
+  const prototype = Component.prototype
+  return !!(prototype && prototype.isReactComponent)
+}
 
 class Fiber {
   tag: WorkTag
@@ -89,12 +97,76 @@ function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
   return workInProgress
 }
 
-function createFiberFromFragment(elements: ReactElement, mode: TypeOfMode, expirationTime: ExpirationTime, key: null | string): Fiber {
-  const fiber = new Fiber(Fragment, elements, key, mode)
+
+function createFiberFromText(pendingProps: any, mode: TypeOfMode, expirationTime: ExpirationTime): Fiber {
+  const fiber = new Fiber(HostText, pendingProps, null, mode)
   fiber.expirationTime = expirationTime
+
   return fiber
 }
 
-function createFiberFromProfiler(pendingProps: any, mode: TypeOfMode)
+function createFiberFromTypeAndProps(type: any, key: null | string, pendingProps: any, mode: TypeOfMode, expirationTime: ExpirationTime) {
+  let fiberTag: WorkTag = IndeterminateComponent
+  let resolvedType: any = type
 
-export { Fiber, createWorkInProgress }
+  if (isFunction(type) && shouldConstruct(type)) {
+    fiberTag = ClassComponent
+  } else if (isString(type)) {
+    fiberTag = HostComponent
+  } else {
+    getTag: switch (type) {
+      case REACT_FRAGMENT_TYPE:
+        fiberTag = Fragment
+        pendingProps = pendingProps.children
+        break
+      case REACT_CONCURRENT_MODE_TYPE:
+      case REACT_STRICT_MODE_TYPE:
+        fiberTag = Mode
+        break
+      case REACT_PROFILER_TYPE:
+        fiberTag = Profiler
+        break
+      case REACT_SUSPENSE_TYPE:
+        fiberTag = SuspenseComponent
+        break
+      default: {
+        if (isObject(type)) {
+          switch (type.$$typeof) {
+            case REACT_PROVIDER_TYPE:
+              fiberTag = ContextProvider
+              break getTag
+            case REACT_CONTEXT_TYPE:
+              fiberTag = ContextConsumer
+              break getTag
+            case REACT_FORWARD_REF_TYPE:
+              fiberTag = ForwardRef
+              break getTag
+            case REACT_MEMO_TYPE:
+              fiberTag = MemoComponent
+              break getTag
+            case REACT_LAZY_TYPE:
+              fiberTag = LazyComponent
+              resolvedType = null
+              break
+          }
+        }
+      }
+    }
+  }
+
+  const fiber = new Fiber(fiberTag, pendingProps, mode, key)
+  fiber.elementType = type
+  fiber.type = resolvedType
+  fiber.expirationTime = expirationTime
+
+  return fiber
+}
+
+function createFiberFromElement(element: ReactElement, mode: TypeOfMode, expirationTime: ExpirationTime) {
+  const { type, key, props } = element
+
+  const fiber = createFiberFromTypeAndProps(type, key, props, mode, expirationTime)
+  return fiber
+}
+
+export { Fiber, createWorkInProgress, createFiberFromElement, createFiberFromText }

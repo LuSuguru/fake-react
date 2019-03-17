@@ -57,9 +57,9 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
   workInProgress.expirationTime = NoWork
 
   switch (workInProgress.tag) {
-    case IncompleteClassComponent:
+    case IncompleteClassComponent: // 待实现
       return
-    case LazyComponent:
+    case LazyComponent: // 待实现
       return
     case FunctionComponent: {
       const Component = workInProgress.type
