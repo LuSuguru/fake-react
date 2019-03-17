@@ -1,10 +1,10 @@
 import { ExpirationTime } from '../react-fiber/expiration-time'
-import { createFiberFromElement, createWorkInProgress, Fiber } from '../react-fiber/fiber'
-import { Deletion } from '../react-type/effect-type'
-import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE } from '../react-type/react-type'
-import { Fragment } from '../react-type/tag-type'
+import { createFiberFromElement, createFiberFromText, createWorkInProgress, Fiber } from '../react-fiber/fiber'
+import { Deletion, Placement } from '../react-type/effect-type'
+import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, REACT_PROFILER_TYPE } from '../react-type/react-type'
+import { Fragment, HostText } from '../react-type/tag-type'
 import { ReactElement } from '../react/react'
-import { isObject } from '../utils/getType'
+import { isObject, isText } from '../utils/getType'
 
 function useFiber(fiber: Fiber, pendingProps: any): Fiber {
   const clone = createWorkInProgress(fiber, pendingProps)
@@ -45,6 +45,13 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
   }
 
+  function placeSingleChild(newFiber: Fiber): Fiber {
+    if (shouldTrackSideEffects && newFiber.alternate === null) {
+      newFiber.effectTag = Placement
+    }
+    return newFiber
+  }
+
   function reconcileSingleElement(returnFiber: Fiber, currentFirstChild: Fiber, element: ReactElement, expirationTime: ExpirationTime): Fiber {
     let child: Fiber = currentFirstChild
 
@@ -78,9 +85,31 @@ function ChildReconciler(shouldTrackSideEffects) {
     return created
   }
 
+  // 待实现
+  function reconcileSinglePortal(returnFiber: Fiber, currentFirstChild: Fiber, element: ReactElement, expirationTime: ExpirationTime): Fiber {
+
+  }
+
+  function reconcileSingleTextNode(returnFiber: Fiber, currentFirstChild: Fiber, textContent: string, expirationTime: ExpirationTime): Fiber {
+    if (currentFirstChild !== null && currentFirstChild.tag === HostText) {
+      deleteRemainingChildren(returnFiber, currentFirstChild.sibling)
+
+      const existing = useFiber(currentFirstChild, textContent)
+      existing.return = returnFiber
+
+      return existing
+    }
+
+    deleteRemainingChildren(returnFiber, currentFirstChild)
+    const created = createFiberFromText(textContent, returnFiber.mode, expirationTime)
+    created.return = returnFiber
+
+    return created
+  }
+
   return (returnFiber: Fiber, currentFirstChild: Fiber, newChild: any, expirationTime: ExpirationTime): Fiber => {
     // 处理fragment
-    const isUnkeyedTopLevelFragment = typeof newChild === 'object' && newChild !== null && newChild.type === REACT_FRAGMENT_TYPE && newChild.key === null
+    const isUnkeyedTopLevelFragment = isObject(newChild) && newChild.type === REACT_FRAGMENT_TYPE && newChild.key === null
     if (isUnkeyedTopLevelFragment) {
       newChild = newChild.props.children
     }
@@ -89,11 +118,16 @@ function ChildReconciler(shouldTrackSideEffects) {
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE:
           return placeSingleChild(reconcileSingleElement(returnFiber, currentFirstChild, newChild, expirationTime))
-
+        case REACT_PROFILER_TYPE:
+          return placeSingleChild(reconcileSinglePortal(returnFiber, currentFirstChild, newChild, expirationTime))
 
         default:
           break
       }
+    }
+
+    if (isText(newChild)) {
+      return placeSingleChild(reconcileSingleTextNode(returnFiber, currentFirstChild, newChild, expirationTime))
     }
   }
 }
