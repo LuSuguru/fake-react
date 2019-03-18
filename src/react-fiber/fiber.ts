@@ -1,7 +1,7 @@
 import { isFunction } from 'util'
 import { NoEffect, SideEffectTag } from '../react-type/effect-type'
 import { REACT_CONCURRENT_MODE_TYPE, REACT_CONTEXT_TYPE, REACT_FORWARD_REF_TYPE, REACT_FRAGMENT_TYPE, REACT_LAZY_TYPE, REACT_MEMO_TYPE, REACT_PROFILER_TYPE, REACT_PROVIDER_TYPE, REACT_STRICT_MODE_TYPE, REACT_SUSPENSE_TYPE, ReactPortal } from '../react-type/react-type'
-import { ClassComponent, ContextConsumer, ContextProvider, ForwardRef, Fragment, HostComponent, HostText, IndeterminateComponent, LazyComponent, MemoComponent, Mode, Profiler, SuspenseComponent, WorkTag, HostPortal } from '../react-type/tag-type'
+import { ClassComponent, ContextConsumer, ContextProvider, ForwardRef, Fragment, HostComponent, HostPortal, HostText, IndeterminateComponent, LazyComponent, MemoComponent, Mode, Profiler, SuspenseComponent, WorkTag } from '../react-type/tag-type'
 import { ConcurrentMode, NoContext, StrictMode, TypeOfMode } from '../react-type/work-type'
 import { UpdateQueue } from '../react-update/update-queue'
 import { ReactElement } from '../react/react'
@@ -187,6 +187,7 @@ export {
   Fiber,
   createWorkInProgress,
   createFiberFromElement,
+  createFiberFromTypeAndProps,
   createFiberFromText,
-  createFiberFromPortal
+  createFiberFromPortal,
 }

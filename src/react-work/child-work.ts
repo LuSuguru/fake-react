@@ -1,9 +1,9 @@
 import { isArray } from 'util'
 import { ExpirationTime } from '../react-fiber/expiration-time'
-import { createFiberFromElement, createFiberFromText, createWorkInProgress, Fiber } from '../react-fiber/fiber'
+import { createFiberFromElement, createFiberFromPortal, createFiberFromText, createFiberFromTypeAndProps, createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Deletion, Placement } from '../react-type/effect-type'
-import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, REACT_PORTAL_TYPE, REACT_PROFILER_TYPE } from '../react-type/react-type'
-import { Fragment, HostText } from '../react-type/tag-type'
+import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, REACT_PORTAL_TYPE, REACT_PROFILER_TYPE, ReactPortal } from '../react-type/react-type'
+import { Fragment, HostPortal, HostText } from '../react-type/tag-type'
 import { ReactElement } from '../react/react'
 import { isObject, isText } from '../utils/getType'
 
@@ -108,10 +108,10 @@ function ChildReconciler(shouldTrackSideEffects) {
     return created
   }
 
-  function updateFragment(returnFiber: Fiber, current: Fiber, newChild: any, expirationTime: ExpirationTime) {
+  function updateFragment(returnFiber: Fiber, current: Fiber, newChild: any, expirationTime: ExpirationTime, key: string | null): Fiber {
     let fiber: Fiber = null
     if (current !== null && current.tag !== Fragment) {
-      fiber = createFiberFromElement(newChild, returnFiber.mode, expirationTime)
+      fiber = createFiberFromTypeAndProps(REACT_FRAGMENT_TYPE, key, newChild.props.children, returnFiber.mode, expirationTime)
     } else {
       fiber = useFiber(current, newChild.props.children)
     }
@@ -120,7 +120,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     return fiber
   }
 
-  function updateTextNode(returnFiber: Fiber, current: Fiber, textContent: string, expirationTime: ExpirationTime) {
+  function updateTextNode(returnFiber: Fiber, current: Fiber, textContent: string, expirationTime: ExpirationTime): Fiber {
     let fiber: Fiber = null
     if (current !== null && current.tag === HostText) {
       fiber = createFiberFromText(textContent, returnFiber.mode, expirationTime)
@@ -132,8 +132,29 @@ function ChildReconciler(shouldTrackSideEffects) {
     return fiber
   }
 
-  function updateElement(returnFiber: Fiber, current: Fiber, textContent: string, expirationTime: ExpirationTime) {
+  function updateElement(returnFiber: Fiber, current: Fiber, element: ReactElement, expirationTime: ExpirationTime): Fiber {
+    let fiber: Fiber = null
+    if (current !== null && current.elementType !== element.type) {
+      fiber = createFiberFromElement(element, returnFiber.mode, expirationTime)
+    } else {
+      fiber = useFiber(current, element.props)
+    }
 
+    // fiber.ref = coerceRef(returnFiber, current, element) // 待实现
+    fiber.return = returnFiber
+    return fiber
+  }
+
+  function updatePortal(returnFiber: Fiber, current: Fiber, portal: ReactPortal, expirationTime: ExpirationTime): Fiber {
+    let fiber: Fiber = null
+    if (current === null || current.tag !== HostPortal || current.stateNode.containerInfo !== portal.containerInfo || current.stateNode.implementation !== portal.implementation) {
+      fiber = createFiberFromPortal(portal, returnFiber.mode, expirationTime)
+    } else {
+      fiber = useFiber(current, portal.children || [])
+    }
+
+    fiber.return = returnFiber
+    return fiber
   }
 
   function updateSlot(returnFiber: Fiber, oldFiber: Fiber, newChild: any, expirationTime: ExpirationTime) {
@@ -152,7 +173,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         case REACT_ELEMENT_TYPE:
           if (newChild.key === key) {
             if (newChild.type === REACT_FRAGMENT_TYPE) {
-              return updateFragment(returnFiber, oldFiber, newChild, expirationTime)
+              return updateFragment(returnFiber, oldFiber, newChild, expirationTime, key)
             }
 
             return updateElement(returnFiber, oldFiber, newChild, expirationTime)
@@ -163,12 +184,12 @@ function ChildReconciler(shouldTrackSideEffects) {
           if (newChild.key === key) {
             return updatePortal(returnFiber, oldFiber, newChild, expirationTime)
           } else {
-            null
+            return null
           }
       }
     }
 
-    if (isArray(newChild) || getIteratorFn(newChild)) {
+    if (isArray(newChild) {
       if (key !== null) {
         return null
       }
