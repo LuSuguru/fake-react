@@ -53,61 +53,6 @@ function ChildReconciler(shouldTrackSideEffects) {
     return newFiber
   }
 
-  function reconcileSingleElement(returnFiber: Fiber, currentFirstChild: Fiber, element: ReactElement, expirationTime: ExpirationTime): Fiber {
-    let child: Fiber = currentFirstChild
-
-    while (child != null) {
-      if (child.key === element.key) {
-        if (child.tag === Fragment ? element.type === REACT_FRAGMENT_TYPE : child.elementType === element.type) {
-          deleteRemainingChildren(returnFiber, child.sibling)
-
-          const existing = useFiber(child, element.type === REACT_FRAGMENT_TYPE ? element.props.child : element.props)
-          // existing.ref = coerceRef(returnFiber, child, element) // 待实现，处理Ref
-          existing.return = returnFiber
-
-          return existing
-        } else {
-          deleteRemainingChildren(returnFiber, child)
-          break
-        }
-      } else {
-        deleteChild(returnFiber, child)
-      }
-
-      child = child.sibling
-    }
-
-    const created = createFiberFromElement(element, returnFiber.mode, expirationTime)
-    if (element.type !== REACT_FRAGMENT_TYPE) {
-      // created.ref = coerceRef(returnFiber, child, element) // 待实现，处理Ref
-    }
-
-    created.return = returnFiber
-    return created
-  }
-
-  // 待实现
-  function reconcileSinglePortal(returnFiber: Fiber, currentFirstChild: Fiber, portal: ReactElement, expirationTime: ExpirationTime): Fiber {
-    return returnFiber
-  }
-
-  function reconcileSingleTextNode(returnFiber: Fiber, currentFirstChild: Fiber, textContent: string, expirationTime: ExpirationTime): Fiber {
-    if (currentFirstChild !== null && currentFirstChild.tag === HostText) {
-      deleteRemainingChildren(returnFiber, currentFirstChild.sibling)
-
-      const existing = useFiber(currentFirstChild, textContent)
-      existing.return = returnFiber
-
-      return existing
-    }
-
-    deleteRemainingChildren(returnFiber, currentFirstChild)
-    const created = createFiberFromText(textContent, returnFiber.mode, expirationTime)
-    created.return = returnFiber
-
-    return created
-  }
-
   function updateFragment(returnFiber: Fiber, current: Fiber, newChild: any, expirationTime: ExpirationTime, key: string | null): Fiber {
     let fiber: Fiber = null
     if (current !== null && current.tag !== Fragment) {
@@ -189,7 +134,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       }
     }
 
-    if (isArray(newChild) {
+    if (isArray(newChild)) {
       if (key !== null) {
         return null
       }
@@ -200,12 +145,68 @@ function ChildReconciler(shouldTrackSideEffects) {
     return null
   }
 
+  function reconcileSingleElement(returnFiber: Fiber, currentFirstChild: Fiber, element: ReactElement, expirationTime: ExpirationTime): Fiber {
+    let child: Fiber = currentFirstChild
+
+    while (child != null) {
+      if (child.key === element.key) {
+        if (child.tag === Fragment ? element.type === REACT_FRAGMENT_TYPE : child.elementType === element.type) {
+          deleteRemainingChildren(returnFiber, child.sibling)
+
+          const existing = useFiber(child, element.type === REACT_FRAGMENT_TYPE ? element.props.child : element.props)
+          // existing.ref = coerceRef(returnFiber, child, element) // 待实现，处理Ref
+          existing.return = returnFiber
+
+          return existing
+        } else {
+          deleteRemainingChildren(returnFiber, child)
+          break
+        }
+      } else {
+        deleteChild(returnFiber, child)
+      }
+
+      child = child.sibling
+    }
+
+    const created = createFiberFromElement(element, returnFiber.mode, expirationTime)
+    if (element.type !== REACT_FRAGMENT_TYPE) {
+      // created.ref = coerceRef(returnFiber, child, element) // 待实现，处理Ref
+    }
+
+    created.return = returnFiber
+    return created
+  }
+
+  // 待实现
+  function reconcileSinglePortal(returnFiber: Fiber, currentFirstChild: Fiber, portal: ReactElement, expirationTime: ExpirationTime): Fiber {
+    return returnFiber
+  }
+
+  function reconcileSingleTextNode(returnFiber: Fiber, currentFirstChild: Fiber, textContent: string, expirationTime: ExpirationTime): Fiber {
+    if (currentFirstChild !== null && currentFirstChild.tag === HostText) {
+      deleteRemainingChildren(returnFiber, currentFirstChild.sibling)
+
+      const existing = useFiber(currentFirstChild, textContent)
+      existing.return = returnFiber
+
+      return existing
+    }
+
+    deleteRemainingChildren(returnFiber, currentFirstChild)
+    const created = createFiberFromText(textContent, returnFiber.mode, expirationTime)
+    created.return = returnFiber
+
+    return created
+  }
+
   function reconcileChildrenArray(returnFiber: Fiber, currentFirstChild: Fiber, newChildren: any[], expirationTime: ExpirationTime): Fiber {
     const resultingFirstChild: Fiber = null
     const previousNewFiber: Fiber = null
 
     let oldFiber: Fiber = currentFirstChild
     const lastPlacedIndex: number = 0
+
     let newIdx: number = 0
     let nextOldFiber: Fiber = null
 
