@@ -15,3 +15,12 @@ export const REACT_LAZY_TYPE = 'react.lazy'
 
 export type ReactEmpty = null | void | boolean
 export type ReactNodeList = ReactEmpty | any[]
+
+export type ReactPortal = {
+  $$typeof: Symbol | number,
+  key: null | string,
+  containerInfo: any,
+  children: ReactNodeList,
+  // TODO: figure out the API for cross-renderer implementation.
+  implementation: any,
+}

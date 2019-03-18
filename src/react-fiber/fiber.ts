@@ -1,7 +1,7 @@
 import { isFunction } from 'util'
 import { NoEffect, SideEffectTag } from '../react-type/effect-type'
-import { REACT_CONCURRENT_MODE_TYPE, REACT_CONTEXT_TYPE, REACT_FORWARD_REF_TYPE, REACT_FRAGMENT_TYPE, REACT_LAZY_TYPE, REACT_MEMO_TYPE, REACT_PROFILER_TYPE, REACT_PROVIDER_TYPE, REACT_STRICT_MODE_TYPE, REACT_SUSPENSE_TYPE } from '../react-type/react-type'
-import { ClassComponent, ContextConsumer, ContextProvider, ForwardRef, Fragment, HostComponent, HostText, IndeterminateComponent, LazyComponent, MemoComponent, Mode, Profiler, SuspenseComponent, WorkTag } from '../react-type/tag-type'
+import { REACT_CONCURRENT_MODE_TYPE, REACT_CONTEXT_TYPE, REACT_FORWARD_REF_TYPE, REACT_FRAGMENT_TYPE, REACT_LAZY_TYPE, REACT_MEMO_TYPE, REACT_PROFILER_TYPE, REACT_PROVIDER_TYPE, REACT_STRICT_MODE_TYPE, REACT_SUSPENSE_TYPE, ReactPortal } from '../react-type/react-type'
+import { ClassComponent, ContextConsumer, ContextProvider, ForwardRef, Fragment, HostComponent, HostText, IndeterminateComponent, LazyComponent, MemoComponent, Mode, Profiler, SuspenseComponent, WorkTag, HostPortal } from '../react-type/tag-type'
 import { ConcurrentMode, NoContext, StrictMode, TypeOfMode } from '../react-type/work-type'
 import { UpdateQueue } from '../react-update/update-queue'
 import { ReactElement } from '../react/react'
@@ -105,6 +105,20 @@ function createFiberFromText(pendingProps: any, mode: TypeOfMode, expirationTime
   return fiber
 }
 
+function createFiberFromPortal(portal: ReactPortal, mode: TypeOfMode, expirationTime: ExpirationTime): Fiber {
+  const pendingProps = portal.children !== null ? portal.children : []
+  const fiber = new Fiber(HostPortal, pendingProps, portal.key, mode)
+  fiber.stateNode = {
+    containerInfo: portal.containerInfo,
+    pendingChildren: null,
+    implementation: portal.implementation,
+  }
+
+  fiber.expirationTime = expirationTime
+
+  return fiber
+}
+
 function createFiberFromTypeAndProps(type: any, key: null | string, pendingProps: any, mode: TypeOfMode, expirationTime: ExpirationTime) {
   let fiberTag: WorkTag = IndeterminateComponent
   let resolvedType: any = type
@@ -169,4 +183,10 @@ function createFiberFromElement(element: ReactElement, mode: TypeOfMode, expirat
   return fiber
 }
 
-export { Fiber, createWorkInProgress, createFiberFromElement, createFiberFromText }
+export {
+  Fiber,
+  createWorkInProgress,
+  createFiberFromElement,
+  createFiberFromText,
+  createFiberFromPortal
+}
