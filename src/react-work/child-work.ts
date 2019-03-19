@@ -1,10 +1,10 @@
-import { isArray } from 'util'
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { createFiberFromElement, createFiberFromPortal, createFiberFromText, createFiberFromTypeAndProps, createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Deletion, Placement } from '../react-type/effect-type'
 import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, REACT_PORTAL_TYPE, REACT_PROFILER_TYPE, ReactPortal } from '../react-type/react-type'
 import { Fragment, HostPortal, HostText } from '../react-type/tag-type'
 import { ReactElement } from '../react/react'
+import { isArray } from '../utils/getType'
 import { isObject, isText } from '../utils/getType'
 
 function useFiber(fiber: Fiber, pendingProps: any): Fiber {
@@ -74,6 +74,10 @@ function ChildReconciler(shouldTrackSideEffects) {
       newFiber.effectTag = Placement
     }
     return newFiber
+  }
+
+  function createChild(returnFiber: Fiber, newChild: any, expirationTime: ExpirationTime): Fiber {
+
   }
 
   function updateFragment(returnFiber: Fiber, current: Fiber, newChild: any, expirationTime: ExpirationTime, key: string | null): Fiber {
@@ -193,11 +197,9 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
 
     const created = createFiberFromElement(element, returnFiber.mode, expirationTime)
-    if (element.type !== REACT_FRAGMENT_TYPE) {
-      // created.ref = coerceRef(returnFiber, child, element) // 待实现，处理Ref
-    }
-
+    // created.ref = coerceRef(returnFiber, child, element) // 待实现，处理Ref
     created.return = returnFiber
+
     return created
   }
 
@@ -224,8 +226,8 @@ function ChildReconciler(shouldTrackSideEffects) {
   }
 
   function reconcileChildrenArray(returnFiber: Fiber, currentFirstChild: Fiber, newChildren: any[], expirationTime: ExpirationTime): Fiber {
-    let resultingFirstChild: Fiber = null
-    let previousNewFiber: Fiber = null
+    let resultingFirstChild: Fiber = null // 要返回的链表头
+    let previousNewFiber: Fiber = null // 链表的指针
 
     let oldFiber: Fiber = currentFirstChild
     let lastPlacedIndex: number = 0
@@ -242,7 +244,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       }
       const newFiber = updateSlot(returnFiber, oldFiber, newChildren[newIdx], expirationTime)
 
-      if (newFiber === null) {
+      if (newFiber === null) { // 有一个新旧key不相同，直接退出循环
         if (oldFiber === null) {
           oldFiber = nextOldFiber
         }
@@ -262,6 +264,15 @@ function ChildReconciler(shouldTrackSideEffects) {
       }
       previousNewFiber = newFiber
       oldFiber = nextOldFiber
+    }
+
+    if (newIdx === newChildren.length) { // 新的数组已全部遍历完，删除余下的旧元素，返回
+      deleteRemainingChildren(returnFiber, oldFiber)
+      return resultingFirstChild
+    }
+
+    if (oldFiber === null) { // 旧的遍历完，新的还有，说明后续的都是新增
+
     }
   }
 
