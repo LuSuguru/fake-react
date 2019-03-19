@@ -46,6 +46,29 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
   }
 
+  function placeChild(newFiber: Fiber, lastPlacedIndex: number, newIdx: number): number {
+    newFiber.index = newIdx
+
+    if (!shouldTrackSideEffects) {
+      return lastPlacedIndex
+    }
+
+    const current = newFiber.alternate
+    if (current !== null) {
+      const oldIndex = current.index
+      if (oldIndex < lastPlacedIndex) {
+        newFiber.effectTag = Placement // 需要移动
+        return lastPlacedIndex
+      } else {
+        return oldIndex
+      }
+    } else {
+      newFiber.effectTag = Placement
+      return lastPlacedIndex
+    }
+  }
+
+
   function placeSingleChild(newFiber: Fiber): Fiber {
     if (shouldTrackSideEffects && newFiber.alternate === null) {
       newFiber.effectTag = Placement
@@ -201,11 +224,11 @@ function ChildReconciler(shouldTrackSideEffects) {
   }
 
   function reconcileChildrenArray(returnFiber: Fiber, currentFirstChild: Fiber, newChildren: any[], expirationTime: ExpirationTime): Fiber {
-    const resultingFirstChild: Fiber = null
-    const previousNewFiber: Fiber = null
+    let resultingFirstChild: Fiber = null
+    let previousNewFiber: Fiber = null
 
     let oldFiber: Fiber = currentFirstChild
-    const lastPlacedIndex: number = 0
+    let lastPlacedIndex: number = 0
 
     let newIdx: number = 0
     let nextOldFiber: Fiber = null
@@ -218,6 +241,27 @@ function ChildReconciler(shouldTrackSideEffects) {
         nextOldFiber = oldFiber.sibling
       }
       const newFiber = updateSlot(returnFiber, oldFiber, newChildren[newIdx], expirationTime)
+
+      if (newFiber === null) {
+        if (oldFiber === null) {
+          oldFiber = nextOldFiber
+        }
+        break
+      }
+
+      if (shouldTrackSideEffects && (oldFiber && newFiber.alternate === null)) {
+        deleteChild(returnFiber, oldFiber)
+      }
+
+      lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
+
+      if (previousNewFiber === null) {
+        resultingFirstChild = previousNewFiber
+      } else {
+        previousNewFiber.sibling = newFiber
+      }
+      previousNewFiber = newFiber
+      oldFiber = nextOldFiber
     }
   }
 
