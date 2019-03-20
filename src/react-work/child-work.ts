@@ -1,5 +1,5 @@
 import { ExpirationTime } from '../react-fiber/expiration-time'
-import { createFiberFromElement, createFiberFromPortal, createFiberFromText, createFiberFromTypeAndProps, createWorkInProgress, Fiber } from '../react-fiber/fiber'
+import { createFiberFromElement, createFiberFromFragment, createFiberFromPortal, createFiberFromText, createFiberFromTypeAndProps, createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Deletion, Placement } from '../react-type/effect-type'
 import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, REACT_PORTAL_TYPE, REACT_PROFILER_TYPE, ReactPortal } from '../react-type/react-type'
 import { Fragment, HostPortal, HostText } from '../react-type/tag-type'
@@ -77,15 +77,40 @@ function ChildReconciler(shouldTrackSideEffects) {
   }
 
   function createChild(returnFiber: Fiber, newChild: any, expirationTime: ExpirationTime): Fiber {
+    if (isText(newChild)) {
+      const fiber = createFiberFromText('' + newChild, returnFiber.mode, expirationTime)
+      fiber.return = returnFiber
+      return fiber
+    }
 
+    if (isObject(newChild)) {
+      switch (newChild.$$typeof) {
+        case REACT_ELEMENT_TYPE:
+          const created = createFiberFromElement(newChild, returnFiber.mode, expirationTime)
+          created.return = returnFiber
+          return created
+        case REACT_PORTAL_TYPE:
+          const fiber = createFiberFromPortal(newChild, returnFiber.mode, expirationTime)
+          fiber.return = returnFiber
+          return fiber
+      }
+
+      if (isArray(newChild)) {
+        const fiber = createFiberFromFragment(newChild, returnFiber.mode, expirationTime, null)
+        fiber.return = returnFiber
+        return fiber
+      }
+    }
+
+    return null
   }
 
-  function updateFragment(returnFiber: Fiber, current: Fiber, newChild: any, expirationTime: ExpirationTime, key: string | null): Fiber {
+  function updateFragment(returnFiber: Fiber, current: Fiber, fragment: any, expirationTime: ExpirationTime, key: string | null): Fiber {
     let fiber: Fiber = null
     if (current !== null && current.tag !== Fragment) {
-      fiber = createFiberFromTypeAndProps(REACT_FRAGMENT_TYPE, key, newChild.props.children, returnFiber.mode, expirationTime)
+      fiber = createFiberFromFragment(fragment, returnFiber.mode, expirationTime, key)
     } else {
-      fiber = useFiber(current, newChild.props.children)
+      fiber = useFiber(current, fragment)
     }
 
     fiber.return = returnFiber
@@ -145,7 +170,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         case REACT_ELEMENT_TYPE:
           if (newChild.key === key) {
             if (newChild.type === REACT_FRAGMENT_TYPE) {
-              return updateFragment(returnFiber, oldFiber, newChild, expirationTime, key)
+              return updateFragment(returnFiber, oldFiber, newChild.props.children, expirationTime, key)
             }
 
             return updateElement(returnFiber, oldFiber, newChild, expirationTime)
@@ -166,7 +191,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         return null
       }
 
-      return updateFragment(returnFiber, oldFiber, newChild.props.children, expirationTime, null)
+      return updateFragment(returnFiber, oldFiber, newChild, expirationTime, null)
     }
 
     return null
@@ -180,7 +205,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         if (child.tag === Fragment ? element.type === REACT_FRAGMENT_TYPE : child.elementType === element.type) {
           deleteRemainingChildren(returnFiber, child.sibling)
 
-          const existing = useFiber(child, element.type === REACT_FRAGMENT_TYPE ? element.props.child : element.props)
+          const existing = useFiber(child, element.type === REACT_FRAGMENT_TYPE ? element.props.children : element.props)
           // existing.ref = coerceRef(returnFiber, child, element) // 待实现，处理Ref
           existing.return = returnFiber
 
@@ -272,7 +297,22 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
 
     if (oldFiber === null) { // 旧的遍历完，新的还有，说明后续的都是新增
+      for (; newIdx < newChildren.length; newIdx++) {
+        const newFiber = createChild(returnFiber, newChildren[newIdx], expirationTime)
+        if (!newFiber) {
+          continue
+        }
 
+        lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
+
+        if (previousNewFiber === null) {
+          resultingFirstChild = previousNewFiber
+        } else {
+          previousNewFiber.sibling = newFiber
+        }
+        previousNewFiber = newFiber
+        return resultingFirstChild
+      }
     }
   }
 

@@ -125,6 +125,12 @@ function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
   return workInProgress
 }
 
+function createFiberFromFragment(pendingProps: any, mode: TypeOfMode, expirationTime: ExpirationTime, key: null | string): Fiber {
+  const fiber = new Fiber(Fragment, pendingProps, key, mode)
+  fiber.expirationTime = expirationTime
+
+  return fiber
+}
 
 function createFiberFromText(pendingProps: any, mode: TypeOfMode, expirationTime: ExpirationTime): Fiber {
   const fiber = new Fiber(HostText, pendingProps, null, mode)
@@ -147,7 +153,7 @@ function createFiberFromPortal(portal: ReactPortal, mode: TypeOfMode, expiration
   return fiber
 }
 
-function createFiberFromTypeAndProps(type: any, key: null | string, pendingProps: any, mode: TypeOfMode, expirationTime: ExpirationTime) {
+function createFiberFromTypeAndProps(type: any, key: null | string, pendingProps: any, mode: TypeOfMode, expirationTime: ExpirationTime): Fiber {
   let fiberTag: WorkTag = IndeterminateComponent
   let resolvedType: any = type
 
@@ -158,9 +164,7 @@ function createFiberFromTypeAndProps(type: any, key: null | string, pendingProps
   } else {
     getTag: switch (type) {
       case REACT_FRAGMENT_TYPE:
-        fiberTag = Fragment
-        pendingProps = pendingProps.children
-        break
+        return createFiberFromFragment(pendingProps.children, mode, expirationTime, key)
       case REACT_CONCURRENT_MODE_TYPE:
       case REACT_STRICT_MODE_TYPE:
         fiberTag = Mode
@@ -204,7 +208,7 @@ function createFiberFromTypeAndProps(type: any, key: null | string, pendingProps
   return fiber
 }
 
-function createFiberFromElement(element: ReactElement, mode: TypeOfMode, expirationTime: ExpirationTime) {
+function createFiberFromElement(element: ReactElement, mode: TypeOfMode, expirationTime: ExpirationTime): Fiber {
   const { type, key, props } = element
 
   const fiber = createFiberFromTypeAndProps(type, key, props, mode, expirationTime)
@@ -216,6 +220,7 @@ export {
   createWorkInProgress,
   createFiberFromElement,
   createFiberFromTypeAndProps,
+  createFiberFromFragment,
   createFiberFromText,
   createFiberFromPortal,
 }
