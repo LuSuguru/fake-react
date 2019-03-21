@@ -30,7 +30,7 @@ function mapRemainingChildren(currentFirstChild: Fiber): Map<string | number, Fi
   return existingChildren
 }
 
-function ChildReconciler(shouldTrackSideEffects) {
+function ChildReconciler(shouldTrackSideEffects: boolean) {
   function deleteChild(returnFiber: Fiber, childToDelete: Fiber) {
     if (!shouldTrackSideEffects) {
       return
@@ -59,6 +59,8 @@ function ChildReconciler(shouldTrackSideEffects) {
       deleteChild(returnFiber, childToDelete)
       childToDelete = childToDelete.sibling
     }
+
+    return null
   }
 
   function placeChild(newFiber: Fiber, lastPlacedIndex: number, newIdx: number): number {
@@ -410,6 +412,13 @@ function ChildReconciler(shouldTrackSideEffects) {
     if (isArray(newChild)) {
       return reconcileChildrenArray(returnFiber, currentFirstChild, newChild, expirationTime)
     }
+
+    if (typeof newChild === 'undefined' && !isUnkeyedTopLevelFragment) {
+      const Component = returnFiber.type
+      console.error('render必须返回内容')
+    }
+
+    return deleteRemainingChildren(returnFiber, currentFirstChild)
   }
 }
 
