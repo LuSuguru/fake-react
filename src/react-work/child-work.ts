@@ -15,6 +15,21 @@ function useFiber(fiber: Fiber, pendingProps: any): Fiber {
   return clone
 }
 
+function mapRemainingChildren(currentFirstChild: Fiber): Map<string | number, Fiber> {
+  const existingChildren: Map<string | number, Fiber> = new Map()
+
+  let existingChild: Fiber = currentFirstChild
+  while (existingChild !== null) {
+    if (existingChild.key !== null) {
+      existingChildren.set(existingChild.key, existingChild)
+    } else {
+      existingChildren.set(existingChild.index, existingChild)
+    }
+    existingChild = existingChild.sibling
+  }
+  return existingChildren
+}
+
 function ChildReconciler(shouldTrackSideEffects) {
   function deleteChild(returnFiber: Fiber, childToDelete: Fiber) {
     if (!shouldTrackSideEffects) {
@@ -152,6 +167,35 @@ function ChildReconciler(shouldTrackSideEffects) {
 
     fiber.return = returnFiber
     return fiber
+  }
+
+  function updateFromMap(returnFiber: Fiber, existingChildren: Map<string | number, Fiber>, newChild: any, newIdx: number, expirationTime: ExpirationTime) {
+    if (isText(newChild)) {
+      const matchedFiber = existingChildren.get(newIdx) || null
+      return updateTextNode(returnFiber, matchedFiber, '' + newChild, expirationTime)
+    }
+
+    if (isObject(newChild)) {
+      switch (newChild.$$typeof) {
+        case REACT_ELEMENT_TYPE: {
+          const matchedFiber = existingChildren.get(newChild.key === null ? newIdx : newChild.key) || null
+          if (newChild.type === REACT_FRAGMENT_TYPE) {
+            return updateFragment(returnFiber, matchedFiber, newChild.props.children, expirationTime, newChild.key)
+          }
+          return updateElement(returnFiber, matchedFiber, newChild, expirationTime)
+        }
+        case REACT_PORTAL_TYPE: {
+          const matchedFiber = existingChildren.get(newChild.key === null ? newIdx : newChild.key) || null
+          return updatePortal(returnFiber, matchedFiber, newChild, expirationTime)
+        }
+      }
+
+      if (isArray(newChild)) {
+        const matchedFiber = existingChildren.get(newIdx) || null
+        return updateFragment(returnFiber, matchedFiber, newChild, expirationTime, null)
+      }
+    }
+    return null
   }
 
   function updateSlot(returnFiber: Fiber, oldFiber: Fiber, newChild: any, expirationTime: ExpirationTime) {
@@ -314,6 +358,33 @@ function ChildReconciler(shouldTrackSideEffects) {
         return resultingFirstChild
       }
     }
+
+    const existingChildren = mapRemainingChildren(oldFiber)
+
+    for (; newIdx < newChildren.length; newIdx++) {
+      const newFiber = updateFromMap(returnFiber, existingChildren, newChildren[newIdx], newIdx, expirationTime)
+
+      if (newFiber) {
+        if (shouldTrackSideEffects) {
+          if (newFiber.alternate !== null) {
+            existingChildren.delete(newFiber.key === null ? newIdx : newFiber.key)
+          }
+        }
+
+        lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
+        if (previousNewFiber) {
+          resultingFirstChild = newFiber
+        } else {
+          previousNewFiber.sibling = newFiber
+        }
+        previousNewFiber = newFiber
+      }
+    }
+
+    if (shouldTrackSideEffects) {
+      existingChildren.forEach((child: Fiber) => deleteChild(returnFiber, child))
+    }
+    return resultingFirstChild
   }
 
   return (returnFiber: Fiber, currentFirstChild: Fiber, newChild: any, expirationTime: ExpirationTime): Fiber => {
