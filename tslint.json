@@ -13,6 +13,7 @@
     "no-conditional-assignment": false,
     "no-consecutive-blank-lines": false,
     "max-classes-per-file": false,
+    "variable-name": false,
     "no-console": {
       "severity": "warning",
       "options": [

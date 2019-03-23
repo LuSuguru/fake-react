@@ -3,7 +3,7 @@ import { Fiber } from '../react-fiber/fiber'
 import { hasContextChanged } from '../react-fiber/fiber-context'
 import { renderWithHooks } from '../react-fiber/fiber-hook'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
-import { PerformedWork } from '../react-type/effect-type'
+import { PerformedWork, Placement } from '../react-type/effect-type'
 import { ClassComponent, FunctionComponent, HostRoot, IncompleteClassComponent, LazyComponent } from '../react-type/tag-type'
 import { reconcileChildren } from './child-work'
 
@@ -30,14 +30,26 @@ function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Componen
 }
 
 function updateClassComponent(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, renderExpirationTime: ExpirationTime) {
-  let hasContext
-  if (isLegacyContextProvider(Component)) {
-    hasContext = true
-    pushLegacyContextProvider(workInProgress)
-  } else {
-    hasContext = false
+  // let hasContext  // context操作，待实现
+  // if (isLegacyContextProvider(Component)) {
+  //   hasContext = true
+  //   pushLegacyContextProvider(workInProgress)
+  // } else {
+  //   hasContext = false
+  // }
+  // prepareToReadContext(workInProgress, renderExpirationTime)
+
+  const instance = workInProgress.stateNode
+  const shouldUpdate: boolean = false
+
+  if (instance === null) {
+    if (current !== null) {
+      current.alternate = null
+      workInProgress.alternate = null
+      workInProgress.effectTag = Placement
+    }
+
   }
-  prepareToReadContext(workInProgress, renderExpirationTime)
 }
 
 function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {

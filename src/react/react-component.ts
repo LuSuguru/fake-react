@@ -1,3 +1,4 @@
+import { Fiber } from '../react-fiber/fiber'
 import ReactNoopUpdateQueue, { ReactUpdateQueue } from './react-noop-update-queue'
 
 class Component {
@@ -5,6 +6,7 @@ class Component {
   context: any
   refs: any
   updater: ReactUpdateQueue
+  _reactInternalFiber: Fiber = null
 
   constructor(props: any, context: any, updater: ReactUpdateQueue) {
     this.props = props
