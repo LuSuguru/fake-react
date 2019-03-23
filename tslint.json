@@ -12,6 +12,7 @@
     "no-bitwise": false,
     "no-conditional-assignment": false,
     "no-consecutive-blank-lines": false,
+    "max-classes-per-file": false,
     "no-console": {
       "severity": "warning",
       "options": [

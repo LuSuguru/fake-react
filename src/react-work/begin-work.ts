@@ -4,7 +4,7 @@ import { hasContextChanged } from '../react-fiber/fiber-context'
 import { renderWithHooks } from '../react-fiber/fiber-hook'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
 import { PerformedWork } from '../react-type/effect-type'
-import { FunctionComponent, HostRoot, IncompleteClassComponent, LazyComponent } from '../react-type/tag-type'
+import { ClassComponent, FunctionComponent, HostRoot, IncompleteClassComponent, LazyComponent } from '../react-type/tag-type'
 import { reconcileChildren } from './child-work'
 
 let didReceiveUpdate: boolean = false
@@ -27,6 +27,17 @@ function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Componen
   reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
 
   return workInProgress.child
+}
+
+function updateClassComponent(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, renderExpirationTime: ExpirationTime) {
+  let hasContext
+  if (isLegacyContextProvider(Component)) {
+    hasContext = true
+    pushLegacyContextProvider(workInProgress)
+  } else {
+    hasContext = false
+  }
+  prepareToReadContext(workInProgress, renderExpirationTime)
 }
 
 function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
@@ -67,7 +78,12 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
       const resolvedProps = workInProgress.elementType === Component ? unresolveProps : resolveDefaultProps(Component, unresolveProps)
       return updateFunctionComponent(current, workInProgress, Component, resolvedProps, renderExpirationTime)
     }
-
+    case ClassComponent: {
+      const Component = workInProgress.type
+      const unresolveProps = workInProgress.pendingProps
+      const resolvedProps = workInProgress.elementType === Component ? unresolveProps : resolveDefaultProps(Component, unresolveProps)
+      return updateClassComponent(current, workInProgress, Component, resolvedProps, renderExpirationTime)
+    }
   }
 }
 
