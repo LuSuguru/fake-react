@@ -305,7 +305,7 @@ function performWorkOnRoot(root: FiberRoot, expirationTime: ExpirationTime, isYi
 }
 
 function renderRoot(root: FiberRoot, isYieldy: boolean) {
-  flushPassiveEffects() // 待实现
+  // flushPassiveEffects() // 事件相关待实现
 
   isWorking = true
   //  const previousDispatcher = ReactCurrentDispatcher.current

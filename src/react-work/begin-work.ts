@@ -1,3 +1,4 @@
+import { constructClassInstance } from '../react-fiber/class-component'
 import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { hasContextChanged } from '../react-fiber/fiber-context'
@@ -46,8 +47,9 @@ function updateClassComponent(current: Fiber, workInProgress: Fiber, Component: 
     if (current !== null) {
       current.alternate = null
       workInProgress.alternate = null
-      workInProgress.effectTag = Placement
+      workInProgress.effectTag |= Placement
     }
+    constructClassInstance(workInProgress, Component, nextProps)
 
   }
 }

@@ -1,4 +1,5 @@
 import { ExpirationTime } from '../react-fiber/expiration-time'
+import { isEmpty } from '../utils/getType'
 
 type UpdateTag = 0 | 1 | 2 | 3
 
@@ -17,8 +18,16 @@ export default class Update<State> {
   next: Update<State> = null
   nextEffect: Update<State> = null
 
-  constructor(expirationTime: ExpirationTime, tag: UpdateTag) {
+  constructor(expirationTime: ExpirationTime, tag: UpdateTag, payload?: any, callback?: Function) {
     this.expirationTime = expirationTime
     this.tag = tag
+
+    if (payload) {
+      this.payload = payload
+    }
+
+    if (!isEmpty(callback)) {
+      this.callback = callback
+    }
   }
 }
