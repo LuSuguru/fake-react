@@ -6,6 +6,7 @@ class Component {
   context: any
   refs: any
   updater: ReactUpdateQueue
+  state: any
   _reactInternalFiber: Fiber = null
 
   constructor(props: any, context: any, updater: ReactUpdateQueue) {

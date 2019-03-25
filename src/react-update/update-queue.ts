@@ -1,5 +1,6 @@
 import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
+import { Callback } from '../react-type/effect-type'
 import Update, { getStateFromUpdate } from './update'
 
 let hasForceUpdate: boolean = false
@@ -103,7 +104,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber, queue: UpdateQu
   let newFirstUpdate: Update<State> = null
   let newExpirationTime: ExpirationTime = NoWork
 
-  const update: Update<State> = queue.firstUpdate
+  let update: Update<State> = queue.firstUpdate
   let resultState: State = newBaseState
 
   while (update !== null) {
@@ -119,8 +120,78 @@ export function processUpdateQueue<State>(workInProgress: Fiber, queue: UpdateQu
       }
     } else {
       resultState = getStateFromUpdate(workInProgress, update, resultState, props, instance)
+
+      const { callback } = update
+      if (callback !== null) {
+        workInProgress.effectTag |= Callback
+
+        update.nextEffect = null
+        if (queue.lastEffect === null) {
+          queue.firstEffect = queue.lastEffect = update
+        } else {
+          queue.lastEffect.nextEffect = update
+          queue.lastEffect = update
+        }
+      }
     }
+    update = update.next
   }
+
+  let newFirstCapturedUpdate: Update<State> = null
+  update = queue.firstCapturedUpdate
+
+  while (update !== null) {
+    const updateExpirationTime = update.expirationTime
+    if (updateExpirationTime < renderExpirationTime) {
+      if (newFirstCapturedUpdate === null) {
+        newFirstCapturedUpdate = update
+        if (newBaseState === null) {
+          newBaseState = resultState
+        }
+      }
+
+      if (newExpirationTime < updateExpirationTime) {
+        newExpirationTime = updateExpirationTime
+      }
+    } else {
+      resultState = getStateFromUpdate(workInProgress, update, resultState, props, instance)
+
+      const { callback } = update
+      if (callback !== null) {
+        workInProgress.effectTag |= Callback
+
+        update.nextEffect = null
+        if (queue.lastCapturedEffect === null) {
+          queue.lastCapturedEffect = queue.firstCapturedEffect = update
+        } else {
+          queue.lastCapturedEffect.nextEffect = update
+          queue.lastEffect = update
+        }
+      }
+    }
+    update = update.next
+  }
+
+  if (newFirstUpdate === null) {
+    queue.lastUpdate = null
+  }
+
+  if (newFirstCapturedUpdate === null) {
+    queue.lastCapturedUpdate = null
+  } else {
+    workInProgress.effectTag |= Callback
+  }
+
+  if (newFirstUpdate === null && newFirstCapturedUpdate === null) {
+    newBaseState = resultState
+  }
+
+  queue.baseState = newBaseState
+  queue.firstUpdate = newFirstUpdate
+  queue.firstCapturedUpdate = newFirstCapturedUpdate
+
+  workInProgress.expirationTime = newExpirationTime
+  workInProgress.memoizedState = resultState
 }
 
 
