@@ -9,6 +9,10 @@ export function changeHasForceUpdate(flag) {
   hasForceUpdate = flag
 }
 
+export function getHasForceUpdate() {
+  return hasForceUpdate
+}
+
 export class UpdateQueue<State> {
   baseState: State
 

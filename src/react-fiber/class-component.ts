@@ -1,8 +1,8 @@
 import { isFunction } from 'util'
 import { computeExpirationTimeForFiber, requestCurrentTime, scheduleWork } from '../react-scheduler'
-import { Update } from '../react-type/effect-type'
-import { ForceUpdate, ReplaceState, UpdateState } from '../react-update/update'
-import { enqueueUpdate, processUpdateQueue, UpdateQueue } from '../react-update/update-queue'
+import { Update as UpdateTag } from '../react-type/effect-type'
+import Update, { ForceUpdate, ReplaceState, UpdateState } from '../react-update/update'
+import { changeHasForceUpdate, enqueueUpdate, getHasForceUpdate, processUpdateQueue, UpdateQueue } from '../react-update/update-queue'
 import { Component } from '../react/react-component'
 import { ReactUpdateQueue } from '../react/react-noop-update-queue'
 import { isEmpty } from '../utils/getType'
@@ -58,13 +58,28 @@ function applyDerivedStateFromProps(workInProgress: Fiber, getDerivedStateFromPr
   }
 }
 
-function applyComponentWillMount(workInProgress: Fiber, instance: any) {
+function applyComponentWillMount(instance: any) {
   const oldState = instance.state
   if (isFunction(instance.componentWillMount)) {
     instance.componentWillMount()
   }
   if (isFunction(instance.UNSAFE_componentWillMount)) {
     instance.UNSAFE_componentWillMount()
+  }
+
+  if (oldState !== instance.state) {
+    classComponentUpdater.enqueueReplaceState(instance, instance.state)
+  }
+}
+
+function applyComponentWillReceiveProps(instance: any, newProps: any, nextContext: any) {
+  const oldState = instance.state
+
+  if (isFunction(instance.componentWillReceiveProps)) {
+    instance.componentWillReceiveProps(newProps, nextContext)
+  }
+  if (isFunction(instance.UNSAFE_componentWillReceiveProps)) {
+    instance.UNSAFE_componentWillReceiveProps(newProps, nextContext)
   }
 
   if (oldState !== instance.state) {
@@ -130,7 +145,7 @@ function mountClassInstance(workInProgress: Fiber, ctor: any, newProps: any, ren
     typeof ctor.getDerivedStateFromProps !== 'function' && typeof instance.getSnapshotBeforeUpdate !== 'function'
     && (typeof instance.UNSAFE_componentWillMount === 'function' || typeof instance.componentWillMount === 'function')
   ) {
-    applyComponentWillMount(workInProgress, instance)
+    applyComponentWillMount(instance)
 
     updateQueue = workInProgress.updateQueue
     if (updateQueue !== null) {
@@ -140,8 +155,59 @@ function mountClassInstance(workInProgress: Fiber, ctor: any, newProps: any, ren
   }
 
   if (isFunction(instance.componentDidMount)) {
-    workInProgress.effectTag |= Update
+    workInProgress.effectTag |= UpdateTag
   }
 }
 
-export { constructClassInstance, mountClassInstance }
+function resumeMountClassInstance(workInProgress: Fiber, ctor: any, newProps: any, renderExpirationTime: ExpirationTime): boolean {
+  const { stateNode: instance } = workInProgress
+
+  const oldProps = workInProgress.memoizedProps
+  instance.props = oldProps
+
+  // context操作
+  const oldContext = instance.context
+  const contextType = ctor.contextType
+  let nextContext
+  // if (typeof contextType === 'object' && contextType !== null) {
+  //   nextContext = readContext(contextType)
+  // } else {
+  //   const nextLegacyUnmaskedContext = getUnmaskedContext(
+  //     workInProgress,
+  //     ctor,
+  //     true,
+  //   )
+  //   nextContext = getMaskedContext(workInProgress, nextLegacyUnmaskedContext)
+  // }
+
+  const { getDerivedStateFromProps, getSnapshotBeforeUpdate } = ctor
+
+  const hasNewLifecycles = isFunction(getDerivedStateFromProps) || isFunction(getSnapshotBeforeUpdate)
+  const hasOldLifeCycles = isFunction(instance.UNSAFE_componentWillReceiveProps) || isFunction(instance.componentWillReceiveProps)
+  if (!hasNewLifecycles && hasOldLifeCycles) {
+    if (oldProps !== newProps || oldContext !== nextContext) {
+      applyComponentWillReceiveProps(instance, newProps, nextContext)
+    }
+
+    changeHasForceUpdate(false)
+
+
+    const oldState = workInProgress.memoizedState
+    let newState: any = (instance.state = oldState)
+    const updateQueue = workInProgress.updateQueue
+    if (updateQueue !== null) {
+      processUpdateQueue(workInProgress, updateQueue, newProps, instance, renderExpirationTime)
+      newState = workInProgress.memoizedState
+    }
+
+    const havaComponentDidMount = typeof()
+
+    if (oldProps === newProps && oldState === newState && !getHasForceUpdate()) { // !hasContextChanged()) {
+      if (typeof instance.componentDidMount === 'function') {
+        workInProgress.effectTag |= UpdateTag
+      }
+      return false
+    }
+  }
+}
+export { constructClassInstance, mountClassInstance, resumeMountClassInstance }

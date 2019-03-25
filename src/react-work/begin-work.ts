@@ -1,4 +1,4 @@
-import { constructClassInstance, mountClassInstance } from '../react-fiber/class-component'
+import { constructClassInstance, mountClassInstance, resumeMountClassInstance } from '../react-fiber/class-component'
 import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { hasContextChanged } from '../react-fiber/fiber-context'
@@ -41,7 +41,7 @@ function updateClassComponent(current: Fiber, workInProgress: Fiber, Component: 
   // prepareToReadContext(workInProgress, renderExpirationTime)
 
   const instance = workInProgress.stateNode
-  const shouldUpdate: boolean = false
+  let shouldUpdate: boolean = false
 
   if (instance === null) {
     if (current !== null) {
@@ -51,6 +51,9 @@ function updateClassComponent(current: Fiber, workInProgress: Fiber, Component: 
     }
     constructClassInstance(workInProgress, Component, nextProps)
     mountClassInstance(workInProgress, Component, nextProps, renderExpirationTime)
+    shouldUpdate = true
+  } else if (current === null) {
+    shouldUpdate = resumeMountClassInstance(workInProgress, Component, nextProps, renderExpirationTime)
   }
 }
 
