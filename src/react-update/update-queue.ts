@@ -1,5 +1,12 @@
+import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
-import Update from './update'
+import Update, { getStateFromUpdate } from './update'
+
+let hasForceUpdate: boolean = false
+
+export function changeHasForceUpdate(flag) {
+  hasForceUpdate = flag
+}
 
 export class UpdateQueue<State> {
   baseState: State
@@ -31,11 +38,21 @@ function cloneUpdateQueue<State>(queue: UpdateQueue<State>): UpdateQueue<State> 
 
 function appendUpdateToQueue<State>(queue: UpdateQueue<State>, update: Update<State>) {
   if (queue.lastUpdate === null) {
-    queue.firstUpdate = queue.lastUpdate = null
+    queue.firstUpdate = queue.lastUpdate = update
   } else {
     queue.lastUpdate.next = update
     queue.lastUpdate = update
   }
+}
+
+function ensureWorkInProcessQueueIsAClone<State>(workInProgress: Fiber, queue: UpdateQueue<State>): UpdateQueue<State> {
+  const current = workInProgress.alternate
+  if (current !== null) {
+    if (queue === current.updateQueue) {
+      queue = workInProgress.updateQueue = cloneUpdateQueue(queue)
+    }
+  }
+  return queue
 }
 
 export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
@@ -67,13 +84,42 @@ export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
 
   if (queue2 === null || queue1 === queue2) {
     appendUpdateToQueue(queue1, update)
-  } else if (queue1 === null || queue2 === null) {
+  } else if (queue1.lastUpdate === null || queue2.lastUpdate === null) {
     appendUpdateToQueue(queue1, update)
     appendUpdateToQueue(queue2, update)
   } else {
     // 两个队列都不为空，它们的last update是相同的
     appendUpdateToQueue(queue1, update)
     queue2.lastUpdate = update
+  }
+}
+
+export function processUpdateQueue<State>(workInProgress: Fiber, queue: UpdateQueue<State>, props: any, instance: any, renderExpirationTime: ExpirationTime) {
+  hasForceUpdate = false
+
+  queue = ensureWorkInProcessQueueIsAClone(workInProgress, queue)
+
+  let newBaseState: State = queue.baseState
+  let newFirstUpdate: Update<State> = null
+  let newExpirationTime: ExpirationTime = NoWork
+
+  const update: Update<State> = queue.firstUpdate
+  let resultState: State = newBaseState
+
+  while (update !== null) {
+    const updateExpirationTime = update.expirationTime
+    if (updateExpirationTime < renderExpirationTime) {
+      if (newFirstUpdate === null) {
+        newFirstUpdate = update
+        newBaseState = resultState
+      }
+
+      if (newExpirationTime < updateExpirationTime) {
+        newExpirationTime = updateExpirationTime
+      }
+    } else {
+      resultState = getStateFromUpdate(workInProgress, update, resultState, props, instance)
+    }
   }
 }
 

@@ -15,9 +15,7 @@ export const Ref = /*                   */ 0b000010000000
 export const Snapshot = /*              */ 0b000100000000
 export const Passive = /*               */ 0b001000000000
 
-
 export const LifecycleEffectMask = /*   */ 0b001110100100
-
 
 export const HostEffectMask = /*        */ 0b001111111111
 

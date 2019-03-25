@@ -1,6 +1,6 @@
 import { computeExpirationTimeForFiber, requestCurrentTime, scheduleWork } from '../react-scheduler'
 import Update, { ForceUpdate, ReplaceState, UpdateState } from '../react-update/update'
-import { enqueueUpdate } from '../react-update/update-queue'
+import { enqueueUpdate, processUpdateQueue, UpdateQueue } from '../react-update/update-queue'
 import { Component } from '../react/react-component'
 import { ReactUpdateQueue } from '../react/react-noop-update-queue'
 import { isEmpty } from '../utils/getType'
@@ -72,7 +72,24 @@ function constructClassInstance(workInProgress: Fiber, ctor: any, props: any): a
 }
 
 function mountClassInstance(workInProgress: Fiber, ctor: any, newProps: any, renderExpirationTime: ExpirationTime) {
+  const { stateNode: instance, memoizedState } = workInProgress
+  instance.props = newProps
+  instance.state = memoizedState
+  instance.refs = {}
 
+  // context操作
+  // const contextType = ctor.contextType
+  // if (typeof contextType === 'object' && contextType !== null) {
+  //   instance.context = readContext(contextType)
+  // } else {
+  //   const unmaskedContext = getUnmaskedContext(workInProgress, ctor, true)
+  //   instance.context = getMaskedContext(workInProgress, unmaskedContext)
+  // }
+
+  const updateQueue = workInProgress.updateQueue
+  if (updateQueue !== null) {
+    processUpdateQueue(workInProgress, updateQueue, newProps, instance, renderExpirationTime)
+  }
 }
 
 export { constructClassInstance }
