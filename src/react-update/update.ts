@@ -1,8 +1,8 @@
-import { isFunction } from 'util'
+
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { DidCapture, ShouldCapture } from '../react-type/effect-type'
-import { isEmpty } from '../utils/getType'
+import { isEmpty, isFunction } from '../utils/getType'
 import { changeHasForceUpdate } from './update-queue'
 
 type UpdateTag = 0 | 1 | 2 | 3

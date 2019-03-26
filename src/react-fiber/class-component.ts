@@ -1,5 +1,5 @@
 import { computeExpirationTimeForFiber, requestCurrentTime, scheduleWork } from '../react-scheduler'
-import { Update as UpdateTag } from '../react-type/effect-type'
+import { Snapshot, Update as UpdateTag } from '../react-type/effect-type'
 import Update, { ForceUpdate, ReplaceState, UpdateState } from '../react-update/update'
 import { changeHasForceUpdate, enqueueUpdate, getHasForceUpdate, processUpdateQueue, UpdateQueue } from '../react-update/update-queue'
 import { Component } from '../react/react-component'
@@ -9,6 +9,7 @@ import { shallowEqual } from '../utils/lib'
 import { ExpirationTime, NoWork } from './expiration-time'
 import { Fiber } from './fiber'
 import { isMounted } from './fiber-tree-reflection'
+import { resolveDefaultProps } from './lazy-component'
 
 const classComponentUpdater: ReactUpdateQueue = {
   isMounted,
@@ -149,6 +150,7 @@ function mountClassInstance(workInProgress: Fiber, ctor: any, newProps: any, ren
   const { getDerivedStateFromProps } = ctor
   if (isFunction(getDerivedStateFromProps)) {
     applyDerivedStateFromProps(workInProgress, getDerivedStateFromProps, newProps)
+    instance.state = workInProgress.memoizedState
   }
 
   const haveNewLifecycle = isFunction(ctor.getDerivedStateFromProps) && isFunction(instance.getSnapshotBeforeUpdate)
@@ -189,9 +191,9 @@ function resumeMountClassInstance(workInProgress: Fiber, ctor: any, newProps: an
   //   nextContext = getMaskedContext(workInProgress, nextLegacyUnmaskedContext)
   // }
 
-  const { getDerivedStateFromProps, getSnapshotBeforeUpdate } = ctor
+  const { getDerivedStateFromProps } = ctor
 
-  const haveNewLifecycles = isFunction(getDerivedStateFromProps) || isFunction(getSnapshotBeforeUpdate)
+  const haveNewLifecycles = isFunction(getDerivedStateFromProps) || isFunction(instance.getSnapshotBeforeUpdate)
   const havecomponentWillReceiveProps = isFunction(instance.UNSAFE_componentWillReceiveProps) || isFunction(instance.componentWillReceiveProps)
   if (!haveNewLifecycles && havecomponentWillReceiveProps) {
     if (oldProps !== newProps || oldContext !== nextContext) {
@@ -227,11 +229,11 @@ function resumeMountClassInstance(workInProgress: Fiber, ctor: any, newProps: an
 
   if (shouldUpdate) {
     if (!haveNewLifecycles) {
-      if (isFunction(instance.componentWillReceiveProps)) {
-        instance.componentWillReceiveProps(newProps, nextContext)
+      if (isFunction(instance.componentWillMount)) {
+        instance.componentWillMount()
       }
-      if (isFunction(instance.UNSAFE_componentWillReceiveProps)) {
-        instance.UNSAFE_componentWillReceiveProps(newProps, nextContext)
+      if (isFunction(instance.UNSAFE_componentWillMount)) {
+        instance.UNSAFE_componentWillMount()
       }
     }
   } else {
@@ -250,4 +252,103 @@ function resumeMountClassInstance(workInProgress: Fiber, ctor: any, newProps: an
   return shouldUpdate
 }
 
-export { constructClassInstance, mountClassInstance, resumeMountClassInstance }
+function updateClassInstance(current: Fiber, workInProgress: Fiber, ctor: any, newProps: any, renderExpirationTime: ExpirationTime): boolean {
+  const { stateNode: instance } = workInProgress
+
+  const oldProps = instance.props
+  instance.props = workInProgress.type === workInProgress.elementType ? oldProps : resolveDefaultProps(workInProgress.type, oldProps)
+
+  // context操作
+  const oldContext = instance.context
+  const contextType = ctor.contextType
+  let nextContext
+  // if (typeof contextType === 'object' && contextType !== null) {
+  //   nextContext = readContext(contextType);
+  // } else {
+  //   const nextUnmaskedContext = getUnmaskedContext(workInProgress, ctor, true);
+  //   nextContext = getMaskedContext(workInProgress, nextUnmaskedContext);
+  // }
+
+  const { getDerivedStateFromProps } = ctor
+
+  const haveNewLifecycles = isFunction(getDerivedStateFromProps) || isFunction(instance.getSnapshotBeforeUpdate)
+  const havecomponentWillReceiveProps = isFunction(instance.UNSAFE_componentWillReceiveProps) || isFunction(instance.componentWillReceiveProps)
+  if (!haveNewLifecycles && havecomponentWillReceiveProps) {
+    if (oldProps !== newProps || oldContext !== nextContext) {
+      applyComponentWillReceiveProps(instance, newProps, nextContext)
+    }
+  }
+
+  changeHasForceUpdate(false)
+
+  const oldState = workInProgress.memoizedState
+  let newState: any = (instance.state = oldState)
+
+  const updateQueue = workInProgress.updateQueue
+  if (updateQueue !== null) {
+    processUpdateQueue(workInProgress, updateQueue, newProps, instance, renderExpirationTime)
+    newState = workInProgress.memoizedState
+  }
+
+  if (oldProps === newProps && oldState === newState && !getHasForceUpdate()) { // !hasContextChanged()) {
+    if (isFunction(instance.componentDidUpdate)) {
+      if (oldProps !== current.memoizedProps || oldState !== current.memoizedState) {
+        workInProgress.effectTag |= UpdateTag
+      }
+    }
+
+    if (isFunction(instance.getSnapshotBeforeUpdate)) {
+      if (oldProps !== current.memoizedProps || oldState !== current.memoizedState) {
+        workInProgress.effectTag |= Snapshot
+      }
+    }
+    return false
+  }
+
+  if (isFunction(getDerivedStateFromProps)) {
+    applyDerivedStateFromProps(workInProgress, getDerivedStateFromProps, newProps)
+    newState = workInProgress.memoizedState
+  }
+
+  const shouldUpdate = getHasForceUpdate() || checkShouldComponentUpdate(instance, ctor, oldProps, newProps, oldState, newState, nextContext)
+
+  if (shouldUpdate) {
+    if (!haveNewLifecycles) {
+      if (isFunction(instance.componentWillUpdate)) {
+        instance.componentWill(newProps, newState, nextContext)
+      }
+      if (isFunction(instance.UNSAFE_componentWillUpdate)) {
+        instance.UNSAFE_componentWillUpdate(newProps, newState, nextContext)
+      }
+    }
+
+    if (isFunction(instance.componentDidUpdate)) {
+      workInProgress.effectTag |= UpdateTag
+    }
+    if (isFunction(instance.getSnapshotBeforeUpdate)) {
+      workInProgress.effectTag |= Snapshot
+    }
+  } else {
+    if (isFunction(instance.componentDidUpdate)) {
+      if (oldProps !== current.memoizedProps || oldState !== current.memoizedState) {
+        workInProgress.effectTag |= UpdateTag
+      }
+    }
+    if (isFunction(instance.getSnapshotBeforeUpdate)) {
+      if (oldProps !== current.memoizedProps || oldState !== current.memoizedState) {
+        workInProgress.effectTag |= UpdateTag
+      }
+    }
+
+    workInProgress.memoizedProps = newProps
+    workInProgress.memoizedState = newState
+  }
+
+  instance.props = newProps
+  instance.state = newState
+  instance.context = nextContext
+
+  return shouldUpdate
+}
+
+export { constructClassInstance, mountClassInstance, resumeMountClassInstance, updateClassInstance }

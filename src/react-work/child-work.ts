@@ -4,8 +4,7 @@ import { Deletion, Placement } from '../react-type/effect-type'
 import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, REACT_PORTAL_TYPE, REACT_PROFILER_TYPE, ReactPortal } from '../react-type/react-type'
 import { Fragment, HostPortal, HostText } from '../react-type/tag-type'
 import { ReactElement } from '../react/react'
-import { isArray } from '../utils/getType'
-import { isObject, isText } from '../utils/getType'
+import { isArray, isObject, isText } from '../utils/getType'
 
 function useFiber(fiber: Fiber, pendingProps: any): Fiber {
   const clone = createWorkInProgress(fiber, pendingProps)
@@ -414,7 +413,6 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
     }
 
     if (typeof newChild === 'undefined' && !isUnkeyedTopLevelFragment) {
-      const Component = returnFiber.type
       console.error('render必须返回内容')
     }
 
@@ -422,10 +420,10 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
   }
 }
 
-function reconcileChildren(current: Fiber, workInProgress: Fiber, nextChildren: any, renderExpirationTime: ExpirationTime) {
-  const mountChildFibers = ChildReconciler(false)
-  const reconcileChildFibers = ChildReconciler(true)
+const mountChildFibers = ChildReconciler(false)
+const reconcileChildFibers = ChildReconciler(true)
 
+function reconcileChildren(current: Fiber, workInProgress: Fiber, nextChildren: any, renderExpirationTime: ExpirationTime) {
   if (current === null) {
     workInProgress.child = mountChildFibers(workInProgress, null, nextChildren, renderExpirationTime)
   } else {
@@ -433,4 +431,24 @@ function reconcileChildren(current: Fiber, workInProgress: Fiber, nextChildren: 
   }
 }
 
-export { reconcileChildren }
+function cloneChildFiber(current: Fiber, workInProgress: Fiber) {
+  if (workInProgress.child === null) {
+    return null
+  }
+
+  let currentChild: Fiber = workInProgress.child
+
+  let newChild: Fiber = createWorkInProgress(currentChild, currentChild.pendingProps)
+  workInProgress.child = newChild
+  newChild.return = workInProgress
+
+  while (currentChild.sibling !== null) {
+    currentChild = currentChild.sibling
+    newChild = newChild.sibling = createWorkInProgress(currentChild, current.pendingProps)
+
+    newChild.return = workInProgress
+  }
+  newChild.sibling = null
+}
+
+export { mountChildFibers, reconcileChildFibers, reconcileChildren, cloneChildFiber }
