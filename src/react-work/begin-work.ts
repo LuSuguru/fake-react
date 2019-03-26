@@ -6,7 +6,7 @@ import { renderWithHooks } from '../react-fiber/fiber-hook'
 import { FiberRoot } from '../react-fiber/fiber-root'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
 import { ContentReset, DidCapture, NoEffect, PerformedWork, Placement, Ref } from '../react-type/effect-type'
-import { ClassComponent, FunctionComponent, HostComponent, HostRoot, IncompleteClassComponent, LazyComponent } from '../react-type/tag-type'
+import { ClassComponent, FunctionComponent, HostComponent, HostRoot, HostText, IncompleteClassComponent, LazyComponent } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { processUpdateQueue } from '../react-update/update-queue'
 import { shouldDeprioritizeSubtree, shouldSetTextContent } from '../utils/browser'
@@ -187,6 +187,13 @@ function updateHostComponent(current: Fiber, workInProgress: Fiber, renderExpira
   return workInProgress.child
 }
 
+function updateHostText(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime) {
+  // if (current === null) { // hydrate操作
+  //   tryToClaimNextHydratableInstance(workInProgress)
+  // }
+  return null
+}
+
 function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
   const updateExpirationTime = workInProgress.expirationTime
 
@@ -235,6 +242,8 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
       return updateHostRoot(current, workInProgress, renderExpirationTime)
     case HostComponent:
       return updateHostComponent(current, workInProgress, renderExpirationTime)
+    case HostText:
+      return updateHostText(current, workInProgress, renderExpirationTime)
   }
 }
 
