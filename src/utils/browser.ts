@@ -11,7 +11,23 @@ export function now() {
   }
 }
 
+function shouldSetTextContent(type: string, props: any): boolean {
+  return (
+    type === 'textarea'
+    || type === 'option'
+    || type === 'noscript'
+    || typeof props.children === 'string'
+    || typeof props.children === 'number'
+    || (typeof props.dangerouslySetInnerHTML === 'object' && props.dangerouslySetInnerHTML !== null && props.dangerouslySetInnerHTML.__html != null))
+}
+
+function shouldDeprioritizeSubtree(type: string, props: any): boolean {
+  return !!props.hidden
+}
+
 export {
   noTimeout,
   clearTimeout,
+  shouldSetTextContent,
+  shouldDeprioritizeSubtree,
 }

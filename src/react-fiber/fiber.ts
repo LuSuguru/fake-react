@@ -32,8 +32,7 @@ import {
 import { ConcurrentMode, NoContext, StrictMode, TypeOfMode } from '../react-type/work-type'
 import { UpdateQueue } from '../react-update/update-queue'
 import { ReactElement } from '../react/react'
-import { isFunction } from '../utils/getType'
-import { isObject, isString } from '../utils/getType'
+import { isFunction, isObject, isString } from '../utils/getType'
 import { ExpirationTime, NoWork } from './expiration-time'
 
 function shouldConstruct(Component: Function) {

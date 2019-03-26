@@ -8,6 +8,7 @@ class Component {
   updater: ReactUpdateQueue
   state: any
   _reactInternalFiber: Fiber = null
+  isReactComponent: object = {}
 
   constructor(props: any, context: any, updater: ReactUpdateQueue) {
     this.props = props

@@ -1,15 +1,26 @@
 import { constructClassInstance, mountClassInstance, resumeMountClassInstance, updateClassInstance } from '../react-fiber/class-component'
-import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
+import { ExpirationTime, Never, NoWork } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { hasContextChanged } from '../react-fiber/fiber-context'
 import { renderWithHooks } from '../react-fiber/fiber-hook'
+import { FiberRoot } from '../react-fiber/fiber-root'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
-import { DidCapture, NoEffect, PerformedWork, Placement } from '../react-type/effect-type'
-import { ClassComponent, FunctionComponent, HostRoot, IncompleteClassComponent, LazyComponent } from '../react-type/tag-type'
+import { ContentReset, DidCapture, NoEffect, PerformedWork, Placement, Ref } from '../react-type/effect-type'
+import { ClassComponent, FunctionComponent, HostComponent, HostRoot, IncompleteClassComponent, LazyComponent } from '../react-type/tag-type'
+import { ConcurrentMode } from '../react-type/work-type'
+import { processUpdateQueue } from '../react-update/update-queue'
+import { shouldDeprioritizeSubtree, shouldSetTextContent } from '../utils/browser'
 import { isFunction } from '../utils/getType'
-import { cloneChildFiber, reconcileChildFibers, reconcileChildren } from './child-work'
+import { cloneChildFiber, mountChildFibers, reconcileChildFibers, reconcileChildren } from './child-work'
 
 let didReceiveUpdate: boolean = false
+
+function markRef(current: Fiber, workInProgress: Fiber) {
+  const { ref } = workInProgress
+  if ((current === null && ref !== null) && (current !== null && current.ref !== ref)) {
+    workInProgress.effectTag |= Ref
+  }
+}
 
 function bailoutOnAlreadyFinishedWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime) {
   if (current !== null) {
@@ -28,10 +39,6 @@ function bailoutOnAlreadyFinishedWork(current: Fiber, workInProgress: Fiber, ren
     cloneChildFiber(current, workInProgress)
     return workInProgress.child
   }
-}
-
-function forceUnmountCurrentAndReconcile(current: Fiber, workInProgress: Fiber, nextChildren: any, renderExpirationTime: ExpirationTime) {
-
 }
 
 function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Component: Function, nextProps: any, renderExpirationTime: ExpirationTime) {
@@ -88,7 +95,8 @@ function updateClassComponent(current: Fiber, workInProgress: Fiber, Component: 
 }
 
 function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: any, shouldUpdate: boolean, hasContext: boolean, renderExpirationTime: ExpirationTime) {
-  // markRef(current, workInProgress) // ref操作
+  markRef(current, workInProgress)
+
   const didCaptureError = (workInProgress.effectTag & DidCapture) !== NoEffect
   if (!shouldUpdate && !didCaptureError) {
     // if (hasContext) { // context操作
@@ -121,7 +129,63 @@ function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: 
   return workInProgress.child
 }
 
+function updateHostRoot(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime) {
+  // pushHostRootContext(workInProgress) // context操作
+  const { updateQueue } = workInProgress
 
+  const nextProps = workInProgress.pendingProps
+  const prevState = workInProgress.memoizedState
+  const prevChildren = prevState === null ? prevState.element : null
+
+  processUpdateQueue(workInProgress, updateQueue, nextProps, null, renderExpirationTime)
+  const nextState = workInProgress.memoizedState
+  const nextChildren = nextState.element
+
+  if (prevChildren === nextChildren) {
+    // resetHydrationState() // hydrate 待实现
+    return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
+  }
+
+  const root: FiberRoot = workInProgress.stateNode
+  if ((current === null || current.child === null) && root.hydrate) {//  &&enterHydrationState(workInProgress)) // 待实现
+    workInProgress.effectTag |= Placement
+    workInProgress.child = mountChildFibers(workInProgress, null, nextChildren, renderExpirationTime)
+  } else {
+    reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
+    // resetHydrationState() // hydrate 待实现
+  }
+  return workInProgress.child
+}
+
+function updateHostComponent(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime) {
+  // pushHostContext(workInProgress)
+  // if (current === null) {
+  //   tryToClaimNextHydratableInstance(workInProgress)
+  // }
+
+  const type = workInProgress.type
+  const nextProps = workInProgress.pendingProps
+  const prevProps = current !== null ? current.pendingProps : null
+
+  let nextChildren: any = nextProps.children
+  const isDirectTextChild = shouldSetTextContent(type, nextProps)
+
+  if (isDirectTextChild) {
+    nextChildren = null // 如果是directtext，不用单独创建hostText fiber,直接在props中处理
+  } else if (prevProps !== null && shouldSetTextContent(type, prevProps)) {
+    workInProgress.effectTag |= ContentReset
+  }
+
+  markRef(current, workInProgress)
+
+  if (renderExpirationTime !== Never && workInProgress.mode === ConcurrentMode && shouldDeprioritizeSubtree(type, nextProps)) {
+    workInProgress.expirationTime = workInProgress.childExpirationTime = Never
+    return null
+  }
+
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
+  return workInProgress.child
+}
 
 function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
   const updateExpirationTime = workInProgress.expirationTime
@@ -167,6 +231,10 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
       const resolvedProps = workInProgress.elementType === Component ? unresolveProps : resolveDefaultProps(Component, unresolveProps)
       return updateClassComponent(current, workInProgress, Component, resolvedProps, renderExpirationTime)
     }
+    case HostRoot:
+      return updateHostRoot(current, workInProgress, renderExpirationTime)
+    case HostComponent:
+      return updateHostComponent(current, workInProgress, renderExpirationTime)
   }
 }
 
