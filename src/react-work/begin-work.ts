@@ -1,4 +1,4 @@
-import { constructClassInstance, mountClassInstance, resumeMountClassInstance, updateClassInstance } from '../react-fiber/class-component'
+import { addOptionClassInstace, applyDerivedStateFromProps, constructClassInstance, mountClassInstance, resumeMountClassInstance, updateClassInstance } from '../react-fiber/class-component'
 import { ExpirationTime, Never, NoWork } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { hasContextChanged } from '../react-fiber/fiber-context'
@@ -10,7 +10,7 @@ import { ClassComponent, FunctionComponent, HostComponent, HostRoot, HostText, I
 import { ConcurrentMode } from '../react-type/work-type'
 import { processUpdateQueue } from '../react-update/update-queue'
 import { shouldDeprioritizeSubtree, shouldSetTextContent } from '../utils/browser'
-import { isFunction } from '../utils/getType'
+import { isEmpty, isFunction } from '../utils/getType'
 import { cloneChildFiber, mountChildFibers, reconcileChildFibers, reconcileChildren } from './child-work'
 
 let didReceiveUpdate: boolean = false
@@ -41,6 +41,54 @@ function bailoutOnAlreadyFinishedWork(current: Fiber, workInProgress: Fiber, ren
   }
 }
 
+// 只有在组件被第一次渲染的情况下才会出现，在经过第一次渲染之后，我们就会更新组件的类型，也就是Fiber.tag
+
+function mountIndeterminateComponent(current: Fiber, workInProgress: Fiber, Component: any, renderExpirationTime: ExpirationTime) {
+  // 如果出现了_current存在的情况，那么可能是因为渲染时有Suspend的情况
+  if (current !== null) {
+    current.alternate = null
+    workInProgress.alternate = null
+    workInProgress.effectTag |= Placement
+  }
+  const props = workInProgress.pendingProps
+
+  // context操作
+  // const unmaskedContext = getUnmaskedContext(workInProgress, Component, false)
+  const context = getMaskedContext(workInProgress, unmaskedContext)
+
+  // prepareToReadContext(workInProgress, renderExpirationTime)
+  const value: any = renderWithHooks(current, workInProgress, Component, props, context, renderExpirationTime)
+  workInProgress.effectTag |= PerformedWork
+
+  if (typeof value === 'object' && value !== null && typeof value.render === 'function' && value.$$typeof === null) {
+    workInProgress.tag = ClassComponent
+
+    // resetHooks() // hook操作
+    const hasContext = false // 一波context的操作
+    // if (isLegacyContextProvider(Component)) {
+    //   hasContext = true
+    //   pushLegacyContextProvider(workInProgress)
+    // } else {
+    //   hasContext = false
+    // }
+
+    workInProgress.memoizedState = isEmpty(value.state) ? null : value.state
+    const { getDerivedStateFromProps } = Component
+    if (isFunction(getDerivedStateFromProps)) {
+      applyDerivedStateFromProps(workInProgress, getDerivedStateFromProps, props)
+    }
+
+    addOptionClassInstace(workInProgress, value)
+    mountClassInstance(workInProgress, Component, props, renderExpirationTime)
+
+    return finishClassComponent(null, workInProgress, Component, true, hasContext, renderExpirationTime)
+  } else {
+    workInProgress.tag = FunctionComponent
+    mountChildFibers(workInProgress, null, value, renderExpirationTime)
+  }
+  return workInProgress.child
+}
+
 function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Component: Function, nextProps: any, renderExpirationTime: ExpirationTime) {
   // context 操作
   // const unmaskedContext = getUnmaskedContext(workInProgress, Component, true)
@@ -49,7 +97,7 @@ function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Componen
 
   let nextChildren: any = null
 
-  nextChildren = renderWithHooks(current, workInProgress, Comment, nextProps, null, renderExpirationTime)
+  nextChildren = renderWithHooks(current, workInProgress, Component, nextProps, null, renderExpirationTime)
 
   if (current !== null && !didReceiveUpdate) {
     // bailoutHooks(current, workInProgress, renderExpirationTime) // 待实现
@@ -222,8 +270,10 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
   workInProgress.expirationTime = NoWork
 
   switch (workInProgress.tag) {
-    case IncompleteClassComponent: // 待实现
-      return
+    case IncompleteClassComponent: {// 待实现
+      const { elementType } = workInProgress
+      return mountIndeterminateComponent(current, workInProgress, elementType, renderExpirationTime)
+    }
     case LazyComponent: // 待实现
       return
     case FunctionComponent: {

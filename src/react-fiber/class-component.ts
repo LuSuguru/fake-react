@@ -351,4 +351,11 @@ function updateClassInstance(current: Fiber, workInProgress: Fiber, ctor: any, n
   return shouldUpdate
 }
 
-export { constructClassInstance, mountClassInstance, resumeMountClassInstance, updateClassInstance }
+export {
+  addOptionClassInstace,
+  applyDerivedStateFromProps,
+  constructClassInstance,
+  mountClassInstance,
+  resumeMountClassInstance,
+  updateClassInstance,
+}
