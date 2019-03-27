@@ -6,7 +6,7 @@ import { bailoutHooks, renderWithHooks } from '../react-fiber/fiber-hook'
 import { FiberRoot } from '../react-fiber/fiber-root'
 import { readLazyComponentType, resolveDefaultProps, resolvedLazyComponentTag } from '../react-fiber/lazy-component'
 import { ContentReset, DidCapture, NoEffect, PerformedWork, Placement, Ref } from '../react-type/effect-type'
-import { ClassComponent, ForwardRef, FunctionComponent, HostComponent, HostRoot, HostText, IncompleteClassComponent, LazyComponent, MemoComponent, SimpleMemoComponent } from '../react-type/tag-type'
+import { ClassComponent, ContextConsumer, ForwardRef, Fragment, FunctionComponent, HostComponent, HostRoot, HostText, IncompleteClassComponent, LazyComponent, MemoComponent, SimpleMemoComponent, SuspenseComponent } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { processUpdateQueue } from '../react-update/update-queue'
 import { shouldDeprioritizeSubtree, shouldSetTextContent } from '../utils/browser'
@@ -140,7 +140,7 @@ function updateForwardRef(current: Fiber, workInProgress: Fiber, Component: any,
   return workInProgress.child
 }
 
-function updateMemoComponent(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, updateExpirationTime: ExpirationTime, renderExpirationTime: ExpirationTime) {
+function updateMemoComponent(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, updateExpirationTime: ExpirationTime, renderExpirationTime: ExpirationTime): Fiber {
   if (current === null) {
     const { type } = Component
 
@@ -181,6 +181,20 @@ function updateMemoComponent(current: Fiber, workInProgress: Fiber, Component: a
   return newChild
 }
 
+function updateSimpleMemoComponent(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, updateExpirationTime: ExpirationTime, renderExpirationTime: ExpirationTime): Fiber {
+  if (current! == null) {
+    const prevProps = current.memoizedProps
+    if (shallowEqual(prevProps, nextProps) && current.ref === workInProgress.ref) {
+      didReceiveUpdate = false
+
+      if (updateExpirationTime < renderExpirationTime) {
+        return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
+      }
+    }
+  }
+  return updateFunctionComponent(current, workInProgress, Component, nextProps, renderExpirationTime)
+}
+
 function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Component: Function, nextProps: any, renderExpirationTime: ExpirationTime): Fiber {
   // context 操作
   // const unmaskedContext = getUnmaskedContext(workInProgress, Component, true)
@@ -192,7 +206,7 @@ function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Componen
   nextChildren = renderWithHooks(current, workInProgress, Component, nextProps, null, renderExpirationTime)
 
   if (current !== null && !didReceiveUpdate) {
-    // bailoutHooks(current, workInProgress, renderExpirationTime) // 待实现
+    bailoutHooks(current, workInProgress, renderExpirationTime)
     return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
   }
 
@@ -334,6 +348,10 @@ function updateHostText(current: Fiber, workInProgress: Fiber, renderExpirationT
   return null
 }
 
+function updateSuspenseComponent(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
+  // 待实现
+}
+
 function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
   const updateExpirationTime = workInProgress.expirationTime
 
@@ -388,6 +406,50 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
       return updateHostComponent(current, workInProgress, renderExpirationTime)
     case HostText:
       return updateHostText(current, workInProgress, renderExpirationTime)
+    case SuspenseComponent:
+      return updateSuspenseComponent(current, workInProgress, renderExpirationTime)
+    case HostPortal:
+      return updatePortalComponent(
+        current,
+        workInProgress,
+        renderExpirationTime,
+      )
+    case ForwardRef: {
+      const type = workInProgress.type
+      const unresolvedProps = workInProgress.pendingProps
+      const resolvedProps =
+        workInProgress.elementType === type
+          ? unresolvedProps
+          : resolveDefaultProps(type, unresolvedProps)
+      return updateForwardRef(
+        current,
+        workInProgress,
+        type,
+        resolvedProps,
+        renderExpirationTime,
+      )
+    }
+    case Fragment:
+      return updateFragment(current, workInProgress, renderExpirationTime)
+    // case Mode:
+    //   return updateMode(current, workInProgress, renderExpirationTime)
+    // case Profiler:
+    //   return updateProfiler(current, workInProgress, renderExpirationTime)
+    // case ContextProvider:
+    // return updateContextProvider(current, workInProgress, renderExpirationTime)
+    // case ContextConsumer:
+    // return updateContextConsumer(current, workInProgress, renderExpirationTime)
+    case MemoComponent: {
+      const { type } = workInProgress
+      const unresolvedProps = workInProgress.pendingProps
+
+      let resolvedProps = resolveDefaultProps(type, unresolvedProps)
+      resolvedProps = resolveDefaultProps(type.type, resolvedProps)
+      return updateMemoComponent(current, workInProgress, type, resolvedProps, updateExpirationTime, renderExpirationTime)
+    }
+    case SimpleMemoComponent: {
+      return updateSimpleMemoComponent(current, workInProgress, workInProgress.type, workInProgress.pendingProps, updateExpirationTime, renderExpirationTime)
+    }
   }
 }
 
