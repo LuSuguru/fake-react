@@ -1,16 +1,17 @@
 import { addOptionClassInstace, applyDerivedStateFromProps, constructClassInstance, mountClassInstance, resumeMountClassInstance, updateClassInstance } from '../react-fiber/class-component'
 import { ExpirationTime, Never, NoWork } from '../react-fiber/expiration-time'
-import { Fiber } from '../react-fiber/fiber'
+import { createFiberFromTypeAndProps, createWorkInProgress, Fiber, isSimpleFunctionComponent } from '../react-fiber/fiber'
 import { hasContextChanged } from '../react-fiber/fiber-context'
-import { renderWithHooks } from '../react-fiber/fiber-hook'
+import { bailoutHooks, renderWithHooks } from '../react-fiber/fiber-hook'
 import { FiberRoot } from '../react-fiber/fiber-root'
 import { readLazyComponentType, resolveDefaultProps, resolvedLazyComponentTag } from '../react-fiber/lazy-component'
 import { ContentReset, DidCapture, NoEffect, PerformedWork, Placement, Ref } from '../react-type/effect-type'
-import { ClassComponent, ForwardRef, FunctionComponent, HostComponent, HostRoot, HostText, IncompleteClassComponent, LazyComponent, MemoComponent } from '../react-type/tag-type'
+import { ClassComponent, ForwardRef, FunctionComponent, HostComponent, HostRoot, HostText, IncompleteClassComponent, LazyComponent, MemoComponent, SimpleMemoComponent } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { processUpdateQueue } from '../react-update/update-queue'
 import { shouldDeprioritizeSubtree, shouldSetTextContent } from '../utils/browser'
 import { isEmpty, isFunction } from '../utils/getType'
+import { shallowEqual } from '../utils/lib'
 import { cloneChildFiber, mountChildFibers, reconcileChildFibers, reconcileChildren } from './child-work'
 
 let didReceiveUpdate: boolean = false
@@ -122,7 +123,62 @@ function mountLazyComponent(current: Fiber, workInProgress: Fiber, elementType: 
 
 function updateForwardRef(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, renderExpirationTime: ExpirationTime): Fiber {
   const { render } = Component
+  const { ref } = workInProgress
 
+  // context操作
+  // prepareToReadContext(workInProgress, renderExpirationTime)
+
+  const nextChildren = renderWithHooks(current, workInProgress, render, nextProps, ref, renderExpirationTime)
+
+  if (current !== null && !didReceiveUpdate) {
+    bailoutHooks(current, workInProgress, renderExpirationTime)
+    return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
+  }
+
+  workInProgress.effectTag |= PerformedWork
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
+  return workInProgress.child
+}
+
+function updateMemoComponent(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, updateExpirationTime: ExpirationTime, renderExpirationTime: ExpirationTime) {
+  if (current === null) {
+    const { type } = Component
+
+    if (isSimpleFunctionComponent(type) && Component.compare === null && Component.defaultProps === undefined) {
+      workInProgress.tag = SimpleMemoComponent
+      workInProgress.type = type
+
+      return updateSimpleMemoComponent(current, workInProgress, type, nextProps, updateClassComponent, renderExpirationTime)
+    }
+
+    const child: Fiber = createFiberFromTypeAndProps(Component.type, null, nextProps, workInProgress.mode, renderExpirationTime)
+    child.ref = workInProgress.ref
+    child.return = workInProgress
+    workInProgress.child = child
+
+    return child
+  }
+
+  const currentChild: Fiber = current.child
+  if (updateExpirationTime < renderExpirationTime) {
+    const prevProps = currentChild.memoizedProps
+
+    let compare: Function = Component.compare
+    compare = compare !== null ? compare : shallowEqual
+
+    if (compare(prevProps, nextProps) && current.ref === workInProgress.ref) {
+      return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
+    }
+  }
+
+  workInProgress.effectTag |= PerformedWork
+  const newChild: Fiber = createWorkInProgress(current, nextProps)
+
+  newChild.ref = workInProgress.ref
+  newChild.return = workInProgress
+  workInProgress.child = newChild
+
+  return newChild
 }
 
 function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Component: Function, nextProps: any, renderExpirationTime: ExpirationTime): Fiber {

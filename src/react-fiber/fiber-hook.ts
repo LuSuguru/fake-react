@@ -1,4 +1,5 @@
-import Update from '../react-update/update'
+
+import { Passive, Update } from '../react-type/effect-type'
 import { UpdateQueue } from '../react-update/update-queue'
 import { ExpirationTime, NoWork } from './expiration-time'
 import { Fiber } from './fiber'
@@ -18,6 +19,14 @@ let currentlyRenderingFiber: Fiber = null
 
 let nextCurrentHook: Hook = null
 
+function bailoutHooks(current: Fiber, workInProgress: Fiber, expirationTime: ExpirationTime) {
+  workInProgress.updateQueue = current.updateQueue
+  workInProgress.effectTag &= ~(Passive | Update)
+  if (current.expirationTime <= expirationTime) {
+    current.expirationTime = NoWork
+  }
+}
+
 function renderWithHooks(current: Fiber, workInProgress: Fiber, Component: Function, props: any, refOrContext: any, nextRenderExpirationTime: ExpirationTime): any {
   renderExpirationTime = nextRenderExpirationTime
   currentlyRenderingFiber = workInProgress
@@ -35,4 +44,4 @@ function renderWithHooks(current: Fiber, workInProgress: Fiber, Component: Funct
   return children
 }
 
-export { renderWithHooks }
+export { bailoutHooks, renderWithHooks }

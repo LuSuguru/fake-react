@@ -35,9 +35,13 @@ import { ReactElement } from '../react/react'
 import { isFunction, isObject, isString } from '../utils/getType'
 import { ExpirationTime, NoWork } from './expiration-time'
 
-function shouldConstruct(Component: Function) {
+function shouldConstruct(Component: Function): boolean {
   const prototype = Component.prototype
   return !!(prototype && prototype.isReactComponent)
+}
+
+function isSimpleFunctionComponent(type: any): boolean {
+  return (isFunction(type) && !shouldConstruct(type) && type.defaultProps === undefined)
 }
 
 class Fiber {
@@ -217,6 +221,7 @@ function createFiberFromElement(element: ReactElement, mode: TypeOfMode, expirat
 export {
   Fiber,
   shouldConstruct,
+  isSimpleFunctionComponent,
   createWorkInProgress,
   createFiberFromElement,
   createFiberFromTypeAndProps,
