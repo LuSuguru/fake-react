@@ -36,7 +36,7 @@ function bailoutOnAlreadyFinishedWork(current: Fiber, workInProgress: Fiber, ren
   if (childExpirationTime < renderExpirationTime) {
     return null
   } else {
-    cloneChildFiber(current, workInProgress)
+    cloneChildFiber(workInProgress)
     return workInProgress.child
   }
 }
@@ -270,12 +270,14 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
   workInProgress.expirationTime = NoWork
 
   switch (workInProgress.tag) {
-    case IncompleteClassComponent: {// 待实现
+    case IncompleteClassComponent: {
       const { elementType } = workInProgress
       return mountIndeterminateComponent(current, workInProgress, elementType, renderExpirationTime)
     }
-    case LazyComponent: // 待实现
-      return
+    case LazyComponent: {
+      const { elementType } = workInProgress
+      return mountLazyComponent(current, workInProgress, elementType, updateExpirationTime, renderExpirationTime)
+    }
     case FunctionComponent: {
       const Component = workInProgress.type
       const unresolveProps = workInProgress.pendingProps

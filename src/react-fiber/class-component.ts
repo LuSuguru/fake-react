@@ -315,7 +315,7 @@ function updateClassInstance(current: Fiber, workInProgress: Fiber, ctor: any, n
   if (shouldUpdate) {
     if (!haveNewLifecycles) {
       if (isFunction(instance.componentWillUpdate)) {
-        instance.componentWill(newProps, newState, nextContext)
+        instance.componentWillUpdate(newProps, newState, nextContext)
       }
       if (isFunction(instance.UNSAFE_componentWillUpdate)) {
         instance.UNSAFE_componentWillUpdate(newProps, newState, nextContext)
@@ -336,7 +336,7 @@ function updateClassInstance(current: Fiber, workInProgress: Fiber, ctor: any, n
     }
     if (isFunction(instance.getSnapshotBeforeUpdate)) {
       if (oldProps !== current.memoizedProps || oldState !== current.memoizedState) {
-        workInProgress.effectTag |= UpdateTag
+        workInProgress.effectTag |= Snapshot
       }
     }
 

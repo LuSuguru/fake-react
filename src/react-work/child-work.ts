@@ -123,7 +123,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
 
   function updateFragment(returnFiber: Fiber, current: Fiber, fragment: any, expirationTime: ExpirationTime, key: string | null): Fiber {
     let fiber: Fiber = null
-    if (current !== null && current.tag !== Fragment) {
+    if (current === null || current.tag !== Fragment) {
       fiber = createFiberFromFragment(fragment, returnFiber.mode, expirationTime, key)
     } else {
       fiber = useFiber(current, fragment)
@@ -135,7 +135,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
 
   function updateTextNode(returnFiber: Fiber, current: Fiber, textContent: string, expirationTime: ExpirationTime): Fiber {
     let fiber: Fiber = null
-    if (current !== null && current.tag === HostText) {
+    if (current === null || current.tag !== HostText) {
       fiber = createFiberFromText(textContent, returnFiber.mode, expirationTime)
     } else {
       fiber = useFiber(current, textContent)
@@ -147,7 +147,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
 
   function updateElement(returnFiber: Fiber, current: Fiber, element: ReactElement, expirationTime: ExpirationTime): Fiber {
     let fiber: Fiber = null
-    if (current !== null && current.elementType !== element.type) {
+    if (current === null || current.elementType !== element.type) {
       fiber = createFiberFromElement(element, returnFiber.mode, expirationTime)
     } else {
       fiber = useFiber(current, element.props)
@@ -431,7 +431,7 @@ function reconcileChildren(current: Fiber, workInProgress: Fiber, nextChildren: 
   }
 }
 
-function cloneChildFiber(current: Fiber, workInProgress: Fiber) {
+function cloneChildFiber(workInProgress: Fiber) {
   if (workInProgress.child === null) {
     return null
   }
@@ -444,7 +444,7 @@ function cloneChildFiber(current: Fiber, workInProgress: Fiber) {
 
   while (currentChild.sibling !== null) {
     currentChild = currentChild.sibling
-    newChild = newChild.sibling = createWorkInProgress(currentChild, current.pendingProps)
+    newChild = newChild.sibling = createWorkInProgress(currentChild, currentChild.pendingProps)
 
     newChild.return = workInProgress
   }
