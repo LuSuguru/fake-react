@@ -4,9 +4,9 @@ import { Fiber } from '../react-fiber/fiber'
 import { hasContextChanged } from '../react-fiber/fiber-context'
 import { renderWithHooks } from '../react-fiber/fiber-hook'
 import { FiberRoot } from '../react-fiber/fiber-root'
-import { resolveDefaultProps } from '../react-fiber/lazy-component'
+import { readLazyComponentType, resolveDefaultProps, resolvedLazyComponentTag } from '../react-fiber/lazy-component'
 import { ContentReset, DidCapture, NoEffect, PerformedWork, Placement, Ref } from '../react-type/effect-type'
-import { ClassComponent, FunctionComponent, HostComponent, HostRoot, HostText, IncompleteClassComponent, LazyComponent } from '../react-type/tag-type'
+import { ClassComponent, ForwardRef, FunctionComponent, HostComponent, HostRoot, HostText, IncompleteClassComponent, LazyComponent, MemoComponent } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { processUpdateQueue } from '../react-update/update-queue'
 import { shouldDeprioritizeSubtree, shouldSetTextContent } from '../utils/browser'
@@ -22,7 +22,7 @@ function markRef(current: Fiber, workInProgress: Fiber) {
   }
 }
 
-function bailoutOnAlreadyFinishedWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime) {
+function bailoutOnAlreadyFinishedWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
   if (current !== null) {
     workInProgress.contextDependencies = current.contextDependencies
   }
@@ -42,9 +42,8 @@ function bailoutOnAlreadyFinishedWork(current: Fiber, workInProgress: Fiber, ren
 }
 
 // 只有在组件被第一次渲染的情况下才会出现，在经过第一次渲染之后，我们就会更新组件的类型，也就是Fiber.tag
-
-function mountIndeterminateComponent(current: Fiber, workInProgress: Fiber, Component: any, renderExpirationTime: ExpirationTime) {
-  // 如果出现了_current存在的情况，那么可能是因为渲染时有Suspend的情况
+function mountIndeterminateComponent(current: Fiber, workInProgress: Fiber, Component: any, renderExpirationTime: ExpirationTime): Fiber {
+  // 如果出现了current存在的情况，那么可能是因为渲染时有Suspend的情况
   if (current !== null) {
     current.alternate = null
     workInProgress.alternate = null
@@ -89,7 +88,44 @@ function mountIndeterminateComponent(current: Fiber, workInProgress: Fiber, Comp
   return workInProgress.child
 }
 
-function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Component: Function, nextProps: any, renderExpirationTime: ExpirationTime) {
+function mountLazyComponent(current: Fiber, workInProgress: Fiber, elementType: any, updateExpirationTime: ExpirationTime, renderExpirationTime: ExpirationTime): Fiber {
+  if (current !== null) {
+    current.alternate = null
+    workInProgress.alternate = null
+    workInProgress.effectTag |= Placement
+  }
+
+  const props = workInProgress.pendingProps
+  const Component = readLazyComponentType(elementType)
+
+  workInProgress.type = Component
+  const resolvedTag = (workInProgress.tag = resolvedLazyComponentTag(Component))
+  const resolvedProps = resolveDefaultProps(Component, props)
+
+  let child: Fiber = null
+  switch (resolvedTag) {
+    case FunctionComponent:
+      child = updateFunctionComponent(null, workInProgress, Component, resolvedProps, renderExpirationTime)
+      break
+    case ClassComponent:
+      child = updateClassComponent(null, workInProgress, Component, resolvedProps, renderExpirationTime)
+      break
+    case ForwardRef:
+      child = updateForwardRef(null, workInProgress, Component, resolvedProps, renderExpirationTime)
+      break
+    case MemoComponent:
+      child = updateMemoComponent(null, workInProgress, Component, resolveDefaultProps(Component.type, resolvedProps), updateExpirationTime, renderExpirationTime)
+      break
+  }
+  return child
+}
+
+function updateForwardRef(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, renderExpirationTime: ExpirationTime): Fiber {
+  const { render } = Component
+
+}
+
+function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Component: Function, nextProps: any, renderExpirationTime: ExpirationTime): Fiber {
   // context 操作
   // const unmaskedContext = getUnmaskedContext(workInProgress, Component, true)
   // const context = getMaskedContext(workInProgress, unmaskedContext)
@@ -110,7 +146,7 @@ function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Componen
   return workInProgress.child
 }
 
-function updateClassComponent(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, renderExpirationTime: ExpirationTime) {
+function updateClassComponent(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, renderExpirationTime: ExpirationTime): Fiber {
   let hasContext: boolean  // context操作，待实现
   // if (isLegacyContextProvider(Component)) {
   //   hasContext = true
@@ -142,7 +178,7 @@ function updateClassComponent(current: Fiber, workInProgress: Fiber, Component: 
   return nextUnitWork
 }
 
-function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: any, shouldUpdate: boolean, hasContext: boolean, renderExpirationTime: ExpirationTime) {
+function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: any, shouldUpdate: boolean, hasContext: boolean, renderExpirationTime: ExpirationTime): Fiber {
   markRef(current, workInProgress)
 
   const didCaptureError = (workInProgress.effectTag & DidCapture) !== NoEffect
@@ -177,7 +213,7 @@ function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: 
   return workInProgress.child
 }
 
-function updateHostRoot(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime) {
+function updateHostRoot(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
   // pushHostRootContext(workInProgress) // context操作
   const { updateQueue } = workInProgress
 
@@ -205,7 +241,7 @@ function updateHostRoot(current: Fiber, workInProgress: Fiber, renderExpirationT
   return workInProgress.child
 }
 
-function updateHostComponent(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime) {
+function updateHostComponent(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
   // pushHostContext(workInProgress)
   // if (current === null) {
   //   tryToClaimNextHydratableInstance(workInProgress)
@@ -235,7 +271,7 @@ function updateHostComponent(current: Fiber, workInProgress: Fiber, renderExpira
   return workInProgress.child
 }
 
-function updateHostText(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime) {
+function updateHostText(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
   // if (current === null) { // hydrate操作
   //   tryToClaimNextHydratableInstance(workInProgress)
   // }

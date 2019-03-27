@@ -216,6 +216,7 @@ function createFiberFromElement(element: ReactElement, mode: TypeOfMode, expirat
 
 export {
   Fiber,
+  shouldConstruct,
   createWorkInProgress,
   createFiberFromElement,
   createFiberFromTypeAndProps,
