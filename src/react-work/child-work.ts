@@ -373,7 +373,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
         }
 
         lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
-        if (previousNewFiber) {
+        if (previousNewFiber === null) {
           resultingFirstChild = newFiber
         } else {
           previousNewFiber.sibling = newFiber

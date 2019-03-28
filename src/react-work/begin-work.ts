@@ -6,7 +6,21 @@ import { bailoutHooks, renderWithHooks } from '../react-fiber/fiber-hook'
 import { FiberRoot } from '../react-fiber/fiber-root'
 import { readLazyComponentType, resolveDefaultProps, resolvedLazyComponentTag } from '../react-fiber/lazy-component'
 import { ContentReset, DidCapture, NoEffect, PerformedWork, Placement, Ref } from '../react-type/effect-type'
-import { ClassComponent, ContextConsumer, ForwardRef, Fragment, FunctionComponent, HostComponent, HostRoot, HostText, IncompleteClassComponent, LazyComponent, MemoComponent, SimpleMemoComponent, SuspenseComponent } from '../react-type/tag-type'
+import {
+  ClassComponent,
+  ContextConsumer,
+  ForwardRef,
+  Fragment,
+  FunctionComponent,
+  HostComponent,
+  HostRoot,
+  HostText,
+  IncompleteClassComponent,
+  LazyComponent,
+  MemoComponent,
+  SimpleMemoComponent,
+  SuspenseComponent,
+} from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { processUpdateQueue } from '../react-update/update-queue'
 import { shouldDeprioritizeSubtree, shouldSetTextContent } from '../utils/browser'
@@ -217,7 +231,7 @@ function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Componen
 }
 
 function updateClassComponent(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, renderExpirationTime: ExpirationTime): Fiber {
-  let hasContext: boolean  // context操作，待实现
+  const hasContext: boolean = false  // context操作，待实现
   // if (isLegacyContextProvider(Component)) {
   //   hasContext = true
   //   pushLegacyContextProvider(workInProgress)
@@ -350,6 +364,13 @@ function updateHostText(current: Fiber, workInProgress: Fiber, renderExpirationT
 
 function updateSuspenseComponent(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
   // 待实现
+  return null
+}
+
+function updateFragment(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
+  const nextChildren = workInProgress.pendingProps
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
+  return workInProgress.child
 }
 
 function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
@@ -408,12 +429,8 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
       return updateHostText(current, workInProgress, renderExpirationTime)
     case SuspenseComponent:
       return updateSuspenseComponent(current, workInProgress, renderExpirationTime)
-    case HostPortal:
-      return updatePortalComponent(
-        current,
-        workInProgress,
-        renderExpirationTime,
-      )
+    // case HostPortal:
+    //   return updatePortalComponent(current, workInProgress, renderExpirationTime)
     case ForwardRef: {
       const type = workInProgress.type
       const unresolvedProps = workInProgress.pendingProps
