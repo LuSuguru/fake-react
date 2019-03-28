@@ -339,7 +339,7 @@ function updateHostComponent(current: Fiber, workInProgress: Fiber, renderExpira
   const isDirectTextChild = shouldSetTextContent(type, nextProps)
 
   if (isDirectTextChild) {
-    nextChildren = null // 如果是directtext，不用单独创建hostText fiber,直接在props中处理
+    nextChildren = null // 如果是direct text，不用单独创建hostText fiber,直接在props中处理
   } else if (prevProps !== null && shouldSetTextContent(type, prevProps)) {
     workInProgress.effectTag |= ContentReset
   }
