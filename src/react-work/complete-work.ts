@@ -1,7 +1,7 @@
-import { diffProperties } from '../react-dom/dom-component'
+import { Container, createInstance, diffProperties } from '../react-dom/dom-component'
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
-import { Placement, Ref } from '../react-type/effect-type'
+import { Placement, Ref, Update } from '../react-type/effect-type'
 import {
   ClassComponent,
   FunctionComponent,
@@ -12,14 +12,19 @@ import {
   SimpleMemoComponent,
 } from '../react-type/tag-type'
 
-function updateHostComponent(current: Fiber, workInProgress: Fiber, type: string, newProps: any, rootContainerInstance: any) {
+function updateHostComponent(current: Fiber, workInProgress: Fiber | any, type: string, newProps: any, rootContainerInstance: Container) {
   const oldProps = current.memoizedProps
   if (oldProps === newProps) {
     return
   }
 
   const { stateNode: instance } = workInProgress
-  diffProperties(instance, type, oldProps, newProps, rootContainerInstance)
+  const updatePayload = diffProperties(instance, type, oldProps, newProps, rootContainerInstance)
+  workInProgress.updateQueue = updatePayload
+
+  if (updatePayload) {
+    workInProgress.effectTag |= Update
+  }
 }
 
 function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime) {
@@ -68,6 +73,18 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
       } else {
         if (!newProps) {
           break
+        }
+
+        const currentHostContext = getHostContext() // context操作
+        const wasHydrated = popHydrationState(workInProgress)
+
+        if (wasHydrated) {
+          // hydrated模式的操作
+          //   if (prepareToHydrateHostInstance(workInProgress, rootContainerInstance, currentHostContext)) {
+          //     workInProgress.effectTag |= Update
+          //   }
+        } else {
+          const instance = createInstance(type, newProps, rootContainerInstance, currentHostContext, workInProgress)
         }
       }
 

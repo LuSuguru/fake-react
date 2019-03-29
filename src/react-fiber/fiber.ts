@@ -35,15 +35,6 @@ import { ReactElement } from '../react/react'
 import { isFunction, isObject, isString } from '../utils/getType'
 import { ExpirationTime, NoWork } from './expiration-time'
 
-function shouldConstruct(Component: Function): boolean {
-  const prototype = Component.prototype
-  return !!(prototype && prototype.isReactComponent)
-}
-
-function isSimpleFunctionComponent(type: any): boolean {
-  return (isFunction(type) && !shouldConstruct(type) && type.defaultProps === undefined)
-}
-
 class Fiber {
   tag: WorkTag
   key: null | string
@@ -61,7 +52,7 @@ class Fiber {
   pendingProps: any
   memoizedProps: any = null
 
-  updateQueue: UpdateQueue<any> = null
+  updateQueue: UpdateQueue<any>  = null
 
   memoizedState: any = null
 
@@ -86,6 +77,15 @@ class Fiber {
     this.key = key
     this.mode = mode
   }
+}
+
+function shouldConstruct(Component: Function): boolean {
+  const prototype = Component.prototype
+  return !!(prototype && prototype.isReactComponent)
+}
+
+function isSimpleFunctionComponent(type: any): boolean {
+  return (isFunction(type) && !shouldConstruct(type) && type.defaultProps === undefined)
 }
 
 function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {

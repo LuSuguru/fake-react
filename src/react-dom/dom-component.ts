@@ -4,7 +4,13 @@ import { getOptionProps } from './dom-options'
 import { getSelectProps } from './dom-select'
 import { getTextareaProps } from './dom-textarea'
 
-function diffProperties(domElement: Element, tag: string, lastRawProps: object, newRawProps: object, rootContainerElement: Element | Document) {
+export type Container = Element | Document
+
+function createElement(type: string, props: any, rootContainerInstance: Container, parentNamespace: string) {
+
+}
+
+function diffProperties(domElement: Element, tag: string, lastRawProps: object, newRawProps: object, rootContainerElement: Container): any[] {
   let updatePayload: any[] = null
 
   let lastProps: object = null
@@ -124,6 +130,9 @@ function diffProperties(domElement: Element, tag: string, lastRawProps: object, 
         }
         break
       }
+      case 'suppressContentEditableWarning':
+      case 'suppressHydrationWarning':
+        break
       // case registrationNameModules.hasOwnProperty(propKey): { // 事件监听
       //   if (nextProp != null) {
       //     ensureListeningTo(rootContainerElement, propKey);
@@ -131,7 +140,7 @@ function diffProperties(domElement: Element, tag: string, lastRawProps: object, 
       //   break
       // }
       default:
-        (updatePayload = updatePayload || []).push(propKey, null)
+        (updatePayload = updatePayload || []).push(propKey, nextProp)
         break
     }
   }
@@ -143,6 +152,11 @@ function diffProperties(domElement: Element, tag: string, lastRawProps: object, 
   return updatePayload
 }
 
+function createInstance(type: string, props: any, rootContainerInstance: Container, hostContext: any, internalInstanceHandle: Fiber) {
+  createElement(type, props, rootContainerInstance, hostContext)
+}
+
 export {
   diffProperties,
+  createInstance,
 }
