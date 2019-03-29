@@ -12,7 +12,7 @@ import {
   SimpleMemoComponent,
 } from '../react-type/tag-type'
 
-function updateHostComponent(current: Fiber, workInProgress: Fiber, type: string, newProps: any, rootContainerInstance: Element | Document) {
+function updateHostComponent(current: Fiber, workInProgress: Fiber, type: string, newProps: any, rootContainerInstance: any) {
   const oldProps = current.memoizedProps
   if (oldProps === newProps) {
     return

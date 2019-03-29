@@ -8,6 +8,7 @@
     },
     "object-literal-sort-keys": false,
     "new-parens": true,
+    "forin": false,
     "no-arg": true,
     "no-bitwise": false,
     "no-conditional-assignment": false,
