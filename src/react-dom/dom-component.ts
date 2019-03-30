@@ -1,3 +1,4 @@
+import { DOCUMENT_NODE } from '../react-type/html-type'
 import { isText } from '../utils/getType'
 import { getInputProps } from './dom-input'
 import { getOptionProps } from './dom-options'
@@ -5,6 +6,10 @@ import { getSelectProps } from './dom-select'
 import { getTextareaProps } from './dom-textarea'
 
 export type Container = Element | Document
+
+function getOwnerDocumentFromRootContainer(rootContainerElement: any): Document {
+  return rootContainerElement.nodeType === DOCUMENT_NODE ? rootContainerElement : rootContainerElement.ownerDocument
+}
 
 function createElement(type: string, props: any, rootContainerInstance: Container, parentNamespace: string) {
 
