@@ -120,12 +120,16 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
 
           appendAllChildren(instance, workInProgress)
 
-          if (finalizeInitialChildren(instance, type, props, rootContainerInstance)) {
-
+          if (finalizeInitialChildren(instance, type, newProps, rootContainerInstance)) {
+            workInProgress.effectTag |= Update
           }
+          workInProgress.stateNode = instance
+        }
+
+        if (workInProgress.ref !== null) {
+          workInProgress.effectTag |= Ref
         }
       }
-
       break
     }
   }

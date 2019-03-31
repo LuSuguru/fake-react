@@ -25,9 +25,21 @@ function shouldDeprioritizeSubtree(type: string, props: any): boolean {
   return !!props.hidden
 }
 
+function shouldAutoFocusHostComponent(type: string, props: Props): boolean {
+  switch (type) {
+    case 'button':
+    case 'input':
+    case 'select':
+    case 'textarea':
+      return !!props.autoFocus
+  }
+  return false
+}
+
 export {
   noTimeout,
   clearTimeout,
   shouldSetTextContent,
   shouldDeprioritizeSubtree,
+  shouldAutoFocusHostComponent,
 }

@@ -1,16 +1,17 @@
 import { Fiber } from '../../react-fiber/fiber'
 import { DOCUMENT_NODE } from '../../react-type/html-type'
+import { shouldAutoFocusHostComponent } from '../../utils/browser'
 import { getIntrinsicNamespace, HTML_NAMESPACE } from '../../utils/dom-namespaces'
 import { isText } from '../../utils/getType'
 import { isCustomComponent } from '../../utils/lib'
 import { setValueForStyles } from './css-property-operation'
 import { precacheFiberNode, updateFiberProps } from './dom-component-tree'
-import { getInputProps, initInputProps } from './dom-input'
-import { getOptionProps } from './dom-options'
-import { getSelectProps, initSelectProps } from './dom-select'
-import { getTextareaProps, initTextareaProps } from './dom-textarea'
+import { getInputProps, initInputProps, setInputValue } from './dom-input'
+import { getOptionProps, setOptionValue } from './dom-options'
+import { getSelectProps, initSelectProps, setSelectValue } from './dom-select'
+import { getTextareaProps, initTextareaProps, setTextareaValue } from './dom-textarea'
+import { track } from './input-value-track'
 import { setInnerHtml, setTextContent, setValueForProperty } from './property-operation'
-
 
 export type Container = Element | Document
 export type HostContext = string
@@ -93,11 +94,11 @@ function setInitialDOMProperties(tag: string, domElement: Element, rootContainer
   })
 }
 
-function diffProperties(domElement: Element, tag: string, lastRawProps: object, newRawProps: object, rootContainerElement: Container): any[] {
+function diffProperties(domElement: any, tag: string, lastRawProps: object, newRawProps: object, rootContainerElement: Container): any[] {
   let updatePayload: any[] = null
 
-  let lastProps: object = null
-  let nextProps: object = null
+  let lastProps: any = null
+  let nextProps: any = null
 
   switch (tag) {
     case 'input':
@@ -106,13 +107,13 @@ function diffProperties(domElement: Element, tag: string, lastRawProps: object, 
       updatePayload = []
       break
     case 'option':
-      lastProps = getOptionProps(domElement, lastRawProps)
-      nextProps = getOptionProps(domElement, newRawProps)
+      lastProps = getOptionProps(lastRawProps)
+      nextProps = getOptionProps(newRawProps)
       updatePayload = []
       break
     case 'select':
-      lastProps = getSelectProps(domElement, lastRawProps)
-      nextProps = getSelectProps(domElement, newRawProps)
+      lastProps = getSelectProps(lastRawProps)
+      nextProps = getSelectProps(newRawProps)
       updatePayload = []
       break
     case 'textarea':
@@ -123,6 +124,9 @@ function diffProperties(domElement: Element, tag: string, lastRawProps: object, 
     default:
       lastProps = lastRawProps
       nextProps = newRawProps
+      if (typeof lastProps.onClick !== 'function' && typeof nextProps.onClick === 'function') {
+        domElement.onclick = {} // safari 不可点击元素点击不冒泡，需特殊处理
+      }
       break
   }
 
@@ -235,9 +239,9 @@ function diffProperties(domElement: Element, tag: string, lastRawProps: object, 
   return updatePayload
 }
 
-function setInitialProperties(domElement: Element, tag: string, rawProps: any, rootContainerElement: Container) {
+function setInitialProperties(domElement: any, tag: string, rawProps: any, rootContainerElement: Container) {
   const isCustomComponentTag = isCustomComponent(tag, rawProps)
-  let props: Object
+  let props: any
 
   switch (tag) {
     case 'iframe':
@@ -279,6 +283,12 @@ function setInitialProperties(domElement: Element, tag: string, rawProps: any, r
       // trapBubbledEvent(TOP_INVALID, domElement)
       // ensureListeningTo(rootContainerElement, 'onChange')
       break
+    case 'textarea':
+      initTextareaProps(domElement, rawProps)
+      props = getTextareaProps(domElement, rawProps)
+      // trapBubbledEvent(TOP_INVALID, domElement)
+      // ensureListeningTo(rootContainerElement, 'onChange')
+      break
     case 'option':
       props = getOptionProps(domElement, rawProps)
       break
@@ -288,17 +298,33 @@ function setInitialProperties(domElement: Element, tag: string, rawProps: any, r
       // trapBubbledEvent(TOP_INVALID, domElement)
       // ensureListeningTo(rootContainerElement, 'onChange')
       break
-    case 'textarea':
-      initTextareaProps(domElement, rawProps)
-      props = getTextareaProps(domElement, rawProps)
-      // trapBubbledEvent(TOP_INVALID, domElement)
-      // ensureListeningTo(rootContainerElement, 'onChange')
-      break
     default:
       props = rawProps
   }
 
   setInitialDOMProperties(tag, domElement, rootContainerElement, props, isCustomComponentTag)
+
+  switch (tag) {
+    case 'input':
+      track(domElement)
+      setInputValue(domElement, rawProps, false)
+      break
+    case 'textarea':
+      track(domElement)
+      setTextareaValue(domElement, rawProps)
+      break
+    case 'option':
+      setOptionValue(domElement, rawProps)
+      break
+    case 'select':
+      setSelectValue(domElement, rawProps)
+      break
+    default:
+      if (typeof props.onClick === 'function') {
+        domElement.onclick = {}
+      }
+      break
+  }
 }
 
 function createInstance(type: string, props: any, rootContainerInstance: any, hostContext: any, internalInstanceHandle: Fiber) {
@@ -315,6 +341,7 @@ function appendInitialChild(parentInstance: Element, child: Element | Text) {
 
 function finalizeInitialChildren(domElement: Element, type: string, props: any, rootContainerInstance: any): boolean {
   setInitialProperties(domElement, type, props, rootContainerInstance)
+  return shouldAutoFocusHostComponent(type, props)
 }
 
 export {

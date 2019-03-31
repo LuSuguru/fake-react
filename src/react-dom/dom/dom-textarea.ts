@@ -1,4 +1,4 @@
-import { getToStringValue } from '../utils/lib'
+import { getToStringValue } from '../../utils/lib'
 
 function initTextareaProps(element: any, props: any) {
   let initialValue: string = props.value
@@ -29,7 +29,16 @@ function getTextareaProps(element: any, props: object) {
   }
 }
 
+function setTextareaValue({ element }: any, props: any) {
+  const { textContent } = element
+
+  if (textContent === element._wrapperState.initialValue) {
+    element.value = textContent
+  }
+}
+
 export {
   initTextareaProps,
   getTextareaProps,
+  setTextareaValue,
 }
