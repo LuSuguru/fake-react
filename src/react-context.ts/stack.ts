@@ -1,4 +1,4 @@
-interface StackCursor<T> { current: T }
+export interface StackCursor<T> { current: T }
 
 const valueStack: any[] = []
 let index: number = -1
@@ -25,7 +25,6 @@ function push<T>(cursor: StackCursor<T>, value: T) {
 }
 
 export {
-  StackCursor,
   createStack,
   isEmpty,
   pop,

@@ -6,12 +6,15 @@ import { getSelectProps } from './dom-select'
 import { getTextareaProps } from './dom-textarea'
 
 export type Container = Element | Document
+export type HostContext = string
 
 function getOwnerDocumentFromRootContainer(rootContainerElement: any): Document {
   return rootContainerElement.nodeType === DOCUMENT_NODE ? rootContainerElement : rootContainerElement.ownerDocument
 }
 
 function createElement(type: string, props: any, rootContainerInstance: Container, parentNamespace: string) {
+  const ownerDocument: Document = getOwnerDocumentFromRootContainer(rootContainerInstance)
+  let domElement: Element
 
 }
 
