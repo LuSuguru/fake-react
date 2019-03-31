@@ -1,12 +1,12 @@
-import { Fiber } from '../react-fiber/fiber'
-import { DOCUMENT_NODE } from '../react-type/html-type'
-import { getIntrinsicNamespace, HTML_NAMESPACE } from '../utils/dom-namespaces'
-import { isText } from '../utils/getType'
+import { Fiber } from '../../react-fiber/fiber'
+import { DOCUMENT_NODE } from '../../react-type/html-type'
+import { getIntrinsicNamespace, HTML_NAMESPACE } from '../../utils/dom-namespaces'
+import { isText } from '../../utils/getType'
 import { precacheFiberNode, updateFiberProps } from './dom-component-tree'
-import { getInputProps } from './dom-input'
+import { getInputProps, initInputProps } from './dom-input'
 import { getOptionProps } from './dom-options'
-import { getSelectProps } from './dom-select'
-import { getTextareaProps } from './dom-textarea'
+import { getSelectProps, initSelectProps } from './dom-select'
+import { getTextareaProps, initTextareaProps } from './dom-textarea'
 
 
 export type Container = Element | Document
@@ -46,6 +46,8 @@ function createElement(type: string, props: any, rootContainerInstance: Containe
 
   return domElement
 }
+
+function setInitialDOMProperties(tag: string, domElement; : Element, rootContainerElement: Container, nextProps: any )
 
 function diffProperties(domElement: Element, tag: string, lastRawProps: object, newRawProps: object, rootContainerElement: Container): any[] {
   let updatePayload: any[] = null
@@ -189,7 +191,72 @@ function diffProperties(domElement: Element, tag: string, lastRawProps: object, 
   return updatePayload
 }
 
-function createInstance(type: string, props: any, rootContainerInstance: Container, hostContext: any, internalInstanceHandle: Fiber) {
+function setInitialProperties(domElement: Element, tag: string, rawProps: any, rootContainerElement: Container) {
+  let props: Object
+
+  switch (tag) {
+    case 'iframe':
+    case 'object':
+      // trapBubbledEvent(TOP_LOAD, domElement)
+      props = rawProps
+      break
+    case 'video':
+    case 'audio':
+      // Create listener for each media event
+      // for (let i = 0; i < mediaEventTypes.length; i++) {
+      // trapBubbledEvent(mediaEventTypes[i], domElement)
+      // }
+      props = rawProps
+      break
+    case 'source':
+      // trapBubbledEvent(TOP_ERROR, domElement)
+      props = rawProps
+      break
+    case 'img':
+    case 'image':
+    case 'link':
+      // trapBubbledEvent(TOP_ERROR, domElement)
+      // trapBubbledEvent(TOP_LOAD, domElement)
+      props = rawProps
+      break
+    case 'form':
+      // trapBubbledEvent(TOP_RESET, domElement)
+      // trapBubbledEvent(TOP_SUBMIT, domElement)
+      props = rawProps
+      break
+    case 'details':
+      // trapBubbledEvent(TOP_TOGGLE, domElement)
+      props = rawProps
+      break
+    case 'input':
+      initInputProps(domElement, rawProps)
+      props = getInputProps(domElement, rawProps)
+      // trapBubbledEvent(TOP_INVALID, domElement)
+      // ensureListeningTo(rootContainerElement, 'onChange')
+      break
+    case 'option':
+      props = getOptionProps(domElement, rawProps)
+      break
+    case 'select':
+      initSelectProps(domElement, rawProps)
+      props = getSelectProps(domElement, rawProps)
+      // trapBubbledEvent(TOP_INVALID, domElement)
+      // ensureListeningTo(rootContainerElement, 'onChange')
+      break
+    case 'textarea':
+      initTextareaProps(domElement, rawProps)
+      props = getTextareaProps(domElement, rawProps)
+      // trapBubbledEvent(TOP_INVALID, domElement)
+      // ensureListeningTo(rootContainerElement, 'onChange')
+      break
+    default:
+      props = rawProps
+  }
+
+  setInitialDOMProperties(tag, domElement, rootContainerElement, props)
+}
+
+function createInstance(type: string, props: any, rootContainerInstance: any, hostContext: any, internalInstanceHandle: Fiber) {
   const domElement = createElement(type, props, rootContainerInstance, hostContext)
   precacheFiberNode(internalInstanceHandle, domElement)
   updateFiberProps(domElement, props)
@@ -197,7 +264,17 @@ function createInstance(type: string, props: any, rootContainerInstance: Contain
   return domElement
 }
 
+function appendInitialChild(parentInstance: Element, child: Element | Text) {
+  parentInstance.appendChild(child)
+}
+
+function finalizeInitialChildren(domElement: Element, type: string, props: any, rootContainerInstance: any): boolean {
+  setInitialProperties(domElement, type, props, rootContainerInstance)
+}
+
 export {
   diffProperties,
   createInstance,
+  appendInitialChild,
+  finalizeInitialChildren,
 }

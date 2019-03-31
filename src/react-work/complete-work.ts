@@ -1,5 +1,5 @@
 import { getHostContext, getRootHostContainer, popHostContainer, popHostContext } from '../react-context/host-context'
-import { Container, createInstance, diffProperties } from '../react-dom/dom-component'
+import { appendInitialChild, Container, createInstance, diffProperties, finalizeInitialChildren } from '../react-dom/dom/dom-component'
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { Placement, Ref, Update } from '../react-type/effect-type'
@@ -7,7 +7,9 @@ import {
   ClassComponent,
   FunctionComponent,
   HostComponent,
+  HostPortal,
   HostRoot,
+  HostText,
   IndeterminateComponent,
   LazyComponent,
   SimpleMemoComponent,
@@ -25,6 +27,35 @@ function updateHostComponent(current: Fiber, workInProgress: Fiber | any, type: 
 
   if (updatePayload) {
     workInProgress.effectTag |= Update
+  }
+}
+
+function appendAllChildren(parent: any, workInProgress: Fiber) {
+  let node: Fiber = workInProgress.child
+
+  while (node !== null) {
+    if (node.tag === HostComponent || node.tag === HostText) {
+      appendInitialChild(parent, node.stateNode)
+    } else if (node.tag === HostPortal) {
+      // 这个会渲染到瓦面，这里忽略
+    } else if (node.child !== null) {
+      node.child.return = node
+      node = node.child
+      continue
+    }
+    if (node === workInProgress) {
+      return
+    }
+
+    while (node.sibling === null) {
+      if (node.return === null || node.return === workInProgress) {
+        return
+      }
+      node = node.return
+    }
+
+    node.sibling.return = node.return
+    node = node.sibling
   }
 }
 
@@ -86,6 +117,12 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
           //   }
         } else {
           const instance = createInstance(type, newProps, rootContainerInstance, currentHostContext, workInProgress)
+
+          appendAllChildren(instance, workInProgress)
+
+          if (finalizeInitialChildren(instance, type, props, rootContainerInstance)) {
+
+          }
         }
       }
 

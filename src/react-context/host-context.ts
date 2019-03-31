@@ -1,4 +1,4 @@
-import { Container, HostContext } from '../react-dom/dom-component'
+import { Container, HostContext } from '../react-dom/dom/dom-component'
 import { Fiber } from '../react-fiber/fiber'
 import { COMMENT_NODE, DOCUMENT_FRAGMENT_NODE, DOCUMENT_NODE } from '../react-type/html-type'
 import { getChildNamespace } from '../utils/dom-namespaces'

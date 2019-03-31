@@ -23,3 +23,34 @@ export function shallowEqual(objA: any, objB: any): boolean {
   return true
 }
 
+export function getToStringValue(value: any) {
+  switch (typeof value) {
+    case 'boolean':
+    case 'number':
+    case 'object':
+    case 'string':
+    case 'undefined':
+      return value
+    default:
+      return ''
+  }
+}
+
+export function isCustomComponent(tagName: string, props: any) {
+  if (tagName.indexOf('-') === -1) {
+    return typeof props.is === 'string'
+  }
+  switch (tagName) {
+    case 'annotation-xml':
+    case 'color-profile':
+    case 'font-face':
+    case 'font-face-src':
+    case 'font-face-uri':
+    case 'font-face-format':
+    case 'font-face-name':
+    case 'missing-glyph':
+      return false
+    default:
+      return true
+  }
+}
