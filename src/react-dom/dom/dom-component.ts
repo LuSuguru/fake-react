@@ -2,6 +2,7 @@ import { Fiber } from '../../react-fiber/fiber'
 import { DOCUMENT_NODE } from '../../react-type/html-type'
 import { getIntrinsicNamespace, HTML_NAMESPACE } from '../../utils/dom-namespaces'
 import { isText } from '../../utils/getType'
+import { isCustomComponent } from '../../utils/lib'
 import { precacheFiberNode, updateFiberProps } from './dom-component-tree'
 import { getInputProps, initInputProps } from './dom-input'
 import { getOptionProps } from './dom-options'
@@ -47,7 +48,52 @@ function createElement(type: string, props: any, rootContainerInstance: Containe
   return domElement
 }
 
-function setInitialDOMProperties(tag: string, domElement; : Element, rootContainerElement: Container, nextProps: any )
+function setInitialDOMProperties(tag: string, domElement: Element, rootContainerElement: Container, nextProps: any, isCustomComponentTag: boolean) {
+  for (const propKey in nextProps) {
+    if (!nextProps.hasOwnProperty(propKey)) {
+      continue
+    }
+
+    const nextProp = nextProps[propKey]
+    switch (propKey) {
+      case 'style':
+        setValueForStyles(domElement, nextProp)
+        break
+      case 'dangerouslySetInnerHTML': {
+        const nextHtml = nextProp ? nextProp.__html : undefined
+        if (nextHtml != null) {
+          setInnerHTML(domElement, nextHtml)
+        }
+        break
+      }
+      case 'children': {
+        if (typeof nextProp === 'string') {
+          const canSetTextContent = tag !== 'textarea' || nextProp !== ''
+          if (canSetTextContent) {
+            setTextContent(domElement, nextProp)
+          }
+        } else if (typeof nextProp === 'number') {
+          setTextContent(domElement, '' + nextProp)
+        }
+        break
+      }
+      case 'suppressContentEditableWarning':
+      case 'suppressHydrationWarning':
+      case 'autoFocus':
+        break
+      // case registrationNameModules.hasOwnProperty(propKey): { // 事件处理
+      //   if (nextProp != null) {
+      //     ensureListeningTo(rootContainerElement, propKey)
+      //   }
+      //   break
+      default:
+        if (nextProp != null) {
+          setValueForProperty(domElement, propKey, nextProp, isCustomComponentTag)
+        }
+        break
+    }
+  }
+}
 
 function diffProperties(domElement: Element, tag: string, lastRawProps: object, newRawProps: object, rootContainerElement: Container): any[] {
   let updatePayload: any[] = null
@@ -192,6 +238,7 @@ function diffProperties(domElement: Element, tag: string, lastRawProps: object, 
 }
 
 function setInitialProperties(domElement: Element, tag: string, rawProps: any, rootContainerElement: Container) {
+  const isCustomComponentTag = isCustomComponent(tag, rawProps)
   let props: Object
 
   switch (tag) {
@@ -253,7 +300,7 @@ function setInitialProperties(domElement: Element, tag: string, rawProps: any, r
       props = rawProps
   }
 
-  setInitialDOMProperties(tag, domElement, rootContainerElement, props)
+  setInitialDOMProperties(tag, domElement, rootContainerElement, props, isCustomComponentTag)
 }
 
 function createInstance(type: string, props: any, rootContainerInstance: any, hostContext: any, internalInstanceHandle: Fiber) {
