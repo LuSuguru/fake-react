@@ -2,6 +2,7 @@ import { Fiber } from '../react-fiber/fiber'
 import { DOCUMENT_NODE } from '../react-type/html-type'
 import { getIntrinsicNamespace, HTML_NAMESPACE } from '../utils/dom-namespaces'
 import { isText } from '../utils/getType'
+import { precacheFiberNode, updateFiberProps } from './dom-component-tree'
 import { getInputProps } from './dom-input'
 import { getOptionProps } from './dom-options'
 import { getSelectProps } from './dom-select'
@@ -189,7 +190,11 @@ function diffProperties(domElement: Element, tag: string, lastRawProps: object, 
 }
 
 function createInstance(type: string, props: any, rootContainerInstance: Container, hostContext: any, internalInstanceHandle: Fiber) {
-  createElement(type, props, rootContainerInstance, hostContext)
+  const domElement = createElement(type, props, rootContainerInstance, hostContext)
+  precacheFiberNode(internalInstanceHandle, domElement)
+  updateFiberProps(domElement, props)
+
+  return domElement
 }
 
 export {
