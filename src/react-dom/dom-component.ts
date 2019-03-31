@@ -1,9 +1,12 @@
+import { Fiber } from '../react-fiber/fiber'
 import { DOCUMENT_NODE } from '../react-type/html-type'
+import { getIntrinsicNamespace, HTML_NAMESPACE } from '../utils/dom-namespaces'
 import { isText } from '../utils/getType'
 import { getInputProps } from './dom-input'
 import { getOptionProps } from './dom-options'
 import { getSelectProps } from './dom-select'
 import { getTextareaProps } from './dom-textarea'
+
 
 export type Container = Element | Document
 export type HostContext = string
@@ -12,10 +15,35 @@ function getOwnerDocumentFromRootContainer(rootContainerElement: any): Document 
   return rootContainerElement.nodeType === DOCUMENT_NODE ? rootContainerElement : rootContainerElement.ownerDocument
 }
 
-function createElement(type: string, props: any, rootContainerInstance: Container, parentNamespace: string) {
+function createElement(type: string, props: any, rootContainerInstance: Container, parentNamespace: string): Element {
   const ownerDocument: Document = getOwnerDocumentFromRootContainer(rootContainerInstance)
-  let domElement: Element
+  let domElement: any
 
+  let nameSpaceURI: string = parentNamespace
+  if (nameSpaceURI === HTML_NAMESPACE) {
+    nameSpaceURI = getIntrinsicNamespace(type)
+  }
+
+  if (nameSpaceURI === HTML_NAMESPACE) {
+    if (type === 'script') {
+      const div = ownerDocument.createElement('div')
+      div.innerHTML = '<script></script>'
+      const firstChild: any = div.firstChild
+      domElement = div.removeChild(firstChild)
+    } else if (typeof props.is === 'string') {
+      domElement = ownerDocument.createElement(type, { is: props.is })
+    } else {
+      domElement = ownerDocument.createElement(type)
+
+      if (type === 'select' && props.multiple) {
+        domElement.multiple = true
+      }
+    }
+  } else {
+    domElement = ownerDocument.createElementNS(nameSpaceURI, type)
+  }
+
+  return domElement
 }
 
 function diffProperties(domElement: Element, tag: string, lastRawProps: object, newRawProps: object, rootContainerElement: Container): any[] {

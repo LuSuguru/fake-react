@@ -24,7 +24,7 @@ function getRootHostContext(rootContainerInstance: any): HostContext {
       break
     }
     default: {
-      const container: any = nodeType === COMMENT_NODE ? rootContainerInstance. : rootContainerInstance
+      const container: any = nodeType === COMMENT_NODE ? rootContainerInstance.parentNode : rootContainerInstance
       const ownNamespace = container.namespaceURI || null
       const type = container.tagName
 

@@ -1,3 +1,4 @@
+import { getHostContext, getRootHostContainer, popHostContainer, popHostContext } from '../react-context/host-context'
 import { Container, createInstance, diffProperties } from '../react-dom/dom-component'
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
@@ -12,7 +13,7 @@ import {
   SimpleMemoComponent,
 } from '../react-type/tag-type'
 
-function updateHostComponent(current: Fiber, workInProgress: Fiber | any, type: string, newProps: any, rootContainerInstance: Container) {
+function updateHostComponent(current: Fiber, workInProgress: Fiber | any, type: string, newProps: any, rootContainerInstance: Container | any) {
   const oldProps = current.memoizedProps
   if (oldProps === newProps) {
     return
@@ -44,14 +45,14 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
       break
     }
     case HostRoot: {
-      // popHostContainer(workInProgress) // context操作
+      popHostContainer()
       // popTopLevelLegacyContextObject(workInProgress)
 
       const fiberRoot = workInProgress.stateNode
-      // if (fiberRoot.pendingContext) {
-      //   fiberRoot.context = fiberRoot.pendingContext
-      //   fiberRoot.pendingContext = null
-      // }
+      if (fiberRoot.pendingContext) {
+        fiberRoot.context = fiberRoot.pendingContext
+        fiberRoot.pendingContext = null
+      }
 
       if (current === null || current.child === null) {
         // popHydrationState(workInProgress)
@@ -60,8 +61,8 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
       break
     }
     case HostComponent: {
-      // popHostContext(workInProgress) // context操作
-      const rootContainerInstance = {} // getRootHostContainer()
+      popHostContext(workInProgress)
+      const rootContainerInstance = getRootHostContainer()
       const { type } = workInProgress
 
       if (current !== null && workInProgress.stateNode !== null) {
@@ -75,7 +76,7 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
           break
         }
 
-        const currentHostContext = getHostContext() // context操作
+        const currentHostContext = getHostContext()
         const wasHydrated = popHydrationState(workInProgress)
 
         if (wasHydrated) {
