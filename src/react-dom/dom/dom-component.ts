@@ -290,11 +290,11 @@ function setInitialProperties(domElement: any, tag: string, rawProps: any, rootC
       // ensureListeningTo(rootContainerElement, 'onChange')
       break
     case 'option':
-      props = getOptionProps(domElement, rawProps)
+      props = getOptionProps(rawProps)
       break
     case 'select':
       initSelectProps(domElement, rawProps)
-      props = getSelectProps(domElement, rawProps)
+      props = getSelectProps(rawProps)
       // trapBubbledEvent(TOP_INVALID, domElement)
       // ensureListeningTo(rootContainerElement, 'onChange')
       break

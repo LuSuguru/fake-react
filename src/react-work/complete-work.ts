@@ -37,7 +37,7 @@ function appendAllChildren(parent: any, workInProgress: Fiber) {
     if (node.tag === HostComponent || node.tag === HostText) {
       appendInitialChild(parent, node.stateNode)
     } else if (node.tag === HostPortal) {
-      // 这个会渲染到瓦面，这里忽略
+      // 这个会渲染到外面，这里忽略
     } else if (node.child !== null) {
       node.child.return = node
       node = node.child
