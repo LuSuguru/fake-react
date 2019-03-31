@@ -3,11 +3,13 @@ import { DOCUMENT_NODE } from '../../react-type/html-type'
 import { getIntrinsicNamespace, HTML_NAMESPACE } from '../../utils/dom-namespaces'
 import { isText } from '../../utils/getType'
 import { isCustomComponent } from '../../utils/lib'
+import { setValueForStyles } from './css-property-operation'
 import { precacheFiberNode, updateFiberProps } from './dom-component-tree'
 import { getInputProps, initInputProps } from './dom-input'
 import { getOptionProps } from './dom-options'
 import { getSelectProps, initSelectProps } from './dom-select'
 import { getTextareaProps, initTextareaProps } from './dom-textarea'
+import { setInnerHtml, setTextContent, setValueForProperty } from './property-operation'
 
 
 export type Container = Element | Document
@@ -49,11 +51,7 @@ function createElement(type: string, props: any, rootContainerInstance: Containe
 }
 
 function setInitialDOMProperties(tag: string, domElement: Element, rootContainerElement: Container, nextProps: any, isCustomComponentTag: boolean) {
-  for (const propKey in nextProps) {
-    if (!nextProps.hasOwnProperty(propKey)) {
-      continue
-    }
-
+  Object.keys(nextProps).forEach((propKey) => {
     const nextProp = nextProps[propKey]
     switch (propKey) {
       case 'style':
@@ -62,7 +60,7 @@ function setInitialDOMProperties(tag: string, domElement: Element, rootContainer
       case 'dangerouslySetInnerHTML': {
         const nextHtml = nextProp ? nextProp.__html : undefined
         if (nextHtml != null) {
-          setInnerHTML(domElement, nextHtml)
+          setInnerHtml(domElement, nextHtml)
         }
         break
       }
@@ -92,7 +90,7 @@ function setInitialDOMProperties(tag: string, domElement: Element, rootContainer
         }
         break
     }
-  }
+  })
 }
 
 function diffProperties(domElement: Element, tag: string, lastRawProps: object, newRawProps: object, rootContainerElement: Container): any[] {
