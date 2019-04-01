@@ -1,4 +1,4 @@
-import { Fiber } from '../react-fiber/fiber'
+import { Fiber } from '../../react-fiber/fiber'
 
 const randomKey = Math.random().toString(36).slice(2)
 
