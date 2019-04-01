@@ -7,6 +7,7 @@ import { Incomplete, NoEffect } from '../react-type/effect-type'
 import { HostRoot } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { beginWork } from '../react-work/begin-work'
+import { completeWork } from '../react-work/complete-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
 import { markPendingPriorityLevel } from './pending-priority'
 
