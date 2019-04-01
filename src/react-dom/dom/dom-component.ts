@@ -327,12 +327,18 @@ function setInitialProperties(domElement: any, tag: string, rawProps: any, rootC
   }
 }
 
-function createInstance(type: string, props: any, rootContainerInstance: any, hostContext: any, internalInstanceHandle: Fiber) {
+function createInstance(type: string, props: any, rootContainerInstance: any, hostContext: any, internalInstanceHandle: Fiber): Element {
   const domElement = createElement(type, props, rootContainerInstance, hostContext)
   precacheFiberNode(internalInstanceHandle, domElement)
   updateFiberProps(domElement, props)
 
   return domElement
+}
+
+function createTextInstance(text: string, rootContainerInstance: any, internalInstanceHandle: Fiber): Text {
+  const textNode = getOwnerDocumentFromRootContainer(rootContainerInstance).createTextNode(text)
+  precacheFiberNode(internalInstanceHandle, textNode)
+  return textNode
 }
 
 function appendInitialChild(parentInstance: Element, child: Element | Text) {
@@ -347,6 +353,7 @@ function finalizeInitialChildren(domElement: Element, type: string, props: any, 
 export {
   diffProperties,
   createInstance,
+  createTextInstance,
   appendInitialChild,
   finalizeInitialChildren,
 }

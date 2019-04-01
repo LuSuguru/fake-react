@@ -1,5 +1,5 @@
 import { getHostContext, getRootHostContainer, popHostContainer, popHostContext } from '../react-context/host-context'
-import { appendInitialChild, Container, createInstance, diffProperties, finalizeInitialChildren } from '../react-dom/dom/dom-component'
+import { appendInitialChild, Container, createInstance, createTextInstance, diffProperties, finalizeInitialChildren } from '../react-dom/dom/dom-component'
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { Placement, Ref, Update } from '../react-type/effect-type'
@@ -26,6 +26,12 @@ function updateHostComponent(current: Fiber, workInProgress: Fiber | any, type: 
   workInProgress.updateQueue = updatePayload
 
   if (updatePayload) {
+    workInProgress.effectTag |= Update
+  }
+}
+
+function updateHostText(workInProgress: Fiber, oldText: string, newText: string) {
+  if (oldText !== newText) {
     workInProgress.effectTag |= Update
   }
 }
@@ -131,6 +137,25 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
         }
       }
       break
+    }
+    case HostText: {
+      const newText: string = newProps
+
+      if (current && workInProgress.stateNode !== null) {
+        const oldText = current.memoizedProps
+        updateHostText(workInProgress, oldText, newText)
+      } else {
+        const rootContainerInstance = getRootHostContainer()
+        const wasHydrated = popHydrationState(workInProgress)
+
+        if (wasHydrated) {
+          // if (prepareToHydrateHostTextInstance(workInProgress)) {
+          //   workInProgress.effectTag |= Update
+          // }
+        } else {
+          workInProgress.stateNode = createTextInstance(newText, rootContainerInstance, workInProgress)
+        }
+      }
     }
   }
 }
