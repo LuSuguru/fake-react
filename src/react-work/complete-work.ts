@@ -2,17 +2,27 @@ import { getHostContext, getRootHostContainer, popHostContainer, popHostContext 
 import { appendInitialChild, Container, createInstance, createTextInstance, diffProperties, finalizeInitialChildren } from '../react-dom/dom/dom-component'
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
-import { Placement, Ref, Update } from '../react-type/effect-type'
+import { DidCapture, NoEffect, Placement, Ref, Update } from '../react-type/effect-type'
 import {
   ClassComponent,
+  ContextConsumer,
+  ContextProvider,
+  DehydratedSuspenseComponent,
+  ForwardRef,
+  Fragment,
   FunctionComponent,
   HostComponent,
   HostPortal,
   HostRoot,
   HostText,
+  IncompleteClassComponent,
   IndeterminateComponent,
   LazyComponent,
+  MemoComponent,
+  Mode,
+  Profiler,
   SimpleMemoComponent,
+  SuspenseComponent,
 } from '../react-type/tag-type'
 
 function updateHostComponent(current: Fiber, workInProgress: Fiber | any, type: string, newProps: any, rootContainerInstance: Container | any) {
@@ -156,7 +166,55 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
           workInProgress.stateNode = createTextInstance(newText, rootContainerInstance, workInProgress)
         }
       }
+      break
     }
+    case SuspenseComponent: {
+      // 待实现
+    }
+    case HostPortal:
+      popHostContainer()
+      // updateHostContainer(workInProgress)
+      break
+    case ContextProvider:
+      // popProvider(workInProgress)
+      break
+    case IncompleteClassComponent: {
+      const Component = workInProgress.type
+      // if (isLegacyContextProvider(Component)) {
+      //   popLegacyContext(workInProgress)
+      // }
+      break
+    }
+    case DehydratedSuspenseComponent: {
+      if ((workInProgress.effectTag & DidCapture) === NoEffect) {
+        current.alternate = null
+        workInProgress.alternate = null
+        workInProgress.tag = SuspenseComponent
+        workInProgress.memoizedState = null
+        workInProgress.stateNode = null
+      }
+      break
+    }
+    case ForwardRef:
+      break
+    case Fragment:
+      break
+    case Mode:
+      break
+    case Profiler:
+      break
+    case ContextConsumer:
+      break
+    case MemoComponent:
+      break
+    default:
+      break
   }
+
+  return null
+}
+
+export {
+  completeWork,
 }
 
