@@ -162,7 +162,7 @@ function updateMemoComponent(current: Fiber, workInProgress: Fiber, Component: a
       workInProgress.tag = SimpleMemoComponent
       workInProgress.type = type
 
-      return updateSimpleMemoComponent(current, workInProgress, type, nextProps, updateClassComponent, renderExpirationTime)
+      return updateSimpleMemoComponent(current, workInProgress, type, nextProps, updateExpirationTime, renderExpirationTime)
     }
 
     const child: Fiber = createFiberFromTypeAndProps(Component.type, null, nextProps, workInProgress.mode, renderExpirationTime)
