@@ -82,6 +82,29 @@ function computeExpirationTimeForFiber(currentTime: ExpirationTime, fiber: Fiber
   return expirationTime
 }
 
+function resetChildExpirationTime(workInProgress: Fiber, renderTime: ExpirationTime) {
+  if (renderTime !== Never && workInProgress.childExpirationTime === Never) {
+    return
+  }
+  let newChildExpiration: ExpirationTime = NoWork
+  let child: Fiber = workInProgress.child
+
+  while (child !== null) {
+    const childUpdateExpirationTime = workInProgress.expirationTime
+    const childChildExpirationTime = workInProgress.childExpirationTime
+
+    if (childUpdateExpirationTime > newChildExpiration) {
+      newChildExpiration = childUpdateExpirationTime
+    }
+
+    if (childChildExpirationTime > newChildExpiration) {
+      newChildExpiration = childChildExpirationTime
+    }
+    child = child.sibling
+  }
+  workInProgress.childExpirationTime = newChildExpiration
+}
+
 function findHighestPriorityRoot() {
   let highestPriorityWork: ExpirationTime = NoWork
   let highestPriorityRoot: FiberRoot = null
@@ -381,6 +404,7 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber {
 
     if ((workInProgress.effectTag & Incomplete) === NoEffect) {
       nextUnitOfWork = completeWork(current, workInProgress, nextRenderExpirationTime)
+      resetChildExpirationTime(workInProgress, nextRenderExpirationTime)
     }
   }
 }
