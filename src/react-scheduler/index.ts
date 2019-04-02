@@ -83,7 +83,7 @@ function computeExpirationTimeForFiber(currentTime: ExpirationTime, fiber: Fiber
 }
 
 function resetChildExpirationTime(workInProgress: Fiber, renderTime: ExpirationTime) {
-  if (renderTime !== Never && workInProgress.childExpirationTime === Never) {
+  if (renderTime !== Never && workInProgress.childExpirationTime === Never) { // 子节点hidden的，直接跳过
     return
   }
   let newChildExpiration: ExpirationTime = NoWork
@@ -159,10 +159,9 @@ function findHighestPriorityRoot() {
         root = root.nextScheduledRoot
       }
     }
-
-    nextFlushedRoot = highestPriorityRoot
-    nextFlushedExpirationTime = highestPriorityWork
   }
+  nextFlushedRoot = highestPriorityRoot
+  nextFlushedExpirationTime = highestPriorityWork
 }
 
 function requestCurrentTime(): ExpirationTime {
@@ -405,6 +404,10 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber {
     if ((workInProgress.effectTag & Incomplete) === NoEffect) {
       nextUnitOfWork = completeWork(current, workInProgress, nextRenderExpirationTime)
       resetChildExpirationTime(workInProgress, nextRenderExpirationTime)
+
+      if (nextUnitOfWork !== null) {
+        return nextUnitOfWork
+      }
     }
   }
 }
