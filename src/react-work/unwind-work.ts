@@ -1,8 +1,30 @@
 import { popHostContainer, popHostContext } from '../react-context/host-context'
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
-import { DidCapture, ShouldCapture } from '../react-type/effect-type'
+import { FiberRoot } from '../react-fiber/fiber-root'
+import { DidCapture, Incomplete, ShouldCapture } from '../react-type/effect-type'
 import { ClassComponent, ContextProvider, DehydratedSuspenseComponent, HostComponent, HostPortal, HostRoot, SuspenseComponent } from '../react-type/tag-type'
+
+function throwException(root: FiberRoot, returnFiber: Fiber, sourceFiber: Fiber, value: any, renderExpirationTime: ExpirationTime) {
+  sourceFiber.effectTag |= Incomplete
+  sourceFiber.firstEffect = sourceFiber.lastEffect = null
+
+  if (value !== null && typeof value === 'object' && value === 'function') {
+    let workInProgress: Fiber = returnFiber
+    const earliestTimeoutMs: number = -1
+    const startTimeMs: number = -1
+
+    while (workInProgress !== null) {
+      if (workInProgress.tag === SuspenseComponent) {
+        const current = workInProgress.alternate
+        const currentState = workInProgress.memoizedState
+
+        // 这部分逻辑还会变
+      }
+      workInProgress = workInProgress.return
+    }
+  }
+}
 
 function unwindWork(workInProgress: Fiber, renderExpirationTime: ExpirationTime) {
   const { effectTag } = workInProgress
@@ -51,4 +73,5 @@ function unwindWork(workInProgress: Fiber, renderExpirationTime: ExpirationTime)
 
 export {
   unwindWork,
+  throwException,
 }

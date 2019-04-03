@@ -2,13 +2,13 @@ import {
   computeAsyncExpiration, computeInteractiveExpiration, ExpirationTime, msToExpirationTime, Never, NoWork, Sync,
 } from '../react-fiber/expiration-time'
 import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
-import { FiberRoot } from '../react-fiber/fiber-root'
+import { Batch, FiberRoot } from '../react-fiber/fiber-root'
 import { DidCapture, HostEffectMask, Incomplete, NoEffect, PerformedWork } from '../react-type/effect-type'
 import { HostRoot } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { beginWork } from '../react-work/begin-work'
 import { completeWork } from '../react-work/complete-work'
-import { unwindWork } from '../react-work/unwind-work'
+import { throwException, unwindWork } from '../react-work/unwind-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
 import { markPendingPriorityLevel } from './pending-priority'
 
@@ -25,13 +25,13 @@ const originalStartTimeMs: number = now()
 let currentRendererTime: ExpirationTime = msToExpirationTime(originalStartTimeMs)
 let currentSchedulerTime: ExpirationTime = currentRendererTime
 
-let nextRenderExpirationTime: ExpirationTime = NoWork
-
 const expirationContext: ExpirationTime = NoWork
 
 const isBatchingUpdates: boolean = false
 const isUnbatchingUpdates: boolean = false
 const isBatchingInteractiveUpdates: boolean = false
+
+const completedBatches: Batch[] = null
 
 function recomputeCurrentRendererTime() {
   const currentTimeMs: number = now() - originalStartTimeMs
@@ -43,12 +43,23 @@ let lastScheduledRoot: FiberRoot = null
 
 let nextFlushedRoot: FiberRoot = null
 let nextFlushedExpirationTime: ExpirationTime = NoWork
-
 let lowestPriorityPendingInteractiveExpirationTime: ExpirationTime = NoWork
+
+let hasUnhandledError: boolean = false
+let unhandledError: any = null
 
 let nextUnitOfWork: Fiber = null
 let nextRoot: FiberRoot = null
-let interruptedBy: Fiber = null
+let nextRenderExpirationTime: ExpirationTime = NoWork
+const nextRenderDidError: boolean = false
+
+function onUncaughtError(error: any) {
+  nextFlushedRoot.expirationTime = NoWork
+  if (!hasUnhandledError) {
+    hasUnhandledError = true
+    unhandledError = error
+  }
+}
 
 function computeExpirationTimeForFiber(currentTime: ExpirationTime, fiber: Fiber): ExpirationTime {
   let expirationTime: ExpirationTime
@@ -225,7 +236,6 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
   const root = scheduleWorkToRoot(fiber, expirationTime)
 
   if (!isWorking && nextRenderExpirationTime !== NoWork && expirationTime > nextRenderExpirationTime) {
-    interruptedBy = fiber
     resetStack() // 待实现
   }
 
@@ -313,6 +323,8 @@ function performWorkOnRoot(root: FiberRoot, expirationTime: ExpirationTime, isYi
     if (finishedWork !== null) {
       completeRoot(root, finishedWork, expirationTime)
     } else {
+      root.finishedWork = null
+
       const { timeoutHandle } = root
       if (timeoutHandle !== noTimeout) {
         root.timeoutHandle = noTimeout
@@ -326,6 +338,13 @@ function performWorkOnRoot(root: FiberRoot, expirationTime: ExpirationTime, isYi
         completeRoot(root, finishedWork, expirationTime)
       }
     }
+  }
+}
+
+function complete(root: FiberRoot, finishedWork: Fiber, expirationTime: ExpirationTime) {
+  const { firstBatch } = root
+  if (firstBatch !== null && firstBatch._expirationTime >= expirationTime) {
+
   }
 }
 
@@ -347,13 +366,32 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
     root.pendingCommitExpirationTime = NoWork
   }
 
-  const didFatal: boolean = false
+  let didFatal: boolean = false
 
   do {
     try {
       workLoop(isYieldy)
     } catch (thrownValue) {
-      // 待实现
+      resetContextDependences()
+      resetHooks()
+
+      if (nextUnitOfWork === null) {
+        // 不可预期的错误
+        didFatal = true
+        onUncaughtError(thrownValue)
+      } else {
+        const sourceFiber = nextUnitOfWork
+        const returnFiber = sourceFiber.return
+
+        if (returnFiber === null) {
+          didFatal = true
+          onUncaughtError(thrownValue)
+        } else {
+          throwException(root, returnFiber, sourceFiber, thrownValue, nextRenderExpirationTime) // 错误处理，没完成
+          nextUnitOfWork = completeUnitOfWork(sourceFiber)
+          continue
+        }
+      }
     }
     break
   } while (true)
@@ -364,9 +402,30 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
   resetHooks() // 待实现
 
   if (didFatal) {
-    // 待实现
+    nextRoot = null
+    root.finishedWork = null
     return
   }
+
+  if (nextUnitOfWork !== null) {
+    root.finishedWork = null
+    return
+  }
+
+  nextRoot = null
+
+  const rootWorkInProgress = root.current.alternate
+
+  if (nextRenderDidError) {
+    // 待实现，错误处理
+  }
+
+  if (isYieldy) { // 异步待实现
+    return
+  }
+
+  root.pendingCommitExpirationTime = expirationTime
+  root.finishedWork = rootWorkInProgress
 }
 
 function workLoop(isYieldy: boolean) {
