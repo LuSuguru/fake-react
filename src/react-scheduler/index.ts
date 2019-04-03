@@ -3,11 +3,12 @@ import {
 } from '../react-fiber/expiration-time'
 import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { FiberRoot } from '../react-fiber/fiber-root'
-import { Incomplete, NoEffect } from '../react-type/effect-type'
+import { DidCapture, HostEffectMask, Incomplete, NoEffect, PerformedWork } from '../react-type/effect-type'
 import { HostRoot } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { beginWork } from '../react-work/begin-work'
 import { completeWork } from '../react-work/complete-work'
+import { unwindWork } from '../react-work/unwind-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
 import { markPendingPriorityLevel } from './pending-priority'
 
@@ -408,6 +409,50 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber {
       if (nextUnitOfWork !== null) {
         return nextUnitOfWork
       }
+
+      if (returnFiber !== null && (returnFiber.effectTag & Incomplete) === NoEffect) {
+        if (returnFiber.firstEffect !== null) {
+          returnFiber.firstEffect = workInProgress.firstEffect
+        }
+
+        if (workInProgress.lastEffect !== null) {
+          if (returnFiber.lastEffect !== null) {
+            returnFiber.lastEffect.nextEffect = workInProgress.firstEffect
+          }
+          returnFiber.lastEffect = workInProgress.lastEffect
+        }
+
+        const { effectTag } = workInProgress
+        if (effectTag > PerformedWork) {
+          if (returnFiber.lastEffect !== null) {
+            returnFiber.lastEffect.nextEffect = workInProgress
+          } else {
+            returnFiber.firstEffect = workInProgress
+          }
+          returnFiber.lastEffect = workInProgress
+        }
+      }
+    } else {
+      const next = unwindWork(workInProgress, nextRenderExpirationTime)
+
+      if (next !== null) {
+        next.effectTag &= HostEffectMask
+        return next
+      }
+
+      if (returnFiber !== null) {
+        returnFiber.firstEffect = returnFiber.lastEffect = null
+        returnFiber.effectTag |= Incomplete
+      }
+    }
+
+    if (siblingFiber !== null) {
+      return siblingFiber
+    } else if (returnFiber !== null) {
+      workInProgress = returnFiber
+      continue
+    } else {
+      return null
     }
   }
 }
