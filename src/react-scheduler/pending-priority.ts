@@ -29,15 +29,69 @@ function markPendingPriorityLevel(root: FiberRoot, expirationTime: ExpirationTim
     root.earliestPendingTime = root.latestPendingTime = expirationTime
   } else if (earliestPendingTime < expirationTime) {
     root.earliestPendingTime = expirationTime
-  } else {
-    if (latestPendingTime > expirationTime) {
-      root.latestPingedTime = expirationTime
-    }
+  } else if (latestPendingTime > expirationTime) {
+    root.latestPendingTime = expirationTime
   }
 
   findNextExpirationTimeToWorkOn(root, expirationTime)
 }
 
+function markCommittedPriorityLevels(root: FiberRoot, earliestRemainingTime: ExpirationTime) {
+  const { earliestPendingTime, latestPendingTime, earliestSuspendedTime, latestSuspendedTime, latestPingedTime } = root
+  root.didError = false
+
+
+  if (earliestRemainingTime === NoWork) {
+    root.earliestPendingTime = NoWork
+    root.latestPendingTime = NoWork
+    root.earliestSuspendedTime = NoWork
+    root.latestSuspendedTime = NoWork
+    root.latestPingedTime = NoWork
+    findNextExpirationTimeToWorkOn(root, NoWork)
+    return
+  }
+
+  if (earliestRemainingTime < latestPingedTime) {
+    root.latestPingedTime = NoWork
+  }
+
+  if (latestPendingTime !== NoWork) {
+    if (latestPendingTime > earliestRemainingTime) {
+      // 刷新所有待处理的优先级
+      root.earliestPendingTime = root.latestPendingTime = NoWork
+    } else {
+      if (earliestPendingTime > earliestRemainingTime) {
+        // 最早的优先级已经刷新，所以需要指向最晚的优先级
+        root.earliestPendingTime = root.latestPendingTime
+      }
+    }
+  }
+
+  if (earliestSuspendedTime === NoWork) {
+    markPendingPriorityLevel(root, earliestRemainingTime)
+    findNextExpirationTimeToWorkOn(root, NoWork)
+    return
+  }
+
+  if (earliestRemainingTime < latestSuspendedTime) {
+    root.earliestSuspendedTime = NoWork
+    root.latestSuspendedTime = NoWork
+    root.latestPingedTime = NoWork
+
+    markPendingPriorityLevel(root, earliestRemainingTime)
+    findNextExpirationTimeToWorkOn(root, NoWork)
+  }
+
+  if (earliestRemainingTime > earliestSuspendedTime) {
+    markPendingPriorityLevel(root, earliestRemainingTime)
+    findNextExpirationTimeToWorkOn(root, NoWork)
+    return
+  }
+
+  findNextExpirationTimeToWorkOn(root, NoWork)
+}
+
 export {
   markPendingPriorityLevel,
+  markCommittedPriorityLevels,
 }

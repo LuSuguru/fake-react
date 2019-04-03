@@ -14,11 +14,11 @@ import { markPendingPriorityLevel } from './pending-priority'
 
 const NESTED_UPDATE_LIMIT: number = 50
 let nestedUpdateCount: number = 0
-const lastCommittedRootDuringThisBatch: FiberRoot = null
+let lastCommittedRootDuringThisBatch: FiberRoot = null
 
 let isRendering: boolean = false
 let isWorking: boolean = false
-const isCommitting: boolean = false
+let isCommitting: boolean = false
 
 const originalStartTimeMs: number = now()
 
@@ -31,7 +31,7 @@ const isBatchingUpdates: boolean = false
 const isUnbatchingUpdates: boolean = false
 const isBatchingInteractiveUpdates: boolean = false
 
-const completedBatches: Batch[] = null
+let completedBatches: Batch[] = null
 
 function recomputeCurrentRendererTime() {
   const currentTimeMs: number = now() - originalStartTimeMs
@@ -341,11 +341,38 @@ function performWorkOnRoot(root: FiberRoot, expirationTime: ExpirationTime, isYi
   }
 }
 
-function complete(root: FiberRoot, finishedWork: Fiber, expirationTime: ExpirationTime) {
+function completeRoot(root: FiberRoot, finishedWork: Fiber, expirationTime: ExpirationTime) {
   const { firstBatch } = root
   if (firstBatch !== null && firstBatch._expirationTime >= expirationTime) {
-
+    if (completedBatches === null) {
+      completedBatches = [firstBatch]
+    } else {
+      completedBatches.push(firstBatch)
+    }
+    if (firstBatch._defer) {
+      root.finishedWork = finishedWork
+      root.expirationTime = NoWork
+      return
+    }
   }
+
+  root.finishedWork = null
+
+  if (root === lastCommittedRootDuringThisBatch) {
+    nestedUpdateCount++
+  } else {
+    lastCommittedRootDuringThisBatch = root
+    nestedUpdateCount = 0
+  }
+
+  commitRoot(root, finishedWork)
+}
+
+function commitRoot(root: FiberRoot, finishedWork: Fiber) {
+  isWorking = true
+  isCommitting = true
+
+
 }
 
 function renderRoot(root: FiberRoot, isYieldy: boolean) {
