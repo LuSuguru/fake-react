@@ -10,7 +10,7 @@ import { beginWork } from '../react-work/begin-work'
 import { completeWork } from '../react-work/complete-work'
 import { throwException, unwindWork } from '../react-work/unwind-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
-import { markPendingPriorityLevel } from './pending-priority'
+import { markCommittedPriorityLevels, markPendingPriorityLevel } from './pending-priority'
 
 const NESTED_UPDATE_LIMIT: number = 50
 let nestedUpdateCount: number = 0
@@ -52,6 +52,8 @@ let nextUnitOfWork: Fiber = null
 let nextRoot: FiberRoot = null
 let nextRenderExpirationTime: ExpirationTime = NoWork
 const nextRenderDidError: boolean = false
+
+let nextEffect: Fiber = null
 
 function onUncaughtError(error: any) {
   nextFlushedRoot.expirationTime = NoWork
@@ -372,6 +374,41 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
   isWorking = true
   isCommitting = true
 
+  const committedExpirationTime = root.pendingCommitExpirationTime
+  root.pendingCommitExpirationTime = NoWork
+
+  const earliestRemainingTimeBeforeCommit = finishedWork.expirationTime > finishedWork.childExpirationTime ? finishedWork.expirationTime : finishedWork.childExpirationTime
+
+  markCommittedPriorityLevels(root, earliestRemainingTimeBeforeCommit)
+
+  // ReactCurrentOwner.current = null
+
+  let firstEffect: Fiber = null
+  if (finishedWork.effectTag > PerformedWork) {
+    if (finishedWork.lastEffect !== null) {
+      finishedWork.lastEffect.nextEffect = finishedWork
+      firstEffect = finishedWork.firstEffect
+    } else {
+      firstEffect = finishedWork
+    }
+  } else {
+    firstEffect = finishedWork.firstEffect
+  }
+
+  // prepareForCommit(root.containerInfo)
+  nextEffect = firstEffect
+  while (nextEffect !== null) {
+    let didError = false
+    let error: Error
+
+    try {
+      commitBeforeMutationLifecycles()
+    } catch (e) {
+      didError = true
+      error = e
+    }
+
+  }
 
 }
 
