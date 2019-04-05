@@ -19,7 +19,7 @@ function setInnerHtml(node: any, html: string) {
   }
 }
 
-function setTextContent(node: any, text: string) {
+function setTextContent(node: any, text?: string) {
   if (text) {
     const firstChild = node.firstChild
 
