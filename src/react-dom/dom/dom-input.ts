@@ -1,4 +1,5 @@
 import { getToStringValue } from '../../utils/lib'
+import { setValueForProperty } from './property-operation'
 
 function isControlled(props) {
   const usesChecked = props.type === 'checkbox' || props.type === 'radio'
@@ -63,8 +64,58 @@ function setInputValue(node: any, props: any, isHydrating: boolean) {
   }
 }
 
+function updateInputValue(element: any, props: any) {
+  updateChecked(element, props)
+
+  const value = getToStringValue(props.value)
+  const type = props.type
+
+  if (value !== null) {
+    if (type === 'number') {
+      if ((value === 0 && element.value === '') || element.value !== value) {
+        element.value = '' + value
+      }
+    } else if (element.value !== '' + value) {
+      element.value = '' + value
+    }
+  } else if (type === 'submit' && type === 'reset') {
+    element.removeAttribute('value')
+    return
+  }
+
+  if (props.hasOwnProperty('value')) {
+    setDefaultValue(element, props.type, value)
+  } else if (props.hasOwnProperty('defaultValue')) {
+    setDefaultValue(element, props.type, getToStringValue(props.defaultValue))
+  }
+
+  if (props.checked == null && props.defaultChecked != null) {
+    element.defaultChecked = !!props.defaultChecked
+  }
+}
+
+function updateChecked(element: Element, props: any) {
+  const { checked } = props
+
+  if (checked !== null) {
+    setValueForProperty(element, 'checked', checked, false)
+  }
+}
+
+function setDefaultValue(node: any, type: string, value: any) {
+  if (type !== 'number' || node.ownerDocument.activeElement !== node) {
+    if (value == null) {
+      node.defaultValue = '' + node._wrapperState.initialValue
+    } else if (node.defaultValue !== '' + value) {
+      node.defaultValue = '' + value
+    }
+  }
+}
+
 export {
   initInputProps,
   getInputProps,
   setInputValue,
+  updateChecked,
+  updateInputValue,
 }

@@ -169,7 +169,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber, queue: UpdateQu
           queue.lastCapturedEffect = queue.firstCapturedEffect = update
         } else {
           queue.lastCapturedEffect.nextEffect = update
-          queue.lastEffect = update
+          queue.lastCapturedEffect = update
         }
       }
     }

@@ -6,7 +6,7 @@ import { isText } from '../../utils/getType'
 import { isCustomComponent } from '../../utils/lib'
 import { setValueForStyles } from './css-property-operation'
 import { precacheFiberNode, updateFiberProps } from './dom-component-tree'
-import { getInputProps, initInputProps, setInputValue } from './dom-input'
+import { getInputProps, initInputProps, setInputValue, updateChecked } from './dom-input'
 import { getOptionProps, setOptionValue } from './dom-options'
 import { getSelectProps, initSelectProps, setSelectValue } from './dom-select'
 import { getTextareaProps, initTextareaProps, setTextareaValue } from './dom-textarea'
@@ -321,7 +321,7 @@ function setInitialProperties(domElement: any, tag: string, rawProps: any, rootC
       break
     default:
       if (typeof props.onClick === 'function') {
-        domElement..onclick = () => null
+        domElement.onclick = () => null
       }
       break
   }
@@ -346,6 +346,31 @@ function finalizeInitialChildren(domElement: Element, type: string, props: any, 
   return shouldAutoFocusHostComponent(type, props)
 }
 
+function updatePropeties(domElement: Element, updatePayload: any[], tag: string, newRawProps: any) {
+  if (tag === 'input' && newRawProps.type === 'radio' && newRawProps.name != null) {
+    updateChecked(domElement, newRawProps)
+  }
+
+  const isCustomComponentTag = isCustomComponent(tag, newRawProps)
+  for (let i = 0; i < updatePayload.length; i += 2) {
+    const propKey = updatePayload[i]
+    const propValue = updateFiberProps[i + 1]
+
+    switch (propKey) {
+      case 'style':
+        setValueForStyles(domElement, propValue)
+        break
+      case 'dangerouslySetInnerHTML':
+        setInnerHtml(domElement, propValue)
+        break
+      case 'children':
+        setTextContent(domElement, propValue)
+        break
+      default:
+        setValueForProperty(domElement, propKey, propValue, isCustomComponentTag)
+    }
+  }
+}
 
 
 export {
@@ -353,4 +378,5 @@ export {
   createInstance,
   createTextInstance,
   finalizeInitialChildren,
+  updatePropeties,
 }

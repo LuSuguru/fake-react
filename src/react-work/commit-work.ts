@@ -2,7 +2,7 @@ import { setTextContent } from '../react-dom/dom/property-operation'
 import { Fiber } from '../react-fiber/fiber'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
 import { ContentReset, Placement } from '../react-type/effect-type'
-import { ClassComponent, DehydratedSuspenseComponent, ForwardRef, FunctionComponent, HostComponent, HostPortal, HostRoot, HostText, SimpleMemoComponent } from '../react-type/tag-type'
+import { ClassComponent, DehydratedSuspenseComponent, ForwardRef, FunctionComponent, HostComponent, HostPortal, HostRoot, HostText, IncompleteClassComponent, MemoComponent, Profiler, SimpleMemoComponent, SuspenseComponent } from '../react-type/tag-type'
 import { appendChild, appendChildToContainer, insertBefore, insertInContainerBefore } from '../utils/browser'
 import { isFunction } from '../utils/getType'
 
@@ -56,8 +56,8 @@ function getHostSibling(fiber: Fiber): any {
   }
 }
 
-function commitBeforeMutationLifecycle(current: Fiber, finishWork: Fiber) {
-  switch (finishWork.tag) {
+function commitBeforeMutationLifecycle(current: Fiber, finishedWork: Fiber) {
+  switch (finishedWork.tag) {
     case FunctionComponent:
     case ForwardRef:
     case SimpleMemoComponent:
@@ -67,9 +67,9 @@ function commitBeforeMutationLifecycle(current: Fiber, finishWork: Fiber) {
       if (current !== null) {
         const prevPrrops = current.memoizedProps
         const prevState = current.memoizedState
-        const instance = finishWork.stateNode
+        const instance = finishedWork.stateNode
 
-        const snapshot = instance.getSnapshotBeforeUpdate(finishWork.elementType === finishWork.type ? prevPrrops : resolveDefaultProps(finishWork.type, prevPrrops), prevState)
+        const snapshot = instance.getSnapshotBeforeUpdate(finishedWork.elementType === finishedWork.type ? prevPrrops : resolveDefaultProps(finishedWork.type, prevPrrops), prevState)
         instance.__reactInternalSnapshotBeforeUpdate = snapshot
       }
       return
@@ -92,8 +92,8 @@ function commitDetachRef(current: Fiber) {
   }
 }
 
-function commitPlacement(finishWork: Fiber) {
-  const parentFiber = getHostParentFiber(finishWork)
+function commitPlacement(finishedWork: Fiber) {
+  const parentFiber = getHostParentFiber(finishedWork)
 
   let parent: any = null
   let isContanier: boolean = false
@@ -121,8 +121,8 @@ function commitPlacement(finishWork: Fiber) {
     parentFiber.effectTag &= ~ContentReset
   }
 
-  const before = getHostSibling(finishWork)
-  let node: Fiber = finishWork
+  const before = getHostSibling(finishedWork)
+  let node: Fiber = finishedWork
 
   while (true) {
     if (node.tag === HostComponent || node.tag === HostText) {
@@ -146,11 +146,11 @@ function commitPlacement(finishWork: Fiber) {
       node = node.child
       continue
     }
-    if (node === finishWork) {
+    if (node === finishedWork) {
       return
     }
     while (node.sibling === null) {
-      if (node.return === null || node.return === finishWork) {
+      if (node.return === null || node.return === finishedWork) {
         return
       }
       node = node.return
@@ -160,9 +160,57 @@ function commitPlacement(finishWork: Fiber) {
   }
 }
 
+function commitWork(current: Fiber, finishedWork: Fiber) {
+  switch (finishedWork.tag) {
+    case FunctionComponent:
+    case ForwardRef:
+    case MemoComponent:
+    case SuspenseComponent: {
+      // commitHookEffectList(UnmountMutation, MountMutation, finishedWork)
+      return
+    }
+    case ClassComponent: {
+      return
+    }
+    case HostComponent: {
+      const instance = finishedWork.stateNode
+      if (instance !== null) {
+        const newProps = finishedWork.memoizedProps
+        const oldProps = current !== null ? current.memoizedProps : newProps
+        const type = finishedWork.type
+
+        const updatePayload = finishedWork.updateQueue
+        finishedWork.updateQueue = null
+
+        if (updatePayload !== null) {
+          commitUpdate(instance, updatePayload, type, oldProps, newProps, finishedWork)
+        }
+      }
+      return
+    }
+    case HostText: {
+      const textInstance = finishedWork.stateNode
+      const newText = finishedWork.memoizedProps
+      const oldText = current !== null ? current.memoizedProps : newText
+      commitTextUpdate(textInstance, oldText, newText)
+      return
+    }
+    case SuspenseComponent: {
+      // 待实现
+    }
+    case HostRoot:
+    case Profiler:
+    case IncompleteClassComponent: {
+      return
+    }
+
+  }
+}
+
 export {
   commitBeforeMutationLifecycle,
   commitResetTextContent,
   commitDetachRef,
   commitPlacement,
+  commitWork,
 }
