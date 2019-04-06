@@ -3,11 +3,11 @@ import {
 } from '../react-fiber/expiration-time'
 import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Batch, FiberRoot } from '../react-fiber/fiber-root'
-import { DidCapture, HostEffectMask, Incomplete, NoEffect, PerformedWork, Snapshot } from '../react-type/effect-type'
+import { ContentReset, Deletion, DidCapture, HostEffectMask, Incomplete, NoEffect, PerformedWork, Placement, PlacementAndUpdate, Ref, SideEffectTag, Snapshot, Update } from '../react-type/effect-type'
 import { HostRoot } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { beginWork } from '../react-work/begin-work'
-import { commitBeforeMutationLifecycle } from '../react-work/commit-work'
+import { commitBeforeMutationLifecycle, commitDetachRef, commitPlacement, commitResetTextContent } from '../react-work/commit-work'
 import { completeWork } from '../react-work/complete-work'
 import { throwException, unwindWork } from '../react-work/unwind-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
@@ -435,6 +435,48 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
         nextEffect = nextEffect.nextEffect
       }
     }
+  }
+}
+
+function commitAllHostEffects() {
+  while (nextEffect !== null) {
+    const { effectTag } = nextEffect
+
+    if (effectTag & ContentReset) {
+      commitResetTextContent(nextEffect)
+    }
+
+    if (effectTag & Ref) {
+      const current = nextEffect.alternate
+      if (current !== null) {
+        commitDetachRef(nextEffect)
+      }
+    }
+
+    const primaryEffectTag = effectTag & (Placement | Update | Deletion)
+    switch (primaryEffectTag) {
+      case Placement: {
+        commitPlacement(nextEffect)
+        nextEffect.effectTag &= ~Placement // 清除placemenet
+        break
+      }
+      case PlacementAndUpdate: {
+        commitPlacement(nextEffect)
+        nextEffect.effectTag &= ~Placement
+
+        commitWork(nextEffect.alternate, nextEffect)
+        break
+      }
+      case Update: {
+        commitWork(nextEffect.alternate, nextEffect)
+        break
+      }
+      case Deletion: {
+        commitDeletion(nextEffect)
+        break
+      }
+    }
+    nextEffect = nextEffect.nextEffect
   }
 }
 

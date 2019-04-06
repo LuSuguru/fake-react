@@ -73,7 +73,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
     if (current !== null) {
       const oldIndex = current.index
       if (oldIndex < lastPlacedIndex) {
-        newFiber.effectTag = Placement // 需要移动
+        newFiber.effectTag = Placement // 需要插入
         return lastPlacedIndex
       } else {
         return oldIndex
