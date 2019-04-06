@@ -19,7 +19,7 @@ function setInnerHtml(node: any, html: string) {
   }
 }
 
-function setTextContent(node: any, text?: string) {
+function setTextContent(node: any, text: string) {
   if (text) {
     const { firstChild } = node
 
@@ -29,6 +29,10 @@ function setTextContent(node: any, text?: string) {
     }
   }
   node.textContent = text
+}
+
+function setTextInstance(node: any, text: string) {
+  node.nodeValue = text
 }
 
 function setValueForProperty(node: any, name: string, value: any, isCustomComponentTag: boolean) {
@@ -79,4 +83,5 @@ export {
   setInnerHtml,
   setTextContent,
   setValueForProperty,
+  setTextInstance,
 }

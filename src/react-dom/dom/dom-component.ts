@@ -6,10 +6,10 @@ import { isText } from '../../utils/getType'
 import { isCustomComponent } from '../../utils/lib'
 import { setValueForStyles } from './css-property-operation'
 import { precacheFiberNode, updateFiberProps } from './dom-component-tree'
-import { getInputProps, initInputProps, setInputValue, updateChecked } from './dom-input'
+import { getInputProps, initInputProps, setInputValue, updateChecked, updateInputValue } from './dom-input'
 import { getOptionProps, setOptionValue } from './dom-options'
 import { getSelectProps, initSelectProps, setSelectValue } from './dom-select'
-import { getTextareaProps, initTextareaProps, setTextareaValue } from './dom-textarea'
+import { getTextareaProps, initTextareaProps, setTextareaValue, updateTextareaProps } from './dom-textarea'
 import { track } from './input-value-track'
 import { setInnerHtml, setTextContent, setValueForProperty } from './property-operation'
 
@@ -311,7 +311,7 @@ function setInitialProperties(domElement: any, tag: string, rawProps: any, rootC
       break
     case 'textarea':
       track(domElement)
-      setTextareaValue(domElement, rawProps)
+      setTextareaValue(domElement)
       break
     case 'option':
       setOptionValue(domElement, rawProps)
@@ -346,7 +346,7 @@ function finalizeInitialChildren(domElement: Element, type: string, props: any, 
   return shouldAutoFocusHostComponent(type, props)
 }
 
-function updatePropeties(domElement: Element, updatePayload: any[], tag: string, newRawProps: any) {
+function updatePropeties(domElement: Element, updatePayload: any, tag: string, newRawProps: any) {
   if (tag === 'input' && newRawProps.type === 'radio' && newRawProps.name != null) {
     updateChecked(domElement, newRawProps)
   }
@@ -369,6 +369,18 @@ function updatePropeties(domElement: Element, updatePayload: any[], tag: string,
       default:
         setValueForProperty(domElement, propKey, propValue, isCustomComponentTag)
     }
+  }
+
+  switch (tag) {
+    case 'input':
+      updateInputValue(domElement, newRawProps)
+      break
+    case 'textarea':
+      updateTextareaProps(domElement, newRawProps)
+      break
+    case 'select':
+      setSelectValue(domElement, newRawProps)
+      break
   }
 }
 

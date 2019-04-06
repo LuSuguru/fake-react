@@ -1,4 +1,6 @@
-import { setTextContent } from '../react-dom/dom/property-operation'
+import { updatePropeties } from '../react-dom/dom/dom-component'
+import { updateFiberProps } from '../react-dom/dom/dom-component-tree'
+import { setTextContent, setTextInstance } from '../react-dom/dom/property-operation'
 import { Fiber } from '../react-fiber/fiber'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
 import { ContentReset, Placement } from '../react-type/effect-type'
@@ -176,14 +178,15 @@ function commitWork(current: Fiber, finishedWork: Fiber) {
       const instance = finishedWork.stateNode
       if (instance !== null) {
         const newProps = finishedWork.memoizedProps
-        const oldProps = current !== null ? current.memoizedProps : newProps
         const type = finishedWork.type
 
         const updatePayload = finishedWork.updateQueue
         finishedWork.updateQueue = null
 
         if (updatePayload !== null) {
-          commitUpdate(instance, updatePayload, type, oldProps, newProps, finishedWork)
+          updateFiberProps(instance, newProps)
+          updatePropeties(instance, updatePayload, type, newProps)
+
         }
       }
       return
@@ -191,8 +194,8 @@ function commitWork(current: Fiber, finishedWork: Fiber) {
     case HostText: {
       const textInstance = finishedWork.stateNode
       const newText = finishedWork.memoizedProps
-      const oldText = current !== null ? current.memoizedProps : newText
-      commitTextUpdate(textInstance, oldText, newText)
+
+      setTextInstance(textInstance, newText)
       return
     }
     case SuspenseComponent: {
