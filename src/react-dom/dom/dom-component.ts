@@ -125,7 +125,7 @@ function diffProperties(domElement: any, tag: string, lastRawProps: object, newR
       lastProps = lastRawProps
       nextProps = newRawProps
       if (typeof lastProps.onClick !== 'function' && typeof nextProps.onClick === 'function') {
-        domElement.onclick = {} // safari 不可点击元素点击不冒泡，需特殊处理
+        domElement.onclick = () => null // safari 不可点击元素点击不冒泡，需特殊处理
       }
       break
   }
@@ -321,7 +321,7 @@ function setInitialProperties(domElement: any, tag: string, rawProps: any, rootC
       break
     default:
       if (typeof props.onClick === 'function') {
-        domElement.onclick = {}
+        domElement..onclick = () => null
       }
       break
   }
@@ -341,19 +341,16 @@ function createTextInstance(text: string, rootContainerInstance: any, internalIn
   return textNode
 }
 
-function appendInitialChild(parentInstance: Element, child: Element | Text) {
-  parentInstance.appendChild(child)
-}
-
 function finalizeInitialChildren(domElement: Element, type: string, props: any, rootContainerInstance: any): boolean {
   setInitialProperties(domElement, type, props, rootContainerInstance)
   return shouldAutoFocusHostComponent(type, props)
 }
 
+
+
 export {
   diffProperties,
   createInstance,
   createTextInstance,
-  appendInitialChild,
   finalizeInitialChildren,
 }

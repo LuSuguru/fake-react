@@ -21,7 +21,7 @@ function setInnerHtml(node: any, html: string) {
 
 function setTextContent(node: any, text?: string) {
   if (text) {
-    const firstChild = node.firstChild
+    const { firstChild } = node
 
     if (firstChild && firstChild === node.lastChild && firstChild.nodeType === TEXT_NODE) {
       firstChild.nodeValue = text

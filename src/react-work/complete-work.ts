@@ -1,5 +1,5 @@
 import { getHostContext, getRootHostContainer, popHostContainer, popHostContext } from '../react-context/host-context'
-import { appendInitialChild, Container, createInstance, createTextInstance, diffProperties, finalizeInitialChildren } from '../react-dom/dom/dom-component'
+import { Container, createInstance, createTextInstance, diffProperties, finalizeInitialChildren } from '../react-dom/dom/dom-component'
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { DidCapture, NoEffect, Placement, Ref, Update } from '../react-type/effect-type'
@@ -24,6 +24,7 @@ import {
   SimpleMemoComponent,
   SuspenseComponent,
 } from '../react-type/tag-type'
+import { appendChild as appendInitialChild } from '../utils/browser'
 
 function updateHostComponent(current: Fiber, workInProgress: Fiber | any, type: string, newProps: any, rootContainerInstance: Container | any) {
   const oldProps = current.memoizedProps

@@ -1,9 +1,9 @@
-import { Container } from '../react-dom/dom/dom-component'
 import { setTextContent } from '../react-dom/dom/property-operation'
 import { Fiber } from '../react-fiber/fiber'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
 import { ContentReset, Placement } from '../react-type/effect-type'
 import { ClassComponent, DehydratedSuspenseComponent, ForwardRef, FunctionComponent, HostComponent, HostPortal, HostRoot, HostText, SimpleMemoComponent } from '../react-type/tag-type'
+import { appendChild, appendChildToContainer, insertBefore, insertInContainerBefore } from '../utils/browser'
 import { isFunction } from '../utils/getType'
 
 function isHostParent(fiber: Fiber) {
@@ -122,6 +122,42 @@ function commitPlacement(finishWork: Fiber) {
   }
 
   const before = getHostSibling(finishWork)
+  let node: Fiber = finishWork
+
+  while (true) {
+    if (node.tag === HostComponent || node.tag === HostText) {
+      if (before) {
+        if (isContanier) {
+          insertInContainerBefore(parent, node.stateNode, before)
+        } else {
+          insertBefore(parent, node.stateNode, before)
+        }
+      } else {
+        if (isContanier) {
+          appendChildToContainer(parent, node.stateNode)
+        } else {
+          appendChild(parent, node.stateNode)
+        }
+      }
+    } else if (node.tag === HostPortal) {
+      // 跳过
+    } else if (node.child !== null) {
+      node.child.return = node
+      node = node.child
+      continue
+    }
+    if (node === finishWork) {
+      return
+    }
+    while (node.sibling === null) {
+      if (node.return === null || node.return === finishWork) {
+        return
+      }
+      node = node.return
+    }
+    node.sibling.return = node.return
+    node = node.sibling
+  }
 }
 
 export {
