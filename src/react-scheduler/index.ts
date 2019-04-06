@@ -7,7 +7,7 @@ import { ContentReset, Deletion, DidCapture, HostEffectMask, Incomplete, NoEffec
 import { HostRoot } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { beginWork } from '../react-work/begin-work'
-import { commitBeforeMutationLifecycle, commitDetachRef, commitPlacement, commitResetTextContent, commitWork } from '../react-work/commit-work'
+import { commitBeforeMutationLifecycle, commitDeletion, commitDetachRef, commitPlacement, commitResetTextContent, commitWork } from '../react-work/commit-work'
 import { completeWork } from '../react-work/complete-work'
 import { throwException, unwindWork } from '../react-work/unwind-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'

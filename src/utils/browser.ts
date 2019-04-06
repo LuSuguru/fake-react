@@ -1,3 +1,4 @@
+import { Container } from '../react-dom/dom/dom-component'
 import { COMMENT_NODE } from '../react-type/html-type'
 
 const noTimeout = -1
@@ -38,6 +39,25 @@ function shouldAutoFocusHostComponent(type: string, props: any): boolean {
   return false
 }
 
+export function isCustomComponent(tagName: string, props: any) {
+  if (tagName.indexOf('-') === -1) {
+    return typeof props.is === 'string'
+  }
+  switch (tagName) {
+    case 'annotation-xml':
+    case 'color-profile':
+    case 'font-face':
+    case 'font-face-src':
+    case 'font-face-uri':
+    case 'font-face-format':
+    case 'font-face-name':
+    case 'missing-glyph':
+      return false
+    default:
+      return true
+  }
+}
+
 function appendChild(parentInstance: Element, child: Element | Text) {
   parentInstance.appendChild(child)
 }
@@ -62,11 +82,23 @@ function insertBefore(parentInstance: Element, child: Element | Text, beforeChil
   parentInstance.insertBefore(child, beforeChild)
 }
 
-function insertInContainerBefore(container: Document | Element, child: Element | Text, beforeChild: Element | Text | Comment): void {
+function insertInContainerBefore(container: Container, child: Element | Text, beforeChild: Element | Text | Comment): void {
   if (container.nodeType === COMMENT_NODE) {
     container.parentNode.insertBefore(child, beforeChild)
   } else {
     container.insertBefore(child, beforeChild)
+  }
+}
+
+function removeChild(parentInstance: Element, child: Element | Text | Comment) {
+  parentInstance.removeChild(child)
+}
+
+function removeChildFromContainer(container: Container, child: Element | Text | Comment) {
+  if (container.nodeType === COMMENT_NODE) {
+    container.parentNode.removeChild(child)
+  } else {
+    container.removeChild(child)
   }
 }
 
@@ -80,4 +112,6 @@ export {
   appendChildToContainer,
   insertBefore,
   insertInContainerBefore,
+  removeChild,
+  removeChildFromContainer,
 }

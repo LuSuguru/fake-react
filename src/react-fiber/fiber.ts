@@ -52,7 +52,7 @@ class Fiber {
   pendingProps: any
   memoizedProps: any = null
 
-  updateQueue: UpdateQueue<any>  = null
+  updateQueue: UpdateQueue<any> = null
 
   memoizedState: any = null
 
@@ -218,6 +218,20 @@ function createFiberFromElement(element: ReactElement, mode: TypeOfMode, expirat
   return fiber
 }
 
+function detachFiber(current: Fiber) {
+  current.return = null
+  current.child = null
+  current.memoizedState = null
+  current.updateQueue = null
+  const alternate = current.alternate
+  if (alternate !== null) {
+    alternate.return = null
+    alternate.child = null
+    alternate.memoizedState = null
+    alternate.updateQueue = null
+  }
+}
+
 export {
   Fiber,
   shouldConstruct,
@@ -228,4 +242,5 @@ export {
   createFiberFromFragment,
   createFiberFromText,
   createFiberFromPortal,
+  detachFiber,
 }

@@ -1,12 +1,55 @@
-import { updatePropeties } from '../react-dom/dom/dom-component'
+import { Container, updatePropeties } from '../react-dom/dom/dom-component'
 import { updateFiberProps } from '../react-dom/dom/dom-component-tree'
 import { setTextContent, setTextInstance } from '../react-dom/dom/property-operation'
-import { Fiber } from '../react-fiber/fiber'
+import { detachFiber, Fiber } from '../react-fiber/fiber'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
 import { ContentReset, Placement } from '../react-type/effect-type'
-import { ClassComponent, DehydratedSuspenseComponent, ForwardRef, FunctionComponent, HostComponent, HostPortal, HostRoot, HostText, IncompleteClassComponent, MemoComponent, Profiler, SimpleMemoComponent, SuspenseComponent } from '../react-type/tag-type'
-import { appendChild, appendChildToContainer, insertBefore, insertInContainerBefore } from '../utils/browser'
+import {
+  ClassComponent,
+  DehydratedSuspenseComponent,
+  ForwardRef,
+  FunctionComponent,
+  HostComponent,
+  HostPortal,
+  HostRoot,
+  HostText,
+  IncompleteClassComponent,
+  MemoComponent,
+  Profiler,
+  SimpleMemoComponent,
+  SuspenseComponent,
+} from '../react-type/tag-type'
+import { appendChild, appendChildToContainer, insertBefore, insertInContainerBefore, removeChild, removeChildFromContainer } from '../utils/browser'
 import { isFunction } from '../utils/getType'
+
+function safelyDetachRef(current: Fiber) {
+  const { ref } = current
+  if (ref !== null) {
+    if (isFunction(ref)) {
+      try {
+        ref(null)
+      } catch (error) {
+        // captureCommitPhaseError(current, refError) 待实现
+      }
+    } else {
+      ref.current = null
+    }
+  }
+}
+
+function safelyCallComponentWillUnmount(current: Fiber) {
+  const { instance } = current.stateNode
+
+  if (isFunction(instance.componentWillUnmount)) {
+    try {
+      instance.props = current.memoizedProps
+      instance.state = current.memoizedState
+      instance.componentWillUnmount()
+    } catch (unmountError) {
+      // captureCommitPhaseError(current, unmountError) 待实现
+    }
+  }
+}
 
 function isHostParent(fiber: Fiber) {
   return (
@@ -80,7 +123,7 @@ function commitBeforeMutationLifecycle(current: Fiber, finishedWork: Fiber) {
 }
 
 function commitResetTextContent(current: Fiber) {
-  setTextContent(current.stateNode)
+  setTextContent(current.stateNode, '')
 }
 
 function commitDetachRef(current: Fiber) {
@@ -119,7 +162,7 @@ function commitPlacement(finishedWork: Fiber) {
   }
 
   if (parentFiber.effectTag & ContentReset) {
-    setTextContent(parent)
+    setTextContent(parent, '')
     parentFiber.effectTag &= ~ContentReset
   }
 
@@ -141,9 +184,7 @@ function commitPlacement(finishedWork: Fiber) {
           appendChild(parent, node.stateNode)
         }
       }
-    } else if (node.tag === HostPortal) {
-      // 跳过
-    } else if (node.child !== null) {
+    } else if (node.child !== null && node.tag !== HostPortal) {
       node.child.return = node
       node = node.child
       continue
@@ -161,6 +202,8 @@ function commitPlacement(finishedWork: Fiber) {
     node = node.sibling
   }
 }
+
+
 
 function commitWork(current: Fiber, finishedWork: Fiber) {
   switch (finishedWork.tag) {
@@ -210,10 +253,140 @@ function commitWork(current: Fiber, finishedWork: Fiber) {
   }
 }
 
+function commitUnmount(current: Fiber) {
+  switch (current.tag) {
+    case FunctionComponent:
+    case ForwardRef:
+    case MemoComponent:
+    case SimpleMemoComponent: {
+      const { updateQueue } = current
+      // hook 操作，待实现
+      return
+    }
+    case ClassComponent: {
+      safelyDetachRef(current)
+      safelyCallComponentWillUnmount(current)
+      return
+    }
+    case HostComponent: {
+      safelyDetachRef(current)
+      return
+    }
+    case HostPortal: {
+      commitDeletion(current)
+      return
+    }
+  }
+}
+
+function commitNestedUnmounts(root: Fiber) {
+  let node: Fiber = root
+  while (true) {
+    commitUnmount(node)
+
+    if (node.child !== null && node.tag !== HostPortal) {
+      node.child.return = node
+      node = node.child
+      continue
+    }
+    if (node === root) {
+      return
+    }
+    while (node.sibling === null) {
+      if (node.return === null || node.return === root) {
+        return
+      }
+      node = node.return
+    }
+    node.sibling.return = node.return
+    node = node.sibling
+  }
+}
+
+function unmountComponents(current) {
+  let currentParentIsValid: boolean = false
+
+  let currentParent: Element = null
+  let currentParentIsContainer: boolean = false
+
+  let node: Fiber = current
+  while (true) {
+    if (!currentParentIsValid) {
+      let parent: Fiber = node.return
+
+      findParent: while (true) {
+        switch (parent.tag) {
+          case HostComponent:
+            currentParent = parent.stateNode
+            currentParentIsContainer = false
+            break findParent
+          case HostRoot:
+            currentParent = parent.stateNode.containerInfo
+            currentParentIsContainer = true
+            break findParent
+          case HostPortal:
+            currentParent = parent.stateNode.containerInfo
+            currentParentIsContainer = true
+            break findParent
+        }
+        parent = parent.return
+      }
+      currentParentIsValid = true
+    }
+
+    if (node.tag === HostComponent || node.tag === HostText) {
+      commitNestedUnmounts(node)
+
+      if (currentParentIsContainer) {
+        removeChildFromContainer(currentParent, node.stateNode)
+      } else {
+        removeChild(currentParent, node.stateNode)
+      }
+    } else if (node.tag === HostPortal) {
+      currentParent = node.stateNode.containerInfo
+      currentParentIsContainer = true
+
+      node.child.return = node
+      node = node.child
+      continue
+    } else {
+      commitUnmount(node)
+      if (node.child !== null) {
+        node.child.return = node
+        node = node.child
+        continue
+      }
+    }
+
+    if (node === current) {
+      return
+    }
+
+    while (node.sibling === null) {
+      if (node.return === null || node.return === current) {
+        return
+      }
+      node = node.return
+      if (node.tag === HostPortal) {
+        // 当回到portal那一层时，重置currentparent
+        currentParentIsValid = false
+      }
+    }
+    node.sibling.return = node.return
+    node = node.sibling
+  }
+}
+
+function commitDeletion(current: Fiber) {
+  unmountComponents(current)
+  detachFiber(current)
+}
+
 export {
   commitBeforeMutationLifecycle,
   commitResetTextContent,
   commitDetachRef,
   commitPlacement,
   commitWork,
+  commitDeletion,
 }
