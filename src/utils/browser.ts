@@ -102,6 +102,12 @@ function removeChildFromContainer(container: Container, child: Element | Text | 
   }
 }
 
+function setFoucus(domElement: any, type: string, newProps: any) {
+  if (shouldAutoFocusHostComponent(type, newProps)) {
+    domElement.focus()
+  }
+}
+
 export {
   noTimeout,
   clearTimeout,
@@ -114,4 +120,5 @@ export {
   insertInContainerBefore,
   removeChild,
   removeChildFromContainer,
+  setFoucus,
 }

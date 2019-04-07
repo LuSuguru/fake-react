@@ -3,11 +3,11 @@ import {
 } from '../react-fiber/expiration-time'
 import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Batch, FiberRoot } from '../react-fiber/fiber-root'
-import { ContentReset, Deletion, DidCapture, HostEffectMask, Incomplete, NoEffect, PerformedWork, Placement, PlacementAndUpdate, Ref, SideEffectTag, Snapshot, Update } from '../react-type/effect-type'
+import { Callback, ContentReset, Deletion, DidCapture, HostEffectMask, Incomplete, NoEffect, Passive, PerformedWork, Placement, PlacementAndUpdate, Ref, SideEffectTag, Snapshot, Update } from '../react-type/effect-type'
 import { HostRoot } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { beginWork } from '../react-work/begin-work'
-import { commitBeforeMutationLifecycle, commitDeletion, commitDetachRef, commitPlacement, commitResetTextContent, commitWork } from '../react-work/commit-work'
+import { commitBeforeMutationLifecycle, commitDeletion, commitDetachRef, commitLifeCycles, commitPlacement, commitResetTextContent, commitWork } from '../react-work/commit-work'
 import { completeWork } from '../react-work/complete-work'
 import { throwException, unwindWork } from '../react-work/unwind-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
@@ -55,6 +55,8 @@ let nextRenderExpirationTime: ExpirationTime = NoWork
 const nextRenderDidError: boolean = false
 
 let nextEffect: Fiber = null
+
+let rootWithPendingPassiveEffects: FiberRoot = null
 
 function onUncaughtError(error: any) {
   nextFlushedRoot.expirationTime = NoWork
@@ -377,6 +379,8 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
 
   root.pendingCommitExpirationTime = NoWork
 
+  const committedExpirationTime = root.pendingCommitExpirationTime
+
   const earliestRemainingTimeBeforeCommit = finishedWork.expirationTime > finishedWork.childExpirationTime ? finishedWork.expirationTime : finishedWork.childExpirationTime
 
   markCommittedPriorityLevels(root, earliestRemainingTimeBeforeCommit)
@@ -416,6 +420,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
     }
   }
 
+  nextEffect = firstEffect
   while (nextEffect !== null) {
     let didError: boolean = false
     let error: Error
@@ -434,6 +439,50 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
         nextEffect = nextEffect.nextEffect
       }
     }
+  }
+
+  // resetAfterCommit() // 待实现
+
+  root.current = finishedWork
+
+  nextEffect = firstEffect
+  while (nextEffect !== null) {
+    let didError = false
+    let error: Error
+
+    try {
+      commitAllLifeCycles(root, committedExpirationTime)
+    } catch (e) {
+      didError = true
+      error = e
+    }
+    if (didError) {
+      // captureCommitPhaseError(nextEffect, error)
+
+      if (nextEffect !== null) {
+        nextEffect = nextEffect.nextEffect
+      }
+    }
+  }
+}
+
+function commitAllLifeCycles(finishedRoot: FiberRoot, committedExpirationTime: ExpirationTime) {
+  while (nextEffect !== null) {
+    const { effectTag } = nextEffect
+
+    if (effectTag & (Update | Callback)) {
+      const current = nextEffect.alternate
+      commitLifeCycles(current, nextEffect)
+    }
+
+    if (effectTag & Ref) {
+      commitAttachRef(nextEffect)
+    }
+
+    if (effectTag & Passive) {
+      rootWithPendingPassiveEffects = finishedRoot
+    }
+    nextEffect = nextEffect.nextEffect
   }
 }
 

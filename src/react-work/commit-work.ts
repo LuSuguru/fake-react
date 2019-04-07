@@ -1,9 +1,11 @@
 import { Container, updatePropeties } from '../react-dom/dom/dom-component'
 import { updateFiberProps } from '../react-dom/dom/dom-component-tree'
 import { setTextContent, setTextInstance } from '../react-dom/dom/property-operation'
+import { ExpirationTime } from '../react-fiber/expiration-time'
 import { detachFiber, Fiber } from '../react-fiber/fiber'
+import { FiberRoot } from '../react-fiber/fiber-root'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
-import { ContentReset, Placement } from '../react-type/effect-type'
+import { ContentReset, Placement, Update } from '../react-type/effect-type'
 import {
   ClassComponent,
   DehydratedSuspenseComponent,
@@ -19,7 +21,8 @@ import {
   SimpleMemoComponent,
   SuspenseComponent,
 } from '../react-type/tag-type'
-import { appendChild, appendChildToContainer, insertBefore, insertInContainerBefore, removeChild, removeChildFromContainer } from '../utils/browser'
+import { commitUpdateQueue } from '../react-update/update-queue'
+import { appendChild, appendChildToContainer, insertBefore, insertInContainerBefore, removeChild, removeChildFromContainer, setFoucus } from '../utils/browser'
 import { isFunction } from '../utils/getType'
 
 function safelyDetachRef(current: Fiber) {
@@ -203,8 +206,6 @@ function commitPlacement(finishedWork: Fiber) {
   }
 }
 
-
-
 function commitWork(current: Fiber, finishedWork: Fiber) {
   switch (finishedWork.tag) {
     case FunctionComponent:
@@ -382,6 +383,58 @@ function commitDeletion(current: Fiber) {
   detachFiber(current)
 }
 
+function commitLifeCycles(current: Fiber, finishedWork: Fiber) {
+  switch (finishedWork.tag) {
+    case FunctionComponent:
+    case ForwardRef:
+    case SimpleMemoComponent:
+      // commitHookEffectList(UnmountLayout, MountLayout, finishedWork) // hook待实现
+      break
+    case ClassComponent: {
+      const instance = finishedWork.stateNode
+
+      if (finishedWork.effectTag & Update) {
+        if (current === null) {
+          instance.componentDidMount()
+        } else {
+          const prevProps = finishedWork.elementType === finishedWork.type ? current.memoizedProps : resolveDefaultProps(finishedWork.type, current.memoizedProps)
+          const prevState = current.memoizedState
+
+          instance.componentDidUpdate(prevProps, prevState, instance.__reactInternalSnapshotBeforeUpdate)
+        }
+      }
+
+      const { updateQueue } = finishedWork
+      commitUpdateQueue(updateQueue, instance)
+      return
+    }
+    case HostRoot: {
+      const { updateQueue } = finishedWork
+
+      if (updateQueue !== null) {
+        let instance: any = null
+        if (finishedWork.child !== null) {
+          instance = finishedWork.child.stateNode
+        }
+        commitUpdateQueue(updateQueue, instance)
+      }
+      return
+    }
+    case HostComponent: {
+      const instance = finishedWork.stateNode
+
+      // input自动获得焦点
+      if (current === null && finishedWork.effectTag & Update) {
+        const { type, memoizedProps: props } = finishedWork
+
+        setFoucus(instance, type, props)
+      }
+    }
+    default:
+      break
+  }
+}
+
 export {
   commitBeforeMutationLifecycle,
   commitResetTextContent,
@@ -389,4 +442,5 @@ export {
   commitPlacement,
   commitWork,
   commitDeletion,
+  commitLifeCycles,
 }

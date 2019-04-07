@@ -198,6 +198,33 @@ export function processUpdateQueue<State>(workInProgress: Fiber, queue: UpdateQu
   workInProgress.memoizedState = resultState
 }
 
+export function commitUpdateQueue<State>(finishedQueue: UpdateQueue<State>, instance: any) {
+  if (finishedQueue.firstCapturedUpdate !== null) {
+    if (finishedQueue.lastUpdate !== null) {
+      finishedQueue.lastUpdate.next = finishedQueue.firstCapturedUpdate
+      finishedQueue.lastUpdate = finishedQueue.lastCapturedUpdate
+    }
+    finishedQueue.firstCapturedUpdate = finishedQueue.lastCapturedUpdate = null
+  }
+
+  commitUpdateEffects(finishedQueue.firstEffect, instance)
+  finishedQueue.firstEffect = finishedQueue.lastEffect = null
+
+  commitUpdateEffects(finishedQueue.firstCapturedEffect, instance)
+  finishedQueue.firstCapturedEffect = finishedQueue.lastCapturedEffect = null
+}
+
+function commitUpdateEffects<State>(effect: Update<State>, instance: any) {
+  while (effect !== null) {
+    const { callback } = effect
+    if (callback !== null) {
+      effect.callback = null
+      callback.call(instance)
+    }
+    effect = effect.nextEffect
+  }
+}
+
 
 
 
