@@ -1,5 +1,5 @@
 import {
-  computeAsyncExpiration, computeInteractiveExpiration, ExpirationTime, msToExpirationTime, Never, NoWork, Sync,
+  computeAsyncExpiration, computeInteractiveExpiration, ExpirationTime, expirationTimeToMS, msToExpirationTime, Never, NoWork, Sync,
 } from '../react-fiber/expiration-time'
 import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Batch, FiberRoot } from '../react-fiber/fiber-root'
@@ -28,10 +28,14 @@ import { completeWork } from '../react-work/complete-work'
 import { throwException, unwindInterruptedWork, unwindWork } from '../react-work/unwind-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
 import { markCommittedPriorityLevels, markPendingPriorityLevel } from './pending-priority'
+import { cancelDeferredCallback, scheduleDeferredCallback } from './scheduler'
 
 const NESTED_UPDATE_LIMIT: number = 50
 let nestedUpdateCount: number = 0
 let lastCommittedRootDuringThisBatch: FiberRoot = null
+
+let callbackExpirationTime: ExpirationTime = NoWork
+let callbackID: any
 
 let isRendering: boolean = false
 let isWorking: boolean = false
@@ -323,7 +327,7 @@ function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
   if (expirationTime === Sync) {
     performSyncWork() // 同步
   } else {
-    scheduleCallbackWithExpirationTime(root, expirationTime) // 异步，待实现
+    scheduleCallbackWithExpirationTime(expirationTime) // 异步，待实现
   }
 }
 
@@ -349,6 +353,22 @@ function addRootToSchedule(root: FiberRoot, expirationTime: ExpirationTime) {
 
 function performSyncWork() {
   performWork(Sync, false)
+}
+
+function scheduleCallbackWithExpirationTime(expirationTime: ExpirationTime) {
+  if (callbackExpirationTime !== NoWork) {
+    if (expirationTime < callbackExpirationTime) {
+      return
+    } else if (callbackID !== null) {
+      cancelDeferredCallback(callbackID)
+    }
+  }
+
+  callbackExpirationTime = expirationTime
+  const currentMs = now() - originalStartTimeMs
+  const expirationTimeMs = expirationTimeToMS(expirationTime)
+  const timeout = expirationTimeMs - currentMs
+  callbackID = scheduleDeferredCallback(performAsyncWork, { timeout })
 }
 
 /**
