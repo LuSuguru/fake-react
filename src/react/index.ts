@@ -1,5 +1,5 @@
 import { LazyComponent } from '../react-fiber/lazy-component'
-import { REACT_FORWARD_REF_TYPE, REACT_FRAGMENT_TYPE, REACT_LAZY_TYPE, REACT_MEMO_TYPE, REACT_STRICT_MODE_TYPE, REACT_SUSPENSE_TYPE } from '../react-type/react-type'
+import { REACT_CONTEXT_TYPE, REACT_FORWARD_REF_TYPE, REACT_FRAGMENT_TYPE, REACT_LAZY_TYPE, REACT_MEMO_TYPE, REACT_PROVIDER_TYPE, REACT_STRICT_MODE_TYPE, REACT_SUSPENSE_TYPE } from '../react-type/react-type'
 
 export { Component, PureComponent } from './react-component'
 export { createElement } from './react'
@@ -35,6 +35,34 @@ function memo(type: any, compare?: Function) {
   }
 }
 
+
+function createContext<T>(defaultValue: T, calculateChangedBits?: (a: T, b: T) => number): object {
+  if (calculateChangedBits === undefined) {
+    calculateChangedBits = null
+  }
+
+  const context = {
+    $$typeof: REACT_CONTEXT_TYPE,
+    _calculateChangedBits: calculateChangedBits,
+
+    _currentValue: defaultValue,
+
+    _threadCount: 0,
+
+    Provider: null,
+    Consumer: null,
+  }
+
+  context.Provider = {
+    $$typeof: REACT_PROVIDER_TYPE,
+    _context: context,
+  }
+
+  context.Consumer = context
+
+  return context
+}
+
 const Fragment = REACT_FRAGMENT_TYPE
 const StrictMode = REACT_STRICT_MODE_TYPE
 const Suspense = REACT_SUSPENSE_TYPE
@@ -42,6 +70,7 @@ const Suspense = REACT_SUSPENSE_TYPE
 export {
   createRef,
 
+  createContext,
   forwardRef,
   lazy,
   memo,

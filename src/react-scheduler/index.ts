@@ -3,13 +3,29 @@ import {
 } from '../react-fiber/expiration-time'
 import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Batch, FiberRoot } from '../react-fiber/fiber-root'
-import { Callback, ContentReset, Deletion, DidCapture, HostEffectMask, Incomplete, NoEffect, Passive, PerformedWork, Placement, PlacementAndUpdate, Ref, SideEffectTag, Snapshot, Update } from '../react-type/effect-type'
+import {
+  Callback,
+  ContentReset,
+  Deletion,
+  DidCapture,
+  HostEffectMask,
+  Incomplete,
+  NoEffect,
+  Passive,
+  PerformedWork,
+  Placement,
+  PlacementAndUpdate,
+  Ref,
+  SideEffectTag,
+  Snapshot,
+  Update,
+} from '../react-type/effect-type'
 import { HostRoot } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { beginWork } from '../react-work/begin-work'
 import { commitAttachRef, commitBeforeMutationLifecycle, commitDeletion, commitDetachRef, commitLifeCycles, commitPlacement, commitResetTextContent, commitWork } from '../react-work/commit-work'
 import { completeWork } from '../react-work/complete-work'
-import { throwException, unwindWork } from '../react-work/unwind-work'
+import { throwException, unwindInterruptedWork, unwindWork } from '../react-work/unwind-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
 import { markCommittedPriorityLevels, markPendingPriorityLevel } from './pending-priority'
 
@@ -49,15 +65,35 @@ let lowestPriorityPendingInteractiveExpirationTime: ExpirationTime = NoWork
 let hasUnhandledError: boolean = false
 let unhandledError: any = null
 
-let nextUnitOfWork: Fiber = null
 let nextRoot: FiberRoot = null
+let nextUnitOfWork: Fiber = null
 let nextRenderExpirationTime: ExpirationTime = NoWork
-const nextRenderDidError: boolean = false
+let nextLatestAbsoluteTimeoutMs: number = -1
+let nextRenderDidError: boolean = false
 
 let nextEffect: Fiber = null
 
 let rootWithPendingPassiveEffects: FiberRoot = null
 let legacyErrorBoundariesThatAlreadyFailed: Set<any> = null
+
+let interruptedBy: Fiber = null
+
+function resetStack() {
+  if (nextUnitOfWork !== null) {
+    let interruptedWork: Fiber = nextUnitOfWork.return
+    while (interruptedWork !== null) {
+      unwindInterruptedWork(interruptedWork)
+      interruptedWork = interruptedWork.return
+    }
+  }
+
+  nextRoot = null
+  nextUnitOfWork = null
+  nextRenderExpirationTime = NoWork
+  nextLatestAbsoluteTimeoutMs = -1
+  nextRenderDidError = false
+
+}
 
 function unbatchedUpdates(fn: Function, a?: any): Function {
   if (isBatchingUpdates && !isUnbatchingUpdates) {
@@ -80,7 +116,7 @@ function onUncaughtError(error: any) {
 }
 
 function computeExpirationTimeForFiber(currentTime: ExpirationTime, fiber: Fiber): ExpirationTime {
-  let expirationTime: ExpirationTime
+  let expirationTime: ExpirationTime = NoWork
 
   if (expirationContext !== NoWork) {
     expirationTime = expirationContext
@@ -254,7 +290,8 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
   const root = scheduleWorkToRoot(fiber, expirationTime)
 
   if (!isWorking && nextRenderExpirationTime !== NoWork && expirationTime > nextRenderExpirationTime) {
-    resetStack() // 待实现
+    interruptedBy = fiber
+    resetStack()
   }
 
   markPendingPriorityLevel(root, expirationTime)
@@ -353,10 +390,15 @@ function performWorkOnRoot(root: FiberRoot, expirationTime: ExpirationTime, isYi
       finishedWork = root.finishedWork
 
       if (finishedWork !== null) {
-        completeRoot(root, finishedWork, expirationTime)
+        if (!shouldYield()) {
+          completeRoot(root, finishedWork, expirationTime)
+        } else {
+          root.finishedWork = finishedWork
+        }
       }
     }
   }
+  isRendering = false
 }
 
 function completeRoot(root: FiberRoot, finishedWork: Fiber, expirationTime: ExpirationTime) {

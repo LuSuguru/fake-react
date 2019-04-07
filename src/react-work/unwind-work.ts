@@ -1,9 +1,12 @@
+import { popTopLevelContextObject } from '../react-context/fiber-context'
+import { popProvider } from '../react-context/fiber-new-context'
 import { popHostContainer, popHostContext } from '../react-context/host-context'
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { FiberRoot } from '../react-fiber/fiber-root'
 import { DidCapture, Incomplete, ShouldCapture } from '../react-type/effect-type'
 import { ClassComponent, ContextProvider, DehydratedSuspenseComponent, HostComponent, HostPortal, HostRoot, SuspenseComponent } from '../react-type/tag-type'
+import { isEmpty } from '../utils/getType'
 
 function throwException(root: FiberRoot, returnFiber: Fiber, sourceFiber: Fiber, value: any, renderExpirationTime: ExpirationTime) {
   sourceFiber.effectTag |= Incomplete
@@ -71,7 +74,37 @@ function unwindWork(workInProgress: Fiber, renderExpirationTime: ExpirationTime)
   }
 }
 
+function unwindInterruptedWork(interruptedWork: Fiber) {
+  switch (interruptedWork.tag) {
+    case ClassComponent:
+      const { childContextTypes } = interruptedWork.type
+      if (!isEmpty(childContextTypes)) {
+        popHostContainer()
+        popTopLevelContextObject()
+      }
+      break
+    case HostRoot: {
+      popHostContainer()
+      popTopLevelContextObject()
+      break
+    }
+    case HostComponent: {
+      popHostContext(interruptedWork)
+      break
+    }
+    case HostPortal:
+      popHostContainer()
+      break
+    case ContextProvider:
+      popProvider(interruptedWork)
+      break
+    default:
+      break
+  }
+}
+
 export {
   unwindWork,
   throwException,
+  unwindInterruptedWork,
 }

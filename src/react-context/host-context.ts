@@ -12,7 +12,7 @@ const contextFiberStackCursor: StackCursor<Fiber | NoContext> = createStack(NO_C
 const rootInstanceStackCursor: StackCursor<Container | NoContext> = createStack(NO_CONTEXT)
 
 function getRootHostContext(rootContainerInstance: any): HostContext {
-  const { nodeType, parentNode, documentElement } = rootContainerInstance
+  const { nodeType, documentElement } = rootContainerInstance
   let namespace: string = ''
 
   switch (nodeType) {
