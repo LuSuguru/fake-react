@@ -57,6 +57,7 @@ const nextRenderDidError: boolean = false
 let nextEffect: Fiber = null
 
 let rootWithPendingPassiveEffects: FiberRoot = null
+let legacyErrorBoundariesThatAlreadyFailed: Set<any> = null
 
 function onUncaughtError(error: any) {
   nextFlushedRoot.expirationTime = NoWork
@@ -379,8 +380,6 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
 
   root.pendingCommitExpirationTime = NoWork
 
-  const committedExpirationTime = root.pendingCommitExpirationTime
-
   const earliestRemainingTimeBeforeCommit = finishedWork.expirationTime > finishedWork.childExpirationTime ? finishedWork.expirationTime : finishedWork.childExpirationTime
 
   markCommittedPriorityLevels(root, earliestRemainingTimeBeforeCommit)
@@ -451,7 +450,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
     let error: Error
 
     try {
-      commitAllLifeCycles(root, committedExpirationTime)
+      commitAllLifeCycles(root)
     } catch (e) {
       didError = true
       error = e
@@ -464,9 +463,38 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
       }
     }
   }
+
+  // 事件操作
+  // if (firstEffect !== null && rootWithPendingPassiveEffects !== null) {
+  //   // This commit included a passive effect. These do not need to fire until
+  //   // after the next paint. Schedule an callback to fire them in an async
+  //   // event. To ensure serial execution, the callback will be flushed early if
+  //   // we enter rootWithPendingPassiveEffects commit phase before then.
+  //   let callback = commitPassiveEffects.bind(null, root, firstEffect);
+  //   if (enableSchedulerTracing) {
+  //     // TODO: Avoid this extra callback by mutating the tracing ref directly,
+  //     // like we do at the beginning of commitRoot. I've opted not to do that
+  //     // here because that code is still in flux.
+  //     callback = Scheduler_tracing_wrap(callback);
+  //   }
+  //   passiveEffectCallbackHandle = schedulePassiveEffects(callback);
+  //   passiveEffectCallback = callback;
+  // }
+
+  isCommitting = false
+  isWorking = false
+
+  const earliestRemainingTimeAfterCommit = finishedWork.expirationTime > finishedWork.childExpirationTime ? finishedWork.expirationTime : finishedWork.childExpirationTime
+
+  if (earliestRemainingTimeAfterCommit === NoWork) {
+    legacyErrorBoundariesThatAlreadyFailed = null
+  }
+
+  root.expirationTime = earliestRemainingTimeAfterCommit
+  root.finishedWork = null
 }
 
-function commitAllLifeCycles(finishedRoot: FiberRoot, committedExpirationTime: ExpirationTime) {
+function commitAllLifeCycles(finishedRoot: FiberRoot) {
   while (nextEffect !== null) {
     const { effectTag } = nextEffect
 
