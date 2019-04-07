@@ -1,3 +1,4 @@
+import { getPublicRootInstance } from '../react-reconciler'
 import * as htmlType from '../react-type/html-type'
 import ReactRoot from './react-root'
 
@@ -13,7 +14,6 @@ function createRootFromContainer(container: any, forceHydrate: boolean): ReactRo
   return new ReactRoot(container, forceHydrate)
 }
 
-
 function renderSubtreeIntoContainer(children: any, container: any, forceHydrate: boolean, callback?: Function) {
   let root: ReactRoot = null
   let isMount: boolean = false
@@ -24,13 +24,13 @@ function renderSubtreeIntoContainer(children: any, container: any, forceHydrate:
   }
 
   callback = () => {
-    const instance = getPublicRootInstance(root.internalRoot) // 待实现
+    const instance = getPublicRootInstance(root.internalRoot)
     callback.call(instance)
   }
 
   if (isMount) {
     // unbatchedUpdates(() => {
-      root.render(children, callback)
+    root.render(children, callback)
     // })
   } else {
     root.render(children, callback)

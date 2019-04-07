@@ -4,14 +4,14 @@ import { isEmpty, isFunction } from '../utils/getType'
 import { shouldConstruct } from './fiber'
 
 export interface LazyComponent {
-  $$typeof: Symbol | number,
+  $$typeof: Symbol | string,
   _ctor: any,
   _status: number,
   _result: any,
 }
 
 interface ResolvedLazyComponent {
-  $$typeof: Symbol | number,
+  $$typeof: Symbol | string,
   _ctor: any,
   _status: 1,
   _result: any,

@@ -5,6 +5,16 @@ import { ReactNodeList } from '../react-type/react-type'
 import Update, { UpdateState } from '../react-update/update'
 import { enqueueUpdate } from '../react-update/update-queue'
 
+function getPublicRootInstance(container: FiberRoot): any {
+  const containerFiber = container.current
+
+  if (!containerFiber.child) {
+    return null
+  }
+
+  return containerFiber.child.stateNode
+}
+
 function updateContainerAtExpirationTime(
   element: ReactNodeList,
   container: FiberRoot,
@@ -43,4 +53,8 @@ function updateContainer(
   updateContainerAtExpirationTime(element, container, expirationTime, callback || null)
 }
 
-export { createContainer, updateContainer }
+export {
+  getPublicRootInstance,
+  createContainer,
+  updateContainer,
+}
