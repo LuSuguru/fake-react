@@ -435,6 +435,19 @@ function commitLifeCycles(current: Fiber, finishedWork: Fiber) {
   }
 }
 
+function commitAttachRef(finishedWork: Fiber) {
+  const { ref } = finishedWork
+
+  if (ref !== null) {
+    const instance = finishedWork.stateNode
+    if (isFunction(ref)) {
+      ref(instance)
+    } else {
+      ref.current = instance
+    }
+  }
+}
+
 export {
   commitBeforeMutationLifecycle,
   commitResetTextContent,
@@ -443,4 +456,5 @@ export {
   commitWork,
   commitDeletion,
   commitLifeCycles,
+  commitAttachRef,
 }
