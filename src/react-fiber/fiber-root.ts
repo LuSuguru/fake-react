@@ -1,5 +1,5 @@
 import { HostRoot } from '../react-type/tag-type'
-import { NoContext } from '../react-type/work-type'
+import { ConcurrentMode, NoContext } from '../react-type/work-type'
 import { noTimeout } from '../utils/browser'
 import { ExpirationTime, NoWork } from './expiration-time'
 import { Fiber } from './fiber'
@@ -46,8 +46,11 @@ class FiberRoot {
 
   nextScheduledRoot: FiberRoot = null
 
-  constructor(containerInfo: Element, hydrate: boolean) {
-    this.current = new Fiber(HostRoot, null, null, NoContext)
+  constructor(containerInfo: Element, isConcurrent: boolean, hydrate: boolean) {
+    const mode = isConcurrent ? ConcurrentMode : NoContext
+
+    this.current = new Fiber(HostRoot, null, null, mode)
+
     this.containerInfo = containerInfo
     this.hydrate = hydrate
 

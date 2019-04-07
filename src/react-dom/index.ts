@@ -1,5 +1,6 @@
+import { isFunction } from 'util'
 import { getPublicRootInstance } from '../react-reconciler'
-import * as htmlType from '../react-type/html-type'
+import { unbatchedUpdates } from '../react-scheduler'
 import ReactRoot from './react-root'
 
 function createRootFromContainer(container: any, forceHydrate: boolean): ReactRoot {
@@ -11,7 +12,8 @@ function createRootFromContainer(container: any, forceHydrate: boolean): ReactRo
     }
   }
 
-  return new ReactRoot(container, forceHydrate)
+  const isConcurrent = false
+  return new ReactRoot(container, isConcurrent, forceHydrate)
 }
 
 function renderSubtreeIntoContainer(children: any, container: any, forceHydrate: boolean, callback?: Function) {
@@ -23,15 +25,19 @@ function renderSubtreeIntoContainer(children: any, container: any, forceHydrate:
     isMount = true
   }
 
-  callback = () => {
-    const instance = getPublicRootInstance(root.internalRoot)
-    callback.call(instance)
+  if (isFunction(callback)) {
+    const originalCallback = callback
+
+    callback = () => {
+      const instance = getPublicRootInstance(root.internalRoot)
+      originalCallback.call(instance)
+    }
   }
 
   if (isMount) {
-    // unbatchedUpdates(() => {
-    root.render(children, callback)
-    // })
+    unbatchedUpdates(() => {
+      root.render(children, callback)
+    })
   } else {
     root.render(children, callback)
   }

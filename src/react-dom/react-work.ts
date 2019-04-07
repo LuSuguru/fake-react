@@ -14,7 +14,7 @@ class ReactWork {
     if (this.didCommit) {
       return
     }
-    
+
     this.didCommit = true
     this.callbacks.forEach((callback: Function) => {
       callback()

@@ -29,7 +29,7 @@ let currentSchedulerTime: ExpirationTime = currentRendererTime
 const expirationContext: ExpirationTime = NoWork
 
 const isBatchingUpdates: boolean = false
-const isUnbatchingUpdates: boolean = false
+let isUnbatchingUpdates: boolean = false
 const isBatchingInteractiveUpdates: boolean = false
 
 let completedBatches: Batch[] = null
@@ -58,6 +58,18 @@ let nextEffect: Fiber = null
 
 let rootWithPendingPassiveEffects: FiberRoot = null
 let legacyErrorBoundariesThatAlreadyFailed: Set<any> = null
+
+function unbatchedUpdates(fn: Function, a?: any): Function {
+  if (isBatchingUpdates && !isUnbatchingUpdates) {
+    isUnbatchingUpdates = true
+    try {
+      return fn(a)
+    } finally {
+      isUnbatchingUpdates = false
+    }
+  }
+  return fn(a)
+}
 
 function onUncaughtError(error: any) {
   nextFlushedRoot.expirationTime = NoWork
@@ -736,6 +748,7 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber {
 }
 
 export {
+  unbatchedUpdates,
   computeExpirationTimeForFiber,
   requestCurrentTime,
   scheduleWork,

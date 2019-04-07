@@ -36,8 +36,8 @@ function updateContainerAtExpirationTime(
   scheduleWork(current, expirationTime)
 }
 
-function createContainer(container: Element, hydate: boolean): FiberRoot {
-  return new FiberRoot(container, hydate)
+function createContainer(container: Element, isConcurrent: boolean, hydate: boolean): FiberRoot {
+  return new FiberRoot(container, isConcurrent, hydate)
 }
 
 function updateContainer(

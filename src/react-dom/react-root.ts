@@ -6,23 +6,23 @@ import ReactWork from './react-work'
 class ReactRoot {
   public internalRoot: FiberRoot
 
-  constructor(container: Element, hydrate: boolean) {
-    this.internalRoot = createContainer(container, hydrate)
+  constructor(container: Element, isConcurrent: boolean, hydrate: boolean) {
+    this.internalRoot = createContainer(container, isConcurrent, hydrate)
   }
 
   public render(children: ReactNodeList, callback?: Function): ReactWork {
-    return this.update(true, children, callback)
+    return this.update(children, callback)
   }
 
   public unmount(callback?: Function): ReactWork {
-    return this.update(false, null, callback)
+    return this.update(null, callback)
   }
 
   public createBatch() {
     // 待实现
   }
 
-  private update(isMount: boolean, children: ReactNodeList, callback?: Function): ReactWork {
+  private update(children: ReactNodeList, callback?: Function): ReactWork {
     const { internalRoot } = this
     const work = new ReactWork()
 
@@ -30,12 +30,7 @@ class ReactRoot {
       work.then(callback)
     }
 
-    if (isMount) {
-      updateContainer(children, internalRoot, work.onCommit) // 待实现
-    } else {
-      updateContainer(null, internalRoot, work.onCommit)
-    }
-
+    updateContainer(children, internalRoot, work.onCommit)
     return work
   }
 }
