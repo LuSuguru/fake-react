@@ -201,13 +201,9 @@ function updateSimpleMemoComponent(current: Fiber, workInProgress: Fiber, Compon
 }
 
 function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Component: Function, nextProps: any, renderExpirationTime: ExpirationTime): Fiber {
-  // context 操作
-  // const unmaskedContext = getUnmaskedContext(workInProgress, Component, true)
-  // const context = getMaskedContext(workInProgress, unmaskedContext)
-  // prepareToReadContext(workInProgress, renderExpirationTime)
+  prepareToReadContext(workInProgress, renderExpirationTime)
 
   let nextChildren: any = null
-
   nextChildren = renderWithHooks(current, workInProgress, Component, nextProps, null, renderExpirationTime)
 
   if (current !== null && !didReceiveUpdate) {
@@ -222,14 +218,7 @@ function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Componen
 }
 
 function updateClassComponent(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, renderExpirationTime: ExpirationTime): Fiber {
-  const hasContext: boolean = false  // context操作，待实现
-  // if (isLegacyContextProvider(Component)) {
-  //   hasContext = true
-  //   pushLegacyContextProvider(workInProgress)
-  // } else {
-  //   hasContext = false
-  // }
-  // prepareToReadContext(workInProgress, renderExpirationTime)
+  prepareToReadContext(workInProgress, renderExpirationTime)
 
   const instance = workInProgress.stateNode
   let shouldUpdate: boolean = false
@@ -258,20 +247,15 @@ function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: 
 
   const didCaptureError = (workInProgress.effectTag & DidCapture) !== NoEffect
   if (!shouldUpdate && !didCaptureError) {
-    // if (hasContext) { // context操作
-    //   invalidateContextProvider(workInProgress, Component, false)
-    // }
     return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
   }
 
   const { stateNode: instance } = workInProgress
+  // ReactCurrentOwner.current = workInProgress // hook，待实现
   let nextChildren: any = null
 
-  if (didCaptureError && isFunction(Component.getDerivedStateFromError)) {
+  if (didCaptureError && !isFunction(Component.getDerivedStateFromError)) {
     nextChildren = null
-    // if (enableProfilerTimer) {
-    //   stopProfilerTimerIfRunning(workInProgress);
-    // }
   } else {
     nextChildren = instance.render()
   }
