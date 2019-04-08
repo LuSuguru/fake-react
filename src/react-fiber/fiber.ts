@@ -1,3 +1,4 @@
+import { ContextDependencyList } from '../react-context/fiber-context'
 import { NoEffect, SideEffectTag } from '../react-type/effect-type'
 import {
   REACT_CONCURRENT_MODE_TYPE,
@@ -29,7 +30,7 @@ import {
   SuspenseComponent,
   WorkTag,
 } from '../react-type/tag-type'
-import { ConcurrentMode, NoContext, StrictMode, TypeOfMode } from '../react-type/work-type'
+import { TypeOfMode } from '../react-type/work-type'
 import { UpdateQueue } from '../react-update/update-queue'
 import { ReactElement } from '../react/react'
 import { isFunction, isObject, isString } from '../utils/getType'
@@ -56,7 +57,7 @@ class Fiber {
 
   memoizedState: any = null
 
-  contextDependencies: any = null
+  contextDependencies: ContextDependencyList = null
 
   mode: TypeOfMode
 

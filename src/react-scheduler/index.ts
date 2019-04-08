@@ -318,7 +318,8 @@ function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
   if (isBatchingUpdates) {
     if (isUnbatchingUpdates) {
       nextFlushedRoot = root
-      nextFlushedExpirationTime = expirationTime
+      nextFlushedExpirationTime = Sync
+      performWorkOnRoot(root, Sync, false)
     }
     return
   }
@@ -697,7 +698,7 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
   } while (true)
 
   isWorking = false
-  // ReactCurrentDispatcher.current = previousDispatcher
+  // ReactCurrentDispatcher.current = previousDispatcher // hook
   resetContextDependences() // 待实现
   resetHooks() // 待实现
 
@@ -730,7 +731,9 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
 
 function workLoop(isYieldy: boolean) {
   if (isYieldy) {
-    // 异步
+    while (nextUnitOfWork !== null && !shouldYield()) {
+      nextUnitOfWork = performUnitOfWork(nextUnitOfWork)
+    }
   } else {
     while (nextUnitOfWork !== null) {
       nextUnitOfWork = performUnitOfWork(nextUnitOfWork)

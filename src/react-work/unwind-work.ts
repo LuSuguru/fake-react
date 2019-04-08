@@ -1,5 +1,4 @@
-import { popTopLevelContextObject } from '../react-context/fiber-context'
-import { popProvider } from '../react-context/fiber-new-context'
+import { popProvider } from '../react-context/fiber-context'
 import { popHostContainer, popHostContext } from '../react-context/host-context'
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
@@ -80,12 +79,10 @@ function unwindInterruptedWork(interruptedWork: Fiber) {
       const { childContextTypes } = interruptedWork.type
       if (!isEmpty(childContextTypes)) {
         popHostContainer()
-        popTopLevelContextObject()
       }
       break
     case HostRoot: {
       popHostContainer()
-      popTopLevelContextObject()
       break
     }
     case HostComponent: {

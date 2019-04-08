@@ -1,12 +1,19 @@
+import { ReactContext } from '../react-context/fiber-context'
 import { LazyComponent } from '../react-fiber/lazy-component'
-import { REACT_CONTEXT_TYPE, REACT_FORWARD_REF_TYPE, REACT_FRAGMENT_TYPE, REACT_LAZY_TYPE, REACT_MEMO_TYPE, REACT_PROVIDER_TYPE, REACT_STRICT_MODE_TYPE, REACT_SUSPENSE_TYPE } from '../react-type/react-type'
+import {
+  REACT_CONTEXT_TYPE,
+  REACT_FORWARD_REF_TYPE,
+  REACT_FRAGMENT_TYPE,
+  REACT_LAZY_TYPE,
+  REACT_MEMO_TYPE,
+  REACT_PROVIDER_TYPE,
+  REACT_STRICT_MODE_TYPE,
+  REACT_SUSPENSE_TYPE,
+} from '../react-type/react-type'
 
 export { Component, PureComponent } from './react-component'
 export { createElement } from './react'
 
-interface RefObject {
-  current: any
-}
 
 function createRef(): object {
   return { current: null }
@@ -36,7 +43,7 @@ function memo(type: any, compare?: Function) {
 }
 
 
-function createContext<T>(defaultValue: T, calculateChangedBits?: (a: T, b: T) => number): object {
+function createContext<T>(defaultValue: T, calculateChangedBits?: (a: T, b: T) => number): ReactContext<T> {
   if (calculateChangedBits === undefined) {
     calculateChangedBits = null
   }

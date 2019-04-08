@@ -1,7 +1,8 @@
+import { prepareToReadContext, pushProvider } from '../react-context/fiber-context'
+import { pushHostContainer, pushHostContext } from '../react-context/host-context'
 import { addOptionClassInstace, applyDerivedStateFromProps, constructClassInstance, mountClassInstance, resumeMountClassInstance, updateClassInstance } from '../react-fiber/class-component'
 import { ExpirationTime, Never, NoWork } from '../react-fiber/expiration-time'
 import { createFiberFromTypeAndProps, createWorkInProgress, Fiber, isSimpleFunctionComponent } from '../react-fiber/fiber'
-import { hasContextChanged } from '../react-fiber/fiber-context'
 import { bailoutHooks, renderWithHooks } from '../react-fiber/fiber-hook'
 import { FiberRoot } from '../react-fiber/fiber-root'
 import { readLazyComponentType, resolveDefaultProps, resolvedLazyComponentTag } from '../react-fiber/lazy-component'
@@ -9,10 +10,12 @@ import { ContentReset, DidCapture, NoEffect, PerformedWork, Placement, Ref } fro
 import {
   ClassComponent,
   ContextConsumer,
+  ContextProvider,
   ForwardRef,
   Fragment,
   FunctionComponent,
   HostComponent,
+  HostPortal,
   HostRoot,
   HostText,
   IncompleteClassComponent,
@@ -29,6 +32,9 @@ import { shallowEqual } from '../utils/lib'
 import { cloneChildFiber, mountChildFibers, reconcileChildFibers, reconcileChildren } from './child-work'
 
 let didReceiveUpdate: boolean = false
+function markWorkInProgressReceivedUpdate() {
+  didReceiveUpdate = true
+}
 
 function markRef(current: Fiber, workInProgress: Fiber) {
   const { ref } = workInProgress
@@ -41,11 +47,6 @@ function bailoutOnAlreadyFinishedWork(current: Fiber, workInProgress: Fiber, ren
   if (current !== null) {
     workInProgress.contextDependencies = current.contextDependencies
   }
-
-  // if (enableProfilerTimer) { // 待实现
-  //   // Don't update "base" render times for bailouts.
-  //   stopProfilerTimerIfRunning(workInProgress);
-  // }
 
   const { childExpirationTime } = workInProgress
   if (childExpirationTime < renderExpirationTime) {
@@ -66,25 +67,15 @@ function mountIndeterminateComponent(current: Fiber, workInProgress: Fiber, Comp
   }
   const props = workInProgress.pendingProps
 
-  // context操作
-  // const unmaskedContext = getUnmaskedContext(workInProgress, Component, false)
-  const context = getMaskedContext(workInProgress, unmaskedContext)
 
-  // prepareToReadContext(workInProgress, renderExpirationTime)
-  const value: any = renderWithHooks(current, workInProgress, Component, props, context, renderExpirationTime)
+  prepareToReadContext(workInProgress, renderExpirationTime)
+  const value: any = renderWithHooks(current, workInProgress, Component, props, null, renderExpirationTime)
   workInProgress.effectTag |= PerformedWork
 
   if (typeof value === 'object' && value !== null && typeof value.render === 'function' && value.$$typeof === null) {
     workInProgress.tag = ClassComponent
 
     // resetHooks() // hook操作
-    const hasContext = false // 一波context的操作
-    // if (isLegacyContextProvider(Component)) {
-    //   hasContext = true
-    //   pushLegacyContextProvider(workInProgress)
-    // } else {
-    //   hasContext = false
-    // }
 
     workInProgress.memoizedState = isEmpty(value.state) ? null : value.state
     const { getDerivedStateFromProps } = Component
@@ -95,7 +86,7 @@ function mountIndeterminateComponent(current: Fiber, workInProgress: Fiber, Comp
     addOptionClassInstace(workInProgress, value)
     mountClassInstance(workInProgress, Component, props, renderExpirationTime)
 
-    return finishClassComponent(null, workInProgress, Component, true, hasContext, renderExpirationTime)
+    return finishClassComponent(null, workInProgress, Component, true, renderExpirationTime)
   } else {
     workInProgress.tag = FunctionComponent
     mountChildFibers(workInProgress, null, value, renderExpirationTime)
@@ -258,11 +249,11 @@ function updateClassComponent(current: Fiber, workInProgress: Fiber, Component: 
     shouldUpdate = updateClassInstance(current, workInProgress, Component, nextProps, renderExpirationTime)
   }
 
-  const nextUnitWork = finishClassComponent(current, workInProgress, Component, shouldUpdate, hasContext, renderExpirationTime)
+  const nextUnitWork = finishClassComponent(current, workInProgress, Component, shouldUpdate, renderExpirationTime)
   return nextUnitWork
 }
 
-function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: any, shouldUpdate: boolean, hasContext: boolean, renderExpirationTime: ExpirationTime): Fiber {
+function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: any, shouldUpdate: boolean, renderExpirationTime: ExpirationTime): Fiber {
   markRef(current, workInProgress)
 
   const didCaptureError = (workInProgress.effectTag & DidCapture) !== NoEffect
@@ -380,19 +371,32 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
     const oldProps = current.memoizedProps
     const newProps = workInProgress.pendingProps
 
-    if (oldProps !== newProps || hasContextChanged()) {
+    if (oldProps !== newProps) {
       didReceiveUpdate = true
     } else if (updateExpirationTime < renderExpirationTime) {
       didReceiveUpdate = false
 
-      // switch (workInProgress.tag) { // stack和context操作，待实现
-      //   case HostRoot:
-
-      //     break
-
-      //   default:
-      //     break
-      // }
+      switch (workInProgress.tag) {
+        case HostRoot:
+          pushHostContainer(workInProgress, workInProgress.stateNode.containerInfo)
+          // resetHydrationState() // 待实现
+          break
+        case HostComponent:
+          pushHostContext(workInProgress)
+          break
+        case HostPortal:
+          pushHostContainer(workInProgress, workInProgress.stateNode.containerInfo)
+          break
+        case ContextProvider:
+          pushProvider(workInProgress, workInProgress.memoizedProps.value)
+          break
+        case SuspenseComponent: {
+          // 待实现
+        }
+        default:
+          break
+      }
+      return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
     }
   } else {
     didReceiveUpdate = false
@@ -450,8 +454,6 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
       return updateFragment(current, workInProgress, renderExpirationTime)
     // case Mode:
     //   return updateMode(current, workInProgress, renderExpirationTime)
-    // case Profiler:
-    //   return updateProfiler(current, workInProgress, renderExpirationTime)
     // case ContextProvider:
     // return updateContextProvider(current, workInProgress, renderExpirationTime)
     // case ContextConsumer:
@@ -471,4 +473,7 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
 }
 
 
-export { beginWork }
+export {
+  markWorkInProgressReceivedUpdate,
+  beginWork,
+}
