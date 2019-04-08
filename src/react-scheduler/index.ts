@@ -96,7 +96,6 @@ function resetStack() {
   nextRenderExpirationTime = NoWork
   nextLatestAbsoluteTimeoutMs = -1
   nextRenderDidError = false
-
 }
 
 function unbatchedUpdates(fn: Function, a?: any): Function {
@@ -385,39 +384,47 @@ function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
       findHighestPriorityRoot()
     }
   }
+
+  // if (isYieldy) {
+  //   callbackExpirationTime = NoWork
+  //   callbackID = null
+  // }
+
+  // finishRendering() // 待实现
 }
 
 function performWorkOnRoot(root: FiberRoot, expirationTime: ExpirationTime, isYieldy: boolean) {
   isRendering = true
 
-  if (isYieldy) {
-    // 异步，待实现
-  } else { // 同步
-    let { finishedWork }: { finishedWork: Fiber } = root
+  let finishedWork: Fiber = root.finishedWork
+
+  if (finishedWork !== null) {
+    completeRoot(root, finishedWork, expirationTime)
+  } else {
+    root.finishedWork = null
+
+    const { timeoutHandle } = root
+    if (timeoutHandle !== noTimeout) {
+      root.timeoutHandle = noTimeout
+      clearTimeout(timeoutHandle)
+    }
+
+    renderRoot(root, isYieldy)
+    finishedWork = root.finishedWork
 
     if (finishedWork !== null) {
-      completeRoot(root, finishedWork, expirationTime)
-    } else {
-      root.finishedWork = null
-
-      const { timeoutHandle } = root
-      if (timeoutHandle !== noTimeout) {
-        root.timeoutHandle = noTimeout
-        clearTimeout(timeoutHandle)
-      }
-
-      renderRoot(root, isYieldy)
-      finishedWork = root.finishedWork
-
-      if (finishedWork !== null) {
+      if (isYieldy) {
         if (!shouldYield()) {
           completeRoot(root, finishedWork, expirationTime)
         } else {
           root.finishedWork = finishedWork
         }
+      } else {
+        completeRoot(root, finishedWork, expirationTime)
       }
     }
   }
+
   isRendering = false
 }
 

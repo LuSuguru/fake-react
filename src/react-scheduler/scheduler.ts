@@ -1,8 +1,7 @@
-import { isNumber } from 'util'
 import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
 import { now } from '../utils/browser'
+import { isNumber } from '../utils/getType'
 import { isObject } from '../utils/getType'
-
 
 interface CallbackNode {
   previous: CallbackNode,
