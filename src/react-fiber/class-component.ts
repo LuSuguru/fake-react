@@ -1,10 +1,11 @@
+import { readContext } from '../react-context/fiber-context'
 import { computeExpirationTimeForFiber, requestCurrentTime, scheduleWork } from '../react-scheduler'
 import { Snapshot, Update as UpdateTag } from '../react-type/effect-type'
 import Update, { ForceUpdate, ReplaceState, UpdateState } from '../react-update/update'
 import { changeHasForceUpdate, enqueueUpdate, getHasForceUpdate, processUpdateQueue, UpdateQueue } from '../react-update/update-queue'
 import { Component } from '../react/react-component'
 import { ReactUpdateQueue } from '../react/react-noop-update-queue'
-import { isEmpty, isFunction } from '../utils/getType'
+import { isEmpty, isFunction, isObject } from '../utils/getType'
 import { shallowEqual } from '../utils/lib'
 import { ExpirationTime, NoWork } from './expiration-time'
 import { Fiber } from './fiber'
@@ -108,20 +109,16 @@ function addOptionClassInstace(workInProgress: Fiber, instance: Component) {
 }
 
 function constructClassInstance(workInProgress: Fiber, ctor: any, props: any): any {
-  // 一波context的骚操作，先省略
-  //  let isLegacyContextConsumer = false
-  const context: any = null
-  //     context = isLegacyContextConsumer
-  // ? getMaskedContext(workInProgress, unmaskedContext)
-  // : emptyContextObject
+  let context: any = null
+  const { contextType } = ctor
+
+  if (isObject(contextType)) {
+    context = readContext(contextType)
+  }
+
   const instance = new ctor(props, context)
   workInProgress.memoizedState = isEmpty(instance.state) ? null : instance.state
   addOptionClassInstace(workInProgress, instance)
-
-  // context操作
-  // if(isLegacyContextConsumer) {
-  //   cacheContext()
-  // }
 
   return instance
 }
@@ -132,14 +129,10 @@ function mountClassInstance(workInProgress: Fiber, ctor: any, newProps: any, ren
   instance.state = memoizedState
   instance.refs = {}
 
-  // context操作
-  // const contextType = ctor.contextType
-  // if (typeof contextType === 'object' && contextType !== null) {
-  //   instance.context = readContext(contextType)
-  // } else {
-  //   const unmaskedContext = getUnmaskedContext(workInProgress, ctor, true)
-  //   instance.context = getMaskedContext(workInProgress, unmaskedContext)
-  // }
+  const { contextType } = ctor
+  if (isObject(contextType)) {
+    instance.context = readContext(contextType)
+  }
 
   let updateQueue: UpdateQueue<any> = workInProgress.updateQueue
   if (updateQueue !== null) {
@@ -176,20 +169,12 @@ function resumeMountClassInstance(workInProgress: Fiber, ctor: any, newProps: an
   const oldProps = workInProgress.memoizedProps
   instance.props = oldProps
 
-  // context操作
   const oldContext = instance.context
-  const contextType = ctor.contextType
-  let nextContext
-  // if (typeof contextType === 'object' && contextType !== null) {
-  //   nextContext = readContext(contextType)
-  // } else {
-  //   const nextLegacyUnmaskedContext = getUnmaskedContext(
-  //     workInProgress,
-  //     ctor,
-  //     true,
-  //   )
-  //   nextContext = getMaskedContext(workInProgress, nextLegacyUnmaskedContext)
-  // }
+  const { contextType } = ctor
+  let nextContext: any = null
+  if (isObject(contextType)) {
+    nextContext = readContext(contextType)
+  }
 
   const { getDerivedStateFromProps } = ctor
 
@@ -213,7 +198,7 @@ function resumeMountClassInstance(workInProgress: Fiber, ctor: any, newProps: an
   }
 
   const haveComponentDidMount = isFunction(instance.componentDidMount)
-  if (oldProps === newProps && oldState === newState && !getHasForceUpdate()) { // !hasContextChanged()) {
+  if (oldProps === newProps && oldState === newState && !getHasForceUpdate()) {
     if (haveComponentDidMount) {
       workInProgress.effectTag |= UpdateTag
     }
@@ -255,19 +240,15 @@ function resumeMountClassInstance(workInProgress: Fiber, ctor: any, newProps: an
 function updateClassInstance(current: Fiber, workInProgress: Fiber, ctor: any, newProps: any, renderExpirationTime: ExpirationTime): boolean {
   const { stateNode: instance } = workInProgress
 
-  const oldProps = instance.props
+  const oldProps = workInProgress.memoizedProps
   instance.props = workInProgress.type === workInProgress.elementType ? oldProps : resolveDefaultProps(workInProgress.type, oldProps)
 
-  // context操作
   const oldContext = instance.context
-  const contextType = ctor.contextType
-  let nextContext
-  // if (typeof contextType === 'object' && contextType !== null) {
-  //   nextContext = readContext(contextType);
-  // } else {
-  //   const nextUnmaskedContext = getUnmaskedContext(workInProgress, ctor, true);
-  //   nextContext = getMaskedContext(workInProgress, nextUnmaskedContext);
-  // }
+  const { contextType } = ctor
+  let nextContext: any = null
+  if (typeof contextType === 'object' && contextType !== null) {
+    nextContext = readContext(contextType)
+  }
 
   const { getDerivedStateFromProps } = ctor
 
@@ -290,7 +271,7 @@ function updateClassInstance(current: Fiber, workInProgress: Fiber, ctor: any, n
     newState = workInProgress.memoizedState
   }
 
-  if (oldProps === newProps && oldState === newState && !getHasForceUpdate()) { // !hasContextChanged()) {
+  if (oldProps === newProps && oldState === newState && !getHasForceUpdate()) {
     if (isFunction(instance.componentDidUpdate)) {
       if (oldProps !== current.memoizedProps || oldState !== current.memoizedState) {
         workInProgress.effectTag |= UpdateTag

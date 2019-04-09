@@ -5,7 +5,7 @@ import Update, { getStateFromUpdate } from './update'
 
 let hasForceUpdate: boolean = false
 
-export function changeHasForceUpdate(flag) {
+export function changeHasForceUpdate(flag: boolean) {
   hasForceUpdate = flag
 }
 
@@ -14,18 +14,18 @@ export function getHasForceUpdate() {
 }
 
 export class UpdateQueue<State> {
-  baseState: State
+  baseState: State // 记录上一次更新后的state,用于调用的基值
 
-  firstUpdate: Update<State> = null
+  firstUpdate: Update<State> = null  // 更新对象链表
   lastUpdate: Update<State> = null
 
-  firstCapturedUpdate: Update<State> = null
+  firstCapturedUpdate: Update<State> = null // 捕获错误的更新对象链表
   lastCapturedUpdate: Update<State> = null
 
-  firstEffect: Update<State> = null
+  firstEffect: Update<State> = null // 有callback的更新对象链表，用于commit callback
   lastEffect: Update<State> = null
 
-  firstCapturedEffect: Update<State> = null
+  firstCapturedEffect: Update<State> = null // 同上，捕获错误版
   lastCapturedEffect: Update<State> = null
 
   constructor(baseState: State) {
