@@ -1,4 +1,4 @@
-import { prepareToReadContext, pushProvider } from '../react-context/fiber-context'
+import { calculateChangedBits, prepareToReadContext, propagateContextChange, pushProvider } from '../react-context/fiber-context'
 import { pushHostContainer, pushHostContext } from '../react-context/host-context'
 import { addOptionClassInstace, applyDerivedStateFromProps, constructClassInstance, mountClassInstance, resumeMountClassInstance, updateClassInstance } from '../react-fiber/class-component'
 import { ExpirationTime, Never, NoWork } from '../react-fiber/expiration-time'
@@ -361,6 +361,33 @@ function updateFragment(current: Fiber, workInProgress: Fiber, renderExpirationT
   return workInProgress.child
 }
 
+function updateContextProvider(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
+  const providerType = workInProgress.type
+  const context = providerType._context
+
+  const oldProps = workInProgress.pendingProps
+  const newProps = workInProgress.memoizedProps
+
+  const newValue = newProps.value
+
+  pushProvider(workInProgress, newValue)
+
+  if (oldProps !== null) {
+    const oldValue = oldProps.value
+    const changedBits = calculateChangedBits(context, newValue, oldValue)
+
+    if (changedBits === 0 && oldProps !== newProps) {
+      return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
+    } else {
+      propagateContextChange(workInProgress, context, changedBits, renderExpirationTime)
+    }
+  }
+
+  const newChildren = newProps.children
+  reconcileChildren(current, workInProgress, newChildren, renderExpirationTime)
+  return workInProgress.child
+}
+
 function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
   const updateExpirationTime = workInProgress.expirationTime
 
@@ -452,9 +479,9 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
     // case Mode:
     //   return updateMode(current, workInProgress, renderExpirationTime)
     case ContextProvider:
-    return updateContextProvider(current, workInProgress, renderExpirationTime)
+      return updateContextProvider(current, workInProgress, renderExpirationTime)
     case ContextConsumer:
-    return updateContextConsumer(current, workInProgress, renderExpirationTime)
+      return updateContextConsumer(current, workInProgress, renderExpirationTime)
     case MemoComponent: {
       const { type } = workInProgress
       const unresolvedProps = workInProgress.pendingProps
