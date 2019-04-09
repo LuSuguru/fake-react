@@ -89,7 +89,7 @@ function mountIndeterminateComponent(current: Fiber, workInProgress: Fiber, Comp
     return finishClassComponent(null, workInProgress, Component, true, renderExpirationTime)
   } else {
     workInProgress.tag = FunctionComponent
-    mountChildFibers(workInProgress, null, value, renderExpirationTime)
+    workInProgress.child = mountChildFibers(workInProgress, null, value, renderExpirationTime)
   }
   return workInProgress.child
 }
@@ -130,8 +130,7 @@ function updateForwardRef(current: Fiber, workInProgress: Fiber, Component: any,
   const { render } = Component
   const { ref } = workInProgress
 
-  // context操作
-  // prepareToReadContext(workInProgress, renderExpirationTime)
+  prepareToReadContext(workInProgress, renderExpirationTime)
 
   const nextChildren = renderWithHooks(current, workInProgress, render, nextProps, ref, renderExpirationTime)
 
@@ -262,8 +261,8 @@ function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: 
 
   workInProgress.effectTag |= PerformedWork
   if (current !== null && didCaptureError) { // 错误情况下不复用现有的children
-    reconcileChildFibers(workInProgress, current.child, null, renderExpirationTime) // 删除当前存在的children
-    reconcileChildFibers(workInProgress, null, nextChildren, renderExpirationTime) // 重新生成新的children
+    workInProgress.child = reconcileChildFibers(workInProgress, current.child, null, renderExpirationTime) // 删除当前存在的children
+    workInProgress.child = reconcileChildFibers(workInProgress, null, nextChildren, renderExpirationTime) // 重新生成新的children
   } else {
     reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
   }
@@ -273,7 +272,7 @@ function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: 
 }
 
 function updateHostRoot(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
-  // pushHostRootContext(workInProgress) // context操作
+  pushHostContainer(workInProgress, workInProgress.stateNode.containerInfo)
   const { updateQueue } = workInProgress
 
   const nextProps = workInProgress.pendingProps
@@ -301,7 +300,7 @@ function updateHostRoot(current: Fiber, workInProgress: Fiber, renderExpirationT
 }
 
 function updateHostComponent(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
-  // pushHostContext(workInProgress)
+  pushHostContext(workInProgress)
   // if (current === null) {
   //   tryToClaimNextHydratableInstance(workInProgress)
   // }
@@ -330,7 +329,7 @@ function updateHostComponent(current: Fiber, workInProgress: Fiber, renderExpira
   return workInProgress.child
 }
 
-function updateHostText(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
+function updateHostText(current: Fiber, workInProgress: Fiber): Fiber {
   // if (current === null) { // hydrate操作
   //   tryToClaimNextHydratableInstance(workInProgress)
   // }
@@ -340,6 +339,20 @@ function updateHostText(current: Fiber, workInProgress: Fiber, renderExpirationT
 function updateSuspenseComponent(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
   // 待实现
   return null
+}
+
+function updatePortalComponent(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
+  pushHostContainer(workInProgress, workInProgress.stateNode.containerInfo)
+  const nextChildren = workInProgress.pendingProps
+
+  if (current === null) {
+    // portal比较特殊，它只会在提交阶段才能append child
+    workInProgress.child = reconcileChildFibers(workInProgress, null, nextChildren, renderExpirationTime)
+  } else {
+    reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
+  }
+
+  return workInProgress.child
 }
 
 function updateFragment(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
@@ -414,11 +427,11 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
     case HostComponent:
       return updateHostComponent(current, workInProgress, renderExpirationTime)
     case HostText:
-      return updateHostText(current, workInProgress, renderExpirationTime)
+      return updateHostText(current, workInProgress)
     case SuspenseComponent:
       return updateSuspenseComponent(current, workInProgress, renderExpirationTime)
-    // case HostPortal:
-    //   return updatePortalComponent(current, workInProgress, renderExpirationTime)
+    case HostPortal:
+      return updatePortalComponent(current, workInProgress, renderExpirationTime)
     case ForwardRef: {
       const type = workInProgress.type
       const unresolvedProps = workInProgress.pendingProps
@@ -438,10 +451,10 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
       return updateFragment(current, workInProgress, renderExpirationTime)
     // case Mode:
     //   return updateMode(current, workInProgress, renderExpirationTime)
-    // case ContextProvider:
-    // return updateContextProvider(current, workInProgress, renderExpirationTime)
-    // case ContextConsumer:
-    // return updateContextConsumer(current, workInProgress, renderExpirationTime)
+    case ContextProvider:
+    return updateContextProvider(current, workInProgress, renderExpirationTime)
+    case ContextConsumer:
+    return updateContextConsumer(current, workInProgress, renderExpirationTime)
     case MemoComponent: {
       const { type } = workInProgress
       const unresolvedProps = workInProgress.pendingProps
