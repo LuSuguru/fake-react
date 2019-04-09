@@ -1,4 +1,4 @@
-import { calculateChangedBits, prepareToReadContext, propagateContextChange, pushProvider } from '../react-context/fiber-context'
+import { calculateChangedBits, prepareToReadContext, propagateContextChange, pushProvider, ReactContext, readContext } from '../react-context/fiber-context'
 import { pushHostContainer, pushHostContext } from '../react-context/host-context'
 import { addOptionClassInstace, applyDerivedStateFromProps, constructClassInstance, mountClassInstance, resumeMountClassInstance, updateClassInstance } from '../react-fiber/class-component'
 import { ExpirationTime, Never, NoWork } from '../react-fiber/expiration-time'
@@ -376,7 +376,7 @@ function updateContextProvider(current: Fiber, workInProgress: Fiber, renderExpi
     const oldValue = oldProps.value
     const changedBits = calculateChangedBits(context, newValue, oldValue)
 
-    if (changedBits === 0 && oldProps !== newProps) {
+    if (changedBits === 0 && oldProps.children === newProps.children) {
       return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
     } else {
       propagateContextChange(workInProgress, context, changedBits, renderExpirationTime)
@@ -384,6 +384,21 @@ function updateContextProvider(current: Fiber, workInProgress: Fiber, renderExpi
   }
 
   const newChildren = newProps.children
+  reconcileChildren(current, workInProgress, newChildren, renderExpirationTime)
+  return workInProgress.child
+}
+
+function updateContextConsumer(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
+  const context: ReactContext<any> = workInProgress.type
+
+  const newProps = workInProgress.pendingProps
+  const render = newProps.children
+
+  prepareToReadContext(workInProgress, renderExpirationTime)
+  const newValue = readContext(context, newProps.unstable_observedBits)
+  const newChildren = render(newValue)
+
+  workInProgress.effectTag |= PerformedWork
   reconcileChildren(current, workInProgress, newChildren, renderExpirationTime)
   return workInProgress.child
 }

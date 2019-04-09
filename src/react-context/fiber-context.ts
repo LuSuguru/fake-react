@@ -1,10 +1,10 @@
-import { ExpirationTime } from '../react-fiber/expiration-time'
+import { ExpirationTime, MAX_SIGNED_31_BIT_INT, NoWork } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { ClassComponent, ContextProvider } from '../react-type/tag-type'
 import Update, { ForceUpdate } from '../react-update/update'
 import { enqueueUpdate } from '../react-update/update-queue'
 import { markWorkInProgressReceivedUpdate } from '../react-work/begin-work'
-import { isFunction } from '../utils/getType'
+import { isFunction, isNumber } from '../utils/getType'
 import { createStack, pop, push, StackCursor } from './stack'
 
 export interface ReactContext<T> {
@@ -91,7 +91,7 @@ function calculateChangedBits<T>(context: ReactContext<T>, newValue: T, oldValue
     return 0
   } else {
     const { _calculateChangedBits } = context
-    const changedBits = isFunction(_calculateChangedBits) ? _calculateChangedBits(oldValue, newValue) : 1073741823
+    const changedBits = isFunction(_calculateChangedBits) ? _calculateChangedBits(oldValue, newValue) : MAX_SIGNED_31_BIT_INT
 
     return changedBits | 0
   }
@@ -162,10 +162,40 @@ function propagateContextChange(workInProgress: Fiber, context: ReactContext<any
   }
 }
 
+function readContext<T>(context: ReactContext<T>, observedBits: void | number | boolean) {
+  if (lastContextWithAllBitsObserved !== context && !(observedBits === false || observedBits === 0)) {
+    let resolvedObservedBits: number
+    if (!isNumber(observedBits) || observedBits === MAX_SIGNED_31_BIT_INT) {
+      lastContextWithAllBitsObserved = context
+      resolvedObservedBits = MAX_SIGNED_31_BIT_INT
+    } else {
+      resolvedObservedBits = observedBits as number
+    }
+
+    const contextItem: ContextDependency<T> = {
+      context,
+      observedBits: resolvedObservedBits,
+      next: null,
+    }
+
+    if (lastContextDependency === null) {
+      lastContextDependency = contextItem
+      currentlyRenderingFiber.contextDependencies = {
+        first: contextItem,
+        expirationTime: NoWork,
+      }
+    } else {
+      lastContextDependency = lastContextDependency.next = contextItem
+    }
+  }
+  return context._currentValue
+}
+
 export {
   popProvider,
   pushProvider,
   prepareToReadContext,
   calculateChangedBits,
   propagateContextChange,
+  readContext,
 }

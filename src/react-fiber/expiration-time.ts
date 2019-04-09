@@ -1,5 +1,5 @@
 // Math.pow(2, 30) - 1
-const MAX_SIGNED_31_BIT_INT = 1073741823
+export const MAX_SIGNED_31_BIT_INT = 1073741823
 
 type ExpirationTime = number
 
