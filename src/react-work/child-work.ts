@@ -1,7 +1,7 @@
 import { ExpirationTime } from '../react-fiber/expiration-time'
-import { createFiberFromElement, createFiberFromFragment, createFiberFromPortal, createFiberFromText, createFiberFromTypeAndProps, createWorkInProgress, Fiber } from '../react-fiber/fiber'
+import { createFiberFromElement, createFiberFromFragment, createFiberFromPortal, createFiberFromText, createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Deletion, Placement } from '../react-type/effect-type'
-import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, REACT_PORTAL_TYPE, REACT_PROFILER_TYPE, ReactPortal } from '../react-type/react-type'
+import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, REACT_PORTAL_TYPE, ReactPortal } from '../react-type/react-type'
 import { Fragment, HostPortal, HostText } from '../react-type/tag-type'
 import { ReactElement } from '../react/react'
 import { isArray, isObject, isText } from '../utils/getType'
@@ -153,7 +153,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
       fiber = useFiber(current, element.props)
     }
 
-    // fiber.ref = coerceRef(returnFiber, current, element) // 待实现
+    fiber.ref = element.ref
     fiber.return = returnFiber
     return fiber
   }
@@ -251,7 +251,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
           deleteRemainingChildren(returnFiber, child.sibling)
 
           const existing = useFiber(child, element.type === REACT_FRAGMENT_TYPE ? element.props.children : element.props)
-          // existing.ref = coerceRef(returnFiber, child, element) // 待实现，处理Ref
+          existing.ref = element.ref
           existing.return = returnFiber
 
           return existing
@@ -267,14 +267,36 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
     }
 
     const created = createFiberFromElement(element, returnFiber.mode, expirationTime)
-    // created.ref = coerceRef(returnFiber, child, element) // 待实现，处理Ref
+    created.ref = element.ref
     created.return = returnFiber
 
     return created
   }
 
-  // 待实现
-  function reconcileSinglePortal(returnFiber: Fiber, currentFirstChild: Fiber, portal: ReactElement, expirationTime: ExpirationTime): Fiber {
+  function reconcileSinglePortal(returnFiber: Fiber, currentFirstChild: Fiber, portal: any, expirationTime: ExpirationTime): Fiber {
+    const { key } = portal
+    let child: Fiber = currentFirstChild
+
+    while (child !== null) {
+      if (child.key === key) {
+        if (child.tag === HostPortal && child.stateNode.containerInfo === portal.containerInfo && child.stateNode.implementation === portal.implementation) {
+          deleteRemainingChildren(returnFiber, currentFirstChild)
+          const existing = useFiber(child, portal.children || [])
+          existing.return = returnFiber
+
+          return existing
+        } else {
+          deleteRemainingChildren(returnFiber, child)
+          break
+        }
+      } else {
+        deleteChild(returnFiber, child)
+      }
+      child = child.sibling
+    }
+
+    const created = createFiberFromPortal(portal, returnFiber.mode, expirationTime)
+    created.return = returnFiber
     return returnFiber
   }
 
@@ -399,7 +421,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE:
           return placeSingleChild(reconcileSingleElement(returnFiber, currentFirstChild, newChild, expirationTime))
-        case REACT_PROFILER_TYPE:
+        case REACT_PORTAL_TYPE:
           return placeSingleChild(reconcileSinglePortal(returnFiber, currentFirstChild, newChild, expirationTime))
       }
     }

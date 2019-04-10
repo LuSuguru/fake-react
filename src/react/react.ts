@@ -14,7 +14,8 @@ function createElement(type: any, config: any = {}, ...children: any[]): ReactEl
     ref = null,
     __self: self = null,
     __source = null,
-    ...props } = config
+    ...props
+  } = config
 
   props.children = children
 

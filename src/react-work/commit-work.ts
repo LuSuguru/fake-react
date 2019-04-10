@@ -1,9 +1,7 @@
 import { Container, updatePropeties } from '../react-dom/dom/dom-component'
 import { updateFiberProps } from '../react-dom/dom/dom-component-tree'
 import { setTextContent, setTextInstance } from '../react-dom/dom/property-operation'
-import { ExpirationTime } from '../react-fiber/expiration-time'
 import { detachFiber, Fiber } from '../react-fiber/fiber'
-import { FiberRoot } from '../react-fiber/fiber-root'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
 import { ContentReset, Placement, Update } from '../react-type/effect-type'
 import {
