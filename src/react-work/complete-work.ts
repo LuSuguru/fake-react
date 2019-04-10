@@ -1,27 +1,17 @@
+import { popProvider } from '../react-context/fiber-context'
 import { getHostContext, getRootHostContainer, popHostContainer, popHostContext } from '../react-context/host-context'
 import { Container, createInstance, createTextInstance, diffProperties, finalizeInitialChildren } from '../react-dom/dom/dom-component'
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { DidCapture, NoEffect, Placement, Ref, Update } from '../react-type/effect-type'
 import {
-  ClassComponent,
-  ContextConsumer,
   ContextProvider,
   DehydratedSuspenseComponent,
-  ForwardRef,
-  Fragment,
-  FunctionComponent,
   HostComponent,
   HostPortal,
   HostRoot,
   HostText,
   IncompleteClassComponent,
-  IndeterminateComponent,
-  LazyComponent,
-  MemoComponent,
-  Mode,
-  Profiler,
-  SimpleMemoComponent,
   SuspenseComponent,
 } from '../react-type/tag-type'
 import { appendChild as appendInitialChild } from '../utils/browser'
@@ -78,21 +68,8 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
   const newProps = workInProgress.pendingProps
 
   switch (workInProgress.tag) {
-    case IndeterminateComponent:
-    case LazyComponent:
-    case SimpleMemoComponent:
-    case FunctionComponent:
-      break
-    case ClassComponent: {
-      // const Component = workInProgress.type //context操作
-      // if (isLegacyContextProvider(Component)) {
-      //   popLegacyContext(workInProgress)
-      // }
-      break
-    }
     case HostRoot: {
       popHostContainer()
-      // popTopLevelLegacyContextObject(workInProgress)
 
       const fiberRoot = workInProgress.stateNode
       if (fiberRoot.pendingContext) {
@@ -155,7 +132,7 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
         updateHostText(workInProgress, oldText, newText)
       } else {
         const rootContainerInstance = getRootHostContainer()
-        const wasHydrated = popHydrationState(workInProgress)
+        const wasHydrated = false // popHydrationState(workInProgress)
 
         if (wasHydrated) {
           // if (prepareToHydrateHostTextInstance(workInProgress)) {
@@ -172,18 +149,10 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
     }
     case HostPortal:
       popHostContainer()
-      // updateHostContainer(workInProgress)
       break
     case ContextProvider:
-      // popProvider(workInProgress)
+      popProvider(workInProgress)
       break
-    case IncompleteClassComponent: {
-      const Component = workInProgress.type
-      // if (isLegacyContextProvider(Component)) {
-      //   popLegacyContext(workInProgress)
-      // }
-      break
-    }
     case DehydratedSuspenseComponent: {
       if ((workInProgress.effectTag & DidCapture) === NoEffect) {
         current.alternate = null
@@ -194,20 +163,6 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
       }
       break
     }
-    case ForwardRef:
-      break
-    case Fragment:
-      break
-    case Mode:
-      break
-    case Profiler:
-      break
-    case ContextConsumer:
-      break
-    case MemoComponent:
-      break
-    default:
-      break
   }
 
   return null
