@@ -1,3 +1,4 @@
+import { resetContextDependences } from '../react-context/fiber-context'
 import {
   computeAsyncExpiration, computeInteractiveExpiration, ExpirationTime, expirationTimeToMS, msToExpirationTime, Never, NoWork, Sync,
 } from '../react-fiber/expiration-time'
@@ -699,7 +700,7 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
 
   isWorking = false
   // ReactCurrentDispatcher.current = previousDispatcher // hook
-  resetContextDependences() // 待实现
+  resetContextDependences()
   resetHooks() // 待实现
 
   if (didFatal) {

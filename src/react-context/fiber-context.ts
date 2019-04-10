@@ -32,11 +32,17 @@ interface ContextDependency<T> {
   next: ContextDependency<any>,
 }
 
-let currentlyRenderingFiber: Fiber | null = null
+let currentlyRenderingFiber: Fiber = null
 let lastContextDependency: ContextDependency<any> = null
 let lastContextWithAllBitsObserved: ReactContext<any> = null
 
 const valueCursor: StackCursor<any> = createStack(null)
+
+function resetContextDependences() {
+  currentlyRenderingFiber = null
+  lastContextDependency = null
+  lastContextWithAllBitsObserved = null
+}
 
 function scheduleWorkOnParentPath(parent: Fiber, renderExpirationTime: ExpirationTime) {
   let node: Fiber = parent
@@ -122,7 +128,7 @@ function propagateContextChange(workInProgress: Fiber, context: ReactContext<any
           }
 
           const { alternate } = fiber
-          if (alternate !== null && alternate.effectTag < renderExpirationTime) {
+          if (alternate !== null && alternate.expirationTime < renderExpirationTime) {
             fiber.expirationTime = renderExpirationTime
           }
 
@@ -192,6 +198,7 @@ function readContext<T>(context: ReactContext<T>, observedBits: void | number | 
 }
 
 export {
+  resetContextDependences,
   popProvider,
   pushProvider,
   prepareToReadContext,

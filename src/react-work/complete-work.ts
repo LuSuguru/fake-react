@@ -11,7 +11,6 @@ import {
   HostPortal,
   HostRoot,
   HostText,
-  IncompleteClassComponent,
   SuspenseComponent,
 } from '../react-type/tag-type'
 import { appendChild as appendInitialChild } from '../utils/browser'
