@@ -1,5 +1,6 @@
+import { registrationNameModules } from '../../event/plugin-registry'
 import { Fiber } from '../../react-fiber/fiber'
-import { DOCUMENT_NODE } from '../../react-type/html-type'
+import { DOCUMENT_FRAGMENT_NODE, DOCUMENT_NODE } from '../../react-type/html-type'
 import { shouldAutoFocusHostComponent } from '../../utils/browser'
 import { isCustomComponent } from '../../utils/browser'
 import { getIntrinsicNamespace, HTML_NAMESPACE } from '../../utils/dom-namespaces'
@@ -15,6 +16,13 @@ import { setInnerHtml, setTextContent, setValueForProperty } from './property-op
 
 export type Container = Element | Document
 export type HostContext = string
+
+function ensureListeningTo(rootContainerElement: Container, registrationName: string) {
+  const isDocumentOrFragment = rootContainerElement.nodeType === DOCUMENT_NODE || rootContainerElement.nodeType === DOCUMENT_FRAGMENT_NODE
+  const doc = isDocumentOrFragment ? rootContainerElement : rootContainerElement.ownerDocument
+
+  listen(registrationName, doc)
+}
 
 function getOwnerDocumentFromRootContainer(rootContainerElement: any): Document {
   return rootContainerElement.nodeType === DOCUMENT_NODE ? rootContainerElement : rootContainerElement.ownerDocument
@@ -80,16 +88,18 @@ function setInitialDOMProperties(tag: string, domElement: Element, rootContainer
       case 'suppressHydrationWarning':
       case 'autoFocus':
         break
-      // case registrationNameModules.hasOwnProperty(propKey): { // 事件处理
-      //   if (nextProp != null) {
-      //     ensureListeningTo(rootContainerElement, propKey)
-      //   }
-      //   break
-      default:
+      default: {
+        if (registrationNameModules.hasOwnProperty(propKey)) {// 事件处理
+          if (nextProp != null) {
+            ensureListeningTo(rootContainerElement, propKey)
+          }
+          break
+        }
         if (nextProp != null) {
           setValueForProperty(domElement, propKey, nextProp, isCustomComponentTag)
+          break
         }
-        break
+      }
     }
   })
 }
