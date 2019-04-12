@@ -1,8 +1,9 @@
+import { listenTo } from '../../event/dom/browser-event-emitter'
 import { registrationNameModules } from '../../event/plugin-registry'
 import { Fiber } from '../../react-fiber/fiber'
 import { DOCUMENT_FRAGMENT_NODE, DOCUMENT_NODE } from '../../react-type/html-type'
-import { shouldAutoFocusHostComponent } from '../../utils/browser'
 import { isCustomComponent } from '../../utils/browser'
+import { shouldAutoFocusHostComponent } from '../../utils/browser'
 import { getIntrinsicNamespace, HTML_NAMESPACE } from '../../utils/dom-namespaces'
 import { isText } from '../../utils/getType'
 import { setValueForStyles } from './css-property-operation'
@@ -21,7 +22,7 @@ function ensureListeningTo(rootContainerElement: Container, registrationName: st
   const isDocumentOrFragment = rootContainerElement.nodeType === DOCUMENT_NODE || rootContainerElement.nodeType === DOCUMENT_FRAGMENT_NODE
   const doc = isDocumentOrFragment ? rootContainerElement : rootContainerElement.ownerDocument
 
-  listen(registrationName, doc)
+  listenTo(registrationName, doc)
 }
 
 function getOwnerDocumentFromRootContainer(rootContainerElement: any): Document {
