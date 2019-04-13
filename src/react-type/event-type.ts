@@ -1,3 +1,5 @@
+import { Fiber } from '../react-fiber/fiber'
+
 type DOMTopLevelEventType = string
 
 function makePrefixMap(styleProp: string, eventName: string): any {
@@ -172,4 +174,42 @@ export const mediaEventTypes = [
   TOP_VOLUME_CHANGE,
   TOP_WAITING,
 ]
+
+export interface DispatchConfig {
+  dependencies: DOMTopLevelEventType[],
+  phasedRegistrationNames?: {
+    bubbled: string,
+    captured: string,
+  },
+  registrationName?: string,
+  isInteractive?: boolean,
+}
+
+export interface ReactSyntheticEvent {
+  dispatchConfig: DispatchConfig,
+  getPooled: (
+    dispatchConfig: DispatchConfig,
+    targetInst: Fiber,
+    nativeTarget: Event,
+    nativeEventTarget: EventTarget,
+  ) => ReactSyntheticEvent,
+  isPersistent: () => boolean,
+}
+
+export interface EventTypes { [key: string]: DispatchConfig }
+
+export type AnyNativeEvent = Event | KeyboardEvent | MouseEvent | Touch
+
+export type PluginName = string
+
+export interface PluginModule<NativeEvent> {
+  eventTypes: EventTypes,
+  extractEvents: (
+    topLevelType: string,
+    targetInst: Fiber,
+    nativeTarget: NativeEvent,
+    nativeEventTarget: EventTarget,
+  ) => ReactSyntheticEvent | void,
+  tapMoveThreshold?: number,
+}
 
