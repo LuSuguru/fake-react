@@ -1,6 +1,6 @@
-import { isFunction } from 'util'
 import { getPublicRootInstance } from '../react-reconciler'
 import { unbatchedUpdates } from '../react-scheduler'
+import { isFunction } from '../utils/getType'
 import ReactRoot from './react-root'
 
 function createRootFromContainer(container: any, forceHydrate: boolean): ReactRoot {

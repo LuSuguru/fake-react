@@ -650,7 +650,7 @@ function commitBeforeMutationLifecycles() {
   }
 }
 
-function renderRoot(root: FiberRoot, isYieldy: boolean) {
+function  renderRoot(root: FiberRoot, isYieldy: boolean) {
   // flushPassiveEffects() // 事件相关待实现
 
   isWorking = true

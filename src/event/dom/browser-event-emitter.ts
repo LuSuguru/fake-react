@@ -4,7 +4,7 @@ let reactTopListenersCounter: number = 0
 const alreadyListeningTo = {}
 
 const topListenersIDKey = '_reactListenersID' + ('' + Math.random()).slice(2)
-function getListeningForDocument(mountAt: Document | Element): boolean {
+function getListeningForDocument(mountAt: Document | Element): any {
   if (!mountAt[topListenersIDKey]) {
     mountAt[topListenersIDKey] = reactTopListenersCounter++
     alreadyListeningTo[mountAt[topListenersIDKey]] = {}
@@ -14,13 +14,16 @@ function getListeningForDocument(mountAt: Document | Element): boolean {
 }
 
 function listenTo(registrationName: string, mountAt: Document | Element) {
-  const isListening: boolean = getListeningForDocument(mountAt)
+  const isListening: any = getListeningForDocument(mountAt)
   const dependencies: any[] = registrationNameDependencies[registrationName]
 
+  dependencies.forEach((dependency: any) => {
+    if (isListening[dependency]) {
 
+    }
 
-
-
+    isListening[dependency] = true
+  })
 }
 
 export {
