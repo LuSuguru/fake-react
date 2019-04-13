@@ -60,7 +60,7 @@ function recomputePluginOrdering() {
 
 
 
-function injectEventPluginOrder(injectEventPluginOrders: EventPluginOrder) {
+function injectEventPluginOrder(injectEventPluginOrders: PluginName[]) {
   eventPluginOrder = [...injectEventPluginOrders]
   recomputePluginOrdering()
 }
