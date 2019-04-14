@@ -78,14 +78,14 @@ export const TOP_DRAG_LEAVE = 'dragleave'
 export const TOP_DRAG_OVER = 'dragover'
 export const TOP_DRAG_START = 'dragstart'
 export const TOP_DROP = 'drop'
-export const TOP_DURATION_CHANGE = 'durationchange',
+export const TOP_DURATION_CHANGE = 'durationchange'
 
 export const TOP_EMPTIED = 'emptied'
 export const TOP_ENCRYPTED = 'encrypted'
 export const TOP_ENDED = 'ended'
 export const TOP_ERROR = 'error'
 export const TOP_FOCUS = 'focus'
-export const TOP_GOT_POINTER_CAPTURE = 'gotpointercapture',
+export const TOP_GOT_POINTER_CAPTURE = 'gotpointercapture'
 
 export const TOP_INPUT = 'input'
 export const TOP_INVALID = 'invalid'
@@ -96,8 +96,8 @@ export const TOP_KEY_UP = 'keyup'
 export const TOP_LOAD = 'load'
 export const TOP_LOAD_START = 'loadstart'
 export const TOP_LOADED_DATA = 'loadeddata'
-export const TOP_LOADED_METADATA = 'loadedmetadata',
-export const TOP_LOST_POINTER_CAPTURE = 'lostpointercapture',
+export const TOP_LOADED_METADATA = 'loadedmetadata'
+export const TOP_LOST_POINTER_CAPTURE = 'lostpointercapture'
 
 export const TOP_MOUSE_DOWN = 'mousedown'
 export const TOP_MOUSE_MOVE = 'mousemove'

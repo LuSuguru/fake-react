@@ -1,3 +1,4 @@
+import SyntheticEvent from '../event/synthetic-event'
 import { Fiber } from '../react-fiber/fiber'
 
 export type TopLevelType = string
@@ -12,15 +13,15 @@ export interface DispatchConfig {
   isInteractive?: boolean,
 }
 
-export interface ReactSyntheticEvent {
-  dispatchConfig: DispatchConfig,
+export interface StaticSyntheticEvent {
+  eventPool: SyntheticEvent[]
   getPooled: (
     dispatchConfig: DispatchConfig,
     targetInst: Fiber,
     nativeTarget: Event,
     nativeEventTarget: EventTarget,
-  ) => ReactSyntheticEvent,
-  isPersistent: () => boolean,
+  ) => SyntheticEvent,
+  release: (event: SyntheticEvent) => void,
 }
 
 export interface EventTypes { [key: string]: DispatchConfig }
@@ -36,7 +37,7 @@ export interface PluginModule<NativeEvent> {
     targetInst: Fiber,
     nativeTarget: NativeEvent,
     nativeEventTarget: EventTarget,
-  ) => ReactSyntheticEvent | null,
+  ) => SyntheticEvent,
   tapMoveThreshold?: number,
 }
 

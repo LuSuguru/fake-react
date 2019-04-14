@@ -12,8 +12,8 @@ const namesToPlugins: NamesToPlugins = {}
 let eventPluginOrder: PluginName[] = null
 
 // event plugin modules
-export const registrationNameModules = {}
-export const registrationNameDependencies = {}
+export const registrationNameModules = {} // 存储有phasedRegistrationNames或者registrationName的插件的事件对应的模块
+export const registrationNameDependencies = {} // 存储有phasedRegistrationNames或者registrationName的插件的事件对应的dependencies
 export const eventNameDispatchConfigs = {}
 export const plugins = [] // 按照eventPluginOrder顺序存储的插件模块数组
 
@@ -57,8 +57,6 @@ function recomputePluginOrdering() {
     }
   }
 }
-
-
 
 function injectEventPluginOrder(injectEventPluginOrders: PluginName[]) {
   eventPluginOrder = [...injectEventPluginOrders]

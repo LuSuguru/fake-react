@@ -1,5 +1,5 @@
-import { Fiber } from '../react-fiber/fiber'
-import { DispatchConfig } from '../react-type/event-type'
+import { Fiber } from '../../react-fiber/fiber'
+import { DispatchConfig, StaticSyntheticEvent } from '../../react-type/event-type'
 
 const EVENT_POOL_SIZE = 10
 
@@ -27,27 +27,6 @@ class SyntheticEvent {
     },
     defaultPrevented: null,
     isTrusted: null,
-  }
-
-  static eventPool = []
-
-  static getPooled(dispatchConfig: DispatchConfig, targetInst: Fiber, nativeEvent: Event, nativeEventTarget: EventTarget) {
-    if (this.eventPool.length) {
-      const instance = this.eventPool.pop()
-      instance.init(dispatchConfig, targetInst, nativeEvent, nativeEventTarget)
-
-      return instance
-    } else {
-      return new this(dispatchConfig, targetInst, nativeEvent, nativeEventTarget)
-    }
-  }
-
-  static release(event: SyntheticEvent) {
-    event.destructor()
-
-    if (this.eventPool.length < EVENT_POOL_SIZE) {
-      this.eventPool.push(event)
-    }
   }
 
   dispatchConfig: DispatchConfig
@@ -82,7 +61,7 @@ class SyntheticEvent {
       }
     })
 
-    const defaultPrevented = nativeEvent.defaultPrevented != null ? nativeEvent.defaultPrevented : nativeEvent.returnValue === false
+    const defaultPrevented = (nativeEvent as any).defaultPrevented != null ? (nativeEvent as any).defaultPrevented : (nativeEvent as any).returnValue === false
     if (defaultPrevented) {
       this.isDefaultPrevented = functionThatReturnsTrue
     } else {
@@ -145,4 +124,32 @@ class SyntheticEvent {
     this._dispatchInstances = null
   }
 }
+
+export function addPool(Event: StaticSyntheticEvent) {
+  Event.eventPool = []
+
+  Event.getPooled = function(dispatchConfig: DispatchConfig, targetInst: Fiber, nativeEvent: Event, nativeEventTarget: EventTarget) {
+    if (this.eventPool.length) {
+      const instance: SyntheticEvent = this.eventPool.pop()
+      instance.init(dispatchConfig, targetInst, nativeEvent, nativeEventTarget)
+
+      return instance
+    } else {
+      return new this(dispatchConfig, targetInst, nativeEvent, nativeEventTarget) as Syn
+    }
+  }
+
+  Event.release = function(event: SyntheticEvent) {
+    event.destructor()
+
+    if (this.eventPool.length < EVENT_POOL_SIZE) {
+      this.eventPool.push(event)
+    }
+  }
+
+  return Event
+}
+
+export default SyntheticEvent
+
 

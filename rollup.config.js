@@ -14,7 +14,8 @@ module.exports = {
     typescript({
       lib: ['es2017', 'dom'],
       target: 'es5',
-      include: 'src/**/*'
+      include: 'src/**/*',
+      experimentalDecorators:true
     })
   ]
 }

@@ -1,6 +1,19 @@
 import { Fiber } from '../../react-fiber/fiber'
-import { DispatchConfig, EventTypes, PluginModule, TopLevelType } from '../../react-type/event-type'
-import { getEventCharCode } from '../../utils/browser'
+import { DispatchConfig, EventTypes, PluginModule, StaticSyntheticEvent, TopLevelType } from '../../react-type/event-type'
+import getEventCharCode from '../event-info/get-event-char-code'
+import SyntheticEvent from '../synthetic-event'
+import SyntheticAnimationEvent from '../synthetic-event/animation-event'
+import SyntheticClipboardEvent from '../synthetic-event/clipboard-event'
+import SyntheticDragEvent from '../synthetic-event/drag-event'
+import SyntheticFocusEvent from '../synthetic-event/focus-event'
+import SyntheticKeyboardEvent from '../synthetic-event/keyboard-event'
+import SyntheticMouseEvent from '../synthetic-event/mouse-event'
+import SyntheticPointerEvent from '../synthetic-event/pointer-event'
+import SyntheticRootEvent from '../synthetic-event/root-event'
+import SyntheticTouchEvent from '../synthetic-event/touch-event'
+import SyntheticTransitionEvent from '../synthetic-event/transition-event'
+import SyntheticUiEvent from '../synthetic-event/ui-event'
+import SyntheticWheelEvent from '../synthetic-event/wheel-event'
 import * as DOMTopLevelEventTypes from '../top-level-type'
 
 type EventTuple = [TopLevelType, string]
@@ -114,13 +127,13 @@ const SimpleEventPlugin: PluginModule<MouseEvent> & {
   isInteractiveTopLevelEventType: (topLevelType: TopLevelType) => boolean,
 } = {
   eventTypes,
-  extractEvents(topLevelType: TopLevelType, targetInst: Fiber, nativeEvent: MouseEvent, nativeEventTarget: EventTarget) {
+  extractEvents(topLevelType: TopLevelType, targetInst: Fiber, nativeEvent: MouseEvent, nativeEventTarget: EventTarget): SyntheticEvent {
     const dispatchConfig = topLevelEventsToDispatchConfig[topLevelType]
     if (!dispatchConfig) {
       return null
     }
 
-    let EventConstructor
+    let EventConstructor: StaticSyntheticEvent
     switch (topLevelType) {
       case DOMTopLevelEventTypes.TOP_KEY_PRESS:
         // Firefox会触发键盘事件，需特殊处理
@@ -177,7 +190,7 @@ const SimpleEventPlugin: PluginModule<MouseEvent> & {
         EventConstructor = SyntheticTransitionEvent
         break
       case DOMTopLevelEventTypes.TOP_SCROLL:
-        EventConstructor = SyntheticUIEvent
+        EventConstructor = SyntheticUiEvent
         break
       case DOMTopLevelEventTypes.TOP_WHEEL:
         EventConstructor = SyntheticWheelEvent
@@ -198,7 +211,7 @@ const SimpleEventPlugin: PluginModule<MouseEvent> & {
         EventConstructor = SyntheticPointerEvent
         break
       default:
-        EventConstructor = SyntheticEvent
+        EventConstructor = SyntheticRootEvent
         break
     }
     const event = EventConstructor.getPooled(
