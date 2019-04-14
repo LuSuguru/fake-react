@@ -36,4 +36,10 @@ export function getToStringValue(value: any) {
   }
 }
 
-
+export function forEachAccumulated<T>(arr: T[] | T, cb: (elem: T) => void, scope?: any) {
+  if (Array.isArray(arr)) {
+    arr.forEach(cb, scope)
+  } else if (arr) {
+    cb.call(scope, arr)
+  }
+}

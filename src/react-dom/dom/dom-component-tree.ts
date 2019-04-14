@@ -14,6 +14,27 @@ function updateFiberProps(node: Element, props: any) {
   node[internalEventHandlersKey] = props
 }
 
+function getClosestInstanceFromNode(node: any): Fiber {
+  if (node[internalInstanceKey]) {
+    return node[internalInstanceKey]
+  }
+
+  while (!node[internalInstanceKey]) {
+    if (node.parentNode) {
+      node = node.parentNode
+    } else {
+      return null
+    }
+  }
+
+  const inst = node[internalInstanceKey]
+  if (inst.tag === HostComponent || inst.tag === HostText) {
+    return inst
+  }
+
+  return null
+}
+
 function getInstanceFromNode(node: Element): Fiber {
   const inst = node[internalInstanceKey]
   if (inst && (inst.tag === HostComponent || inst.tag === HostText)) {
@@ -38,4 +59,5 @@ export {
   getInstanceFromNode,
   getNodeFromInstance,
   getFiberCurrentPropsFromNode,
+  getClosestInstanceFromNode,
 }

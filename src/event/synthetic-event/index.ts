@@ -29,13 +29,16 @@ class SyntheticEvent {
     isTrusted: null,
   }
 
+  type: string
+  relatedTarget: Node
+
   dispatchConfig: DispatchConfig
   nativeEvent: Event
   target: EventTarget
   defaultPrevented: boolean
   isDefaultPrevented: () => boolean
   isPropagationStopped: () => boolean
-  private _targetInst: Fiber
+  _targetInst: Fiber
   private _dispatchListeners: Function
   private _dispatchInstances: Function
 

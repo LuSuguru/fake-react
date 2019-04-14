@@ -1,6 +1,7 @@
 import { Fiber } from '../../react-fiber/fiber'
 import { DispatchConfig, EventTypes, PluginModule, StaticSyntheticEvent, TopLevelType } from '../../react-type/event-type'
 import getEventCharCode from '../event-info/get-event-char-code'
+import { accumulateTwoPhaseDispatches } from '../propagators'
 import SyntheticEvent from '../synthetic-event'
 import SyntheticAnimationEvent from '../synthetic-event/animation-event'
 import SyntheticClipboardEvent from '../synthetic-event/clipboard-event'
@@ -220,7 +221,7 @@ const SimpleEventPlugin: PluginModule<MouseEvent> & {
       nativeEvent,
       nativeEventTarget,
     )
-    accumulateTwoPhaseDispatches(event)
+    accumulateTwoPhaseDispatches(event) // 设置上层的捕获和冒泡
     return event
   },
 
