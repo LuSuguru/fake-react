@@ -2,6 +2,7 @@ import { getClosestInstanceFromNode, getNodeFromInstance } from '../../react-dom
 import { Fiber } from '../../react-fiber/fiber'
 import { PluginModule, StaticSyntheticEvent, TopLevelType } from '../../react-type/event-type'
 import { accumulateEnterLeaveDispatches } from '../propagators'
+import SyntheticEvent from '../synthetic-event'
 import SyntheticMouseEvent from '../synthetic-event/mouse-event'
 import SyntheticPointerEvent from '../synthetic-event/pointer-event'
 import { TOP_MOUSE_OUT, TOP_MOUSE_OVER, TOP_POINTER_OUT, TOP_POINTER_OVER } from '../top-level-type'
@@ -27,7 +28,7 @@ const eventTypes = {
 
 const EnterLeaveEventPlugin: PluginModule<MouseEvent> = {
   eventTypes,
-  extractEvents(topLevelType: TopLevelType, targetInst: Fiber, nativeEvent: MouseEvent, nativeEventTarget: EventTarget) {
+  extractEvents(topLevelType: TopLevelType, targetInst: Fiber, nativeEvent: MouseEvent, nativeEventTarget: EventTarget): SyntheticEvent {
     const isOverEvent = topLevelType === TOP_MOUSE_OVER || topLevelType === TOP_POINTER_OVER
     const isOutEvent = topLevelType === TOP_MOUSE_OUT || topLevelType === TOP_POINTER_OUT
 

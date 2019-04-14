@@ -39,7 +39,7 @@ function shouldAutoFocusHostComponent(type: string, props: any): boolean {
   return false
 }
 
-export function isCustomComponent(tagName: string, props: any) {
+function isCustomComponent(tagName: string, props: any) {
   if (tagName.indexOf('-') === -1) {
     return typeof props.is === 'string'
   }
@@ -56,6 +56,38 @@ export function isCustomComponent(tagName: string, props: any) {
     default:
       return true
   }
+}
+
+function isTextInputElement(elem?: HTMLElement): boolean {
+  const supportedInputTypes: { [key: string]: true } = {
+    'color': true,
+    'date': true,
+    'datetime': true,
+    'datetime-local': true,
+    'email': true,
+    'month': true,
+    'number': true,
+    'password': true,
+    'range': true,
+    'search': true,
+    'tel': true,
+    'text': true,
+    'time': true,
+    'url': true,
+    'week': true,
+  }
+
+  const nodeName = elem && elem.nodeName && elem.nodeName.toLowerCase()
+
+  if (nodeName === 'input') {
+    return !!supportedInputTypes[(elem as HTMLInputElement).type]
+  }
+
+  if (nodeName === 'textarea') {
+    return true
+  }
+
+  return
 }
 
 function appendChild(parentInstance: Element, child: Element | Text) {
@@ -111,6 +143,8 @@ function setFoucus(domElement: any, type: string, newProps: any) {
 export {
   noTimeout,
   clearTimeout,
+  isCustomComponent
+  isTextInputElement,
   shouldSetTextContent,
   shouldDeprioritizeSubtree,
   shouldAutoFocusHostComponent,
