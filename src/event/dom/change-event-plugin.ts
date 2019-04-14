@@ -4,6 +4,7 @@ import { AnyNativeEvent, TopLevelType } from '../../react-type/event-type'
 import { isTextInputElement } from '../../utils/browser'
 import isEventSupported from '../event-info/is-event-supported'
 import SyntheticEvent from '../synthetic-event'
+
 import { TOP_BLUR, TOP_CHANGE, TOP_CLICK, TOP_FOCUS, TOP_INPUT, TOP_KEY_DOWN, TOP_KEY_UP, TOP_SELECTION_CHANGE } from '../top-level-type'
 
 const eventTypes = {
@@ -45,11 +46,9 @@ let activeElement = null
 let activeElementInst = null
 
 
-function shouldUseChangeEvent(elem: Element) {
-  const nodeName = elem.nodeName && elem.nodeName.toLowerCase()
-  return (
-    nodeName === 'select' || (nodeName === 'input' && elem.type === 'file')
-  )
+function shouldUseChangeEvent(elem: any) {
+  const nodeName: any = elem.nodeName && elem.nodeName.toLowerCase()
+  return nodeName === 'select' || (nodeName === 'input' && elem.type === 'file')
 }
 
 function manualDispatchChangeEvent(nativeEvent) {
@@ -77,7 +76,7 @@ function runEventInBatch(event) {
   runEventsInBatch(event)
 }
 
-function getInstIfValueChanged(targetInst) {
+function getInstIfValueChanged(targetInst: Fiber) {
   const targetNode = getNodeFromInstance(targetInst)
   if (updateValueIfChanged(targetNode)) {
     return targetInst
@@ -168,28 +167,18 @@ function getTargetInstForInputEventPolyfill(topLevelType, targetInst) {
   }
 }
 
-/**
- * SECTION: handle `click` event
- */
-function shouldUseClickEvent(elem) {
-  // Use the `click` event to detect changes to checkbox and radio inputs.
-  // This approach works across all browsers, whereas `change` does not fire
-  // until `blur` in IE8.
+function shouldUseClickEvent(elem: any) {
   const nodeName = elem.nodeName
-  return (
-    nodeName &&
-    nodeName.toLowerCase() === 'input' &&
-    (elem.type === 'checkbox' || elem.type === 'radio')
-  )
+  return nodeName && nodeName.toLowerCase() === 'input' && (elem.type === 'checkbox' || elem.type === 'radio')
 }
 
-function getTargetInstForClickEvent(topLevelType, targetInst) {
+function getTargetInstForClickEvent(topLevelType: TopLevelType, targetInst: Fiber) {
   if (topLevelType === TOP_CLICK) {
     return getInstIfValueChanged(targetInst)
   }
 }
 
-function getTargetInstForInputOrChangeEvent(topLevelType, targetInst) {
+function getTargetInstForInputOrChangeEvent(topLevelType: TopLevelType, targetInst: Fiber) {
   if (topLevelType === TOP_INPUT || topLevelType === TOP_CHANGE) {
     return getInstIfValueChanged(targetInst)
   }
