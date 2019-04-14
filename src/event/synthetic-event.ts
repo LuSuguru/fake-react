@@ -31,11 +31,22 @@ class SyntheticEvent {
 
   static eventPool = []
 
-  static getPooledEvent(dispatchConfig: DispatchConfig, targetInst: Fiber, nativeEvent: Event, nativeEventTarget: EventTarget) {
+  static getPooled(dispatchConfig: DispatchConfig, targetInst: Fiber, nativeEvent: Event, nativeEventTarget: EventTarget) {
     if (this.eventPool.length) {
       const instance = this.eventPool.pop()
+      instance.init(dispatchConfig, targetInst, nativeEvent, nativeEventTarget)
 
-      this.call(instance, dispatchConfig, targetInst, nativeEvent, nativeEventTarget)
+      return instance
+    } else {
+      return new this(dispatchConfig, targetInst, nativeEvent, nativeEventTarget)
+    }
+  }
+
+  static release(event: SyntheticEvent) {
+    event.destructor()
+
+    if (this.eventPool.length < EVENT_POOL_SIZE) {
+      this.eventPool.push(event)
     }
   }
 
@@ -50,9 +61,13 @@ class SyntheticEvent {
   private _dispatchInstances: Function
 
   constructor(dispatchConfig: DispatchConfig, targetInst: Fiber, nativeEvent: Event, nativeEventTarget: EventTarget) {
+    this.init(dispatchConfig, targetInst, nativeEvent, nativeEventTarget)
+  }
+
+  init(dispatchConfig: DispatchConfig, targetInst: Fiber, nativeEvent: Event, nativeEventTarget: EventTarget) {
     this.dispatchConfig = dispatchConfig
-    this._targetInst = targetInst
     this.nativeEvent = nativeEvent
+    this._targetInst = targetInst
 
     const { Interface } = this.constructor as any
     Object.keys(Interface).forEach((propName) => {
@@ -121,8 +136,9 @@ class SyntheticEvent {
     Object.keys(Interface).forEach((propName) => this[propName] = null)
 
     this.dispatchConfig = null
-    this._targetInst = null
     this.nativeEvent = null
+    this._targetInst = null
+
     this.isDefaultPrevented = functionThatReturnsFalse
     this.isPropagationStopped = functionThatReturnsFalse
     this._dispatchListeners = null
