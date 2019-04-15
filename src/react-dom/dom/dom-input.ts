@@ -118,4 +118,5 @@ export {
   setInputValue,
   updateChecked,
   updateInputValue,
+  setDefaultValue,
 }

@@ -9,11 +9,7 @@ type ElementWithValueTracker = HTMLInputElement & WrapperState
 function isCheckable(elem: HTMLInputElement) {
   const type = elem.type
   const nodeName = elem.nodeName
-  return (
-    nodeName &&
-    nodeName.toLowerCase() === 'input' &&
-    (type === 'checkbox' || type === 'radio')
-  )
+  return nodeName && nodeName.toLowerCase() === 'input' && (type === 'checkbox' || type === 'radio')
 }
 
 function getValueFromNode(node: HTMLInputElement): string {

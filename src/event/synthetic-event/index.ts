@@ -138,7 +138,7 @@ export function addPool(Event: StaticSyntheticEvent) {
 
       return instance
     } else {
-      return new this(dispatchConfig, targetInst, nativeEvent, nativeEventTarget) as Syn
+      return new this(dispatchConfig, targetInst, nativeEvent, nativeEventTarget)
     }
   }
 
