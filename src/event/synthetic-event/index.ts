@@ -29,6 +29,7 @@ class SyntheticEvent {
     isTrusted: null,
   }
 
+  data: string
   type: string
   relatedTarget: Node
 
