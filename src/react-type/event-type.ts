@@ -37,7 +37,7 @@ export interface PluginModule<NativeEvent> {
     targetInst: Fiber,
     nativeTarget: NativeEvent,
     nativeEventTarget: EventTarget,
-  ) => SyntheticEvent,
+  ) => SyntheticEvent | SyntheticEvent[],
   tapMoveThreshold?: number,
 }
 

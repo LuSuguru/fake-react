@@ -3,9 +3,9 @@ import { setComponentTree } from '../event/plugin-utils'
 import { getFiberCurrentPropsFromNode, getInstanceFromNode, getNodeFromInstance } from './dom/dom-component-tree'
 
 import ChangeEventPlugin from '../event/dom/change-event-plugin'
-import EnterLeaveEventPlugin from '../event/dom/enter-leave-enent-plugin'
+import EnterLeaveEventPlugin from '../event/dom/enter-leave-event-plugin'
+import SelectEventPlugin from '../event/dom/select-event-plugin'
 import SimpleEventPlugin from '../event/dom/simple-event-plugin'
-
 
 EventPluginHubInjection.injectEventPluginOrder([
   'ResponderEventPlugin',

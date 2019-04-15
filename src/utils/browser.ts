@@ -14,6 +14,18 @@ export function now() {
   }
 }
 
+function getActiveElement(doc: ?Document): ?Element {
+  doc = doc || (typeof document !== 'undefined' ? document : undefined)
+  if (typeof doc === 'undefined') {
+    return null
+  }
+  try {
+    return doc.activeElement || doc.body
+  } catch (e) {
+    return doc.body
+  }
+}
+
 function shouldSetTextContent(type: string, props: any): boolean {
   return (
     type === 'textarea'
@@ -143,7 +155,8 @@ function setFoucus(domElement: any, type: string, newProps: any) {
 export {
   noTimeout,
   clearTimeout,
-  isCustomComponent
+  getActiveElement,
+  isCustomComponent,
   isTextInputElement,
   shouldSetTextContent,
   shouldDeprioritizeSubtree,
