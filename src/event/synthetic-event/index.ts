@@ -128,7 +128,7 @@ class SyntheticEvent {
   }
 }
 
-export function addPool(Event: StaticSyntheticEvent) {
+export function addPool(Event: any): StaticSyntheticEvent {
   Event.eventPool = []
 
   Event.getPooled = function(dispatchConfig: DispatchConfig, targetInst: Fiber, nativeEvent: Event, nativeEventTarget: EventTarget) {

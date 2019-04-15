@@ -14,6 +14,7 @@ export interface DispatchConfig {
 }
 
 export interface StaticSyntheticEvent {
+  Interface: any
   eventPool: SyntheticEvent[]
   getPooled: (
     dispatchConfig: DispatchConfig,

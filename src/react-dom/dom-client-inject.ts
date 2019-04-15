@@ -2,6 +2,7 @@ import { injection as EventPluginHubInjection } from '../event/plugin-hub'
 import { setComponentTree } from '../event/plugin-utils'
 import { getFiberCurrentPropsFromNode, getInstanceFromNode, getNodeFromInstance } from './dom/dom-component-tree'
 
+import BeforeInputEventPlugin from '../event/dom/before-input-event-plugin'
 import ChangeEventPlugin from '../event/dom/change-event-plugin'
 import EnterLeaveEventPlugin from '../event/dom/enter-leave-event-plugin'
 import SelectEventPlugin from '../event/dom/select-event-plugin'
