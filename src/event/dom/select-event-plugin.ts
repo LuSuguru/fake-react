@@ -43,7 +43,7 @@ function getEventTargetDocument(eventTarget: any): Document {
       : eventTarget.ownerDocument
 }
 
-function constructSelectEvent(nativeEvent: AnyNativeEvent, nativeTarget: EventTarget): SyntheticEvent {
+function constructSelectEvent(nativeEvent: Event, nativeTarget: EventTarget): SyntheticEvent {
   const doc: Document = getEventTargetDocument(nativeTarget)
   if (mouseDown || activeElement == null || activeElement !== getActiveElement(doc)) {
     return null
@@ -63,10 +63,10 @@ function constructSelectEvent(nativeEvent: AnyNativeEvent, nativeTarget: EventTa
   return null
 }
 
-const selectEventPlugin: PluginModule<AnyNativeEvent> = {
+const selectEventPlugin: PluginModule<Event> = {
   eventTypes,
 
-  extractEvents(topLevelType: TopLevelType, targetInst: Fiber, nativeEvent: AnyNativeEvent, nativeTarget: EventTarget): SyntheticEvent {
+  extractEvents(topLevelType: TopLevelType, targetInst: Fiber, nativeEvent: Event, nativeTarget: EventTarget): SyntheticEvent {
     const doc: Document = getEventTargetDocument(nativeTarget)
     if (!doc || isListeningToAllDependencies('onSelect', doc)) {
       return null

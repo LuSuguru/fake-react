@@ -14,7 +14,7 @@ export function now() {
   }
 }
 
-function getActiveElement(doc: ?Document): ?Element {
+function getActiveElement(doc?: Document): Element {
   doc = doc || (typeof document !== 'undefined' ? document : undefined)
   if (typeof doc === 'undefined') {
     return null

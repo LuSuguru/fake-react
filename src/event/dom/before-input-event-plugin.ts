@@ -166,8 +166,6 @@ function extractBeforeInputEvent(topLevelType: TopLevelType, targetInst: Fiber, 
   return event
 }
 
-
-
 const BeforeInputEventPlugin: PluginModule<KeyboardEvent> = {
   eventTypes,
 
