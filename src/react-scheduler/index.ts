@@ -49,9 +49,9 @@ let currentSchedulerTime: ExpirationTime = currentRendererTime
 
 const expirationContext: ExpirationTime = NoWork
 
-const isBatchingUpdates: boolean = false
+let isBatchingUpdates: boolean = false
 let isUnbatchingUpdates: boolean = false
-const isBatchingInteractiveUpdates: boolean = false
+let isBatchingInteractiveUpdates: boolean = false
 
 let completedBatches: Batch[] = null
 
@@ -116,6 +116,53 @@ function onUncaughtError(error: any) {
   if (!hasUnhandledError) {
     hasUnhandledError = true
     unhandledError = error
+  }
+}
+
+function batchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
+  const previousIsBatchingUpdates = isBatchingUpdates
+  isBatchingUpdates = true
+
+  try {
+    return fn(a)
+  } finally {
+    isBatchingUpdates = previousIsBatchingUpdates
+    if (!isBatchingUpdates && !isRendering) {
+      performSyncWork()
+    }
+  }
+}
+
+function interactiveUpdates<A, B, R>(fn: (a: A, b: B) => R, a: A, b: B): R {
+  if (isBatchingInteractiveUpdates) {
+    return fn(a, b)
+  }
+
+  if (!isBatchingUpdates && !isRendering && lowestPriorityPendingInteractiveExpirationTime !== NoWork) {
+    performWork(lowestPriorityPendingInteractiveExpirationTime, false)
+    lowestPriorityPendingInteractiveExpirationTime = NoWork
+  }
+
+  const previousIsBatchingInteractiveUpdates = isBatchingInteractiveUpdates
+  const previousIsBatchingUpdates = isBatchingUpdates
+  isBatchingInteractiveUpdates = true
+  isBatchingUpdates = true
+
+  try {
+    return fn(a, b)
+  } finally {
+    isBatchingInteractiveUpdates = previousIsBatchingInteractiveUpdates
+    isBatchingUpdates = previousIsBatchingUpdates
+    if (!isBatchingUpdates && !isRendering) {
+      performSyncWork()
+    }
+  }
+}
+
+function flushInteractiveUpdates() {
+  if (!isRendering && lowestPriorityPendingInteractiveExpirationTime !== NoWork) {
+    performWork(lowestPriorityPendingInteractiveExpirationTime, false)
+    lowestPriorityPendingInteractiveExpirationTime = NoWork
   }
 }
 
@@ -650,7 +697,7 @@ function commitBeforeMutationLifecycles() {
   }
 }
 
-function  renderRoot(root: FiberRoot, isYieldy: boolean) {
+function renderRoot(root: FiberRoot, isYieldy: boolean) {
   // flushPassiveEffects() // 事件相关待实现
 
   isWorking = true
@@ -822,6 +869,9 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber {
 
 export {
   unbatchedUpdates,
+  batchedUpdates,
+  interactiveUpdates,
+  flushInteractiveUpdates,
   computeExpirationTimeForFiber,
   requestCurrentTime,
   scheduleWork,

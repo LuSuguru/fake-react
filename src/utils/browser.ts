@@ -152,6 +152,15 @@ function setFoucus(domElement: any, type: string, newProps: any) {
   }
 }
 
+function addEventBubbledListener(element: Document | Element, eventType: string, listener: any) {
+  element.addEventListener(eventType, listener, false)
+}
+
+function addEventCaptureListener(element: Document | Element, eventType: string, listener: any) {
+  element.addEventListener(eventType, listener, true)
+}
+
+
 export {
   noTimeout,
   clearTimeout,
@@ -168,4 +177,6 @@ export {
   removeChild,
   removeChildFromContainer,
   setFoucus,
+  addEventBubbledListener,
+  addEventCaptureListener,
 }

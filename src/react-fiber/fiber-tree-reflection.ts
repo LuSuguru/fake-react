@@ -10,7 +10,7 @@ enum WorkStatus {
   UnMounted = 3,
 }
 
-export function isFiberMountedImpl(fiber: Fiber): number {
+function isFiberMountedImpl(fiber: Fiber): number {
   let node = fiber
   if (!fiber.alternate) {
     if ((node.effectTag & Placement) !== NoEffect) {
@@ -39,7 +39,11 @@ export function isFiberMountedImpl(fiber: Fiber): number {
   return WorkStatus.UnMounted
 }
 
-export function isMounted(component: Component) {
+function isFiberMounted(fiber: Fiber): boolean {
+  return isFiberMountedImpl(fiber) === WorkStatus.Mounted
+}
+
+function isMounted(component: Component) {
   const fiber = component._reactInternalFiber
 
   if (!fiber) {
@@ -47,4 +51,9 @@ export function isMounted(component: Component) {
   }
 
   return isFiberMountedImpl(fiber) === WorkStatus.Mounted
+}
+
+export {
+  isMounted,
+  isFiberMounted,
 }
