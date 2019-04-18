@@ -36,12 +36,13 @@ class SyntheticEvent {
   dispatchConfig: DispatchConfig
   nativeEvent: Event
   target: EventTarget
+  currentTarget: EventTarget
   defaultPrevented: boolean
   isDefaultPrevented: () => boolean
   isPropagationStopped: () => boolean
   _targetInst: Fiber
-  private _dispatchListeners: Function
-  private _dispatchInstances: Function
+  _dispatchListeners: any
+  _dispatchInstances: any
 
   constructor(dispatchConfig: DispatchConfig, targetInst: Fiber, nativeEvent: Event, nativeEventTarget: EventTarget) {
     this.init(dispatchConfig, targetInst, nativeEvent, nativeEventTarget)

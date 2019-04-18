@@ -7,6 +7,7 @@ import { addEventBubbledListener, addEventCaptureListener } from '../../utils/br
 import { isNumber } from '../../utils/getType'
 import { getEventTarget } from '../event-info/get-event-target'
 import { batchedUpdates, interactiveUpdates } from '../generic-batching'
+import { runExtractedEventsInBatch } from '../plugin-hub'
 import SimpleEventPlugin from './simple-event-plugin'
 
 export interface BookKeeping {
@@ -77,13 +78,13 @@ function handleTopLevel(bookKeeping: BookKeeping) {
 
     bookKeeping.ancestors.push(ancestor)
     ancestor = getClosestInstanceFromNode(root)
+  } while (ancestor)
 
-    bookKeeping.ancestors.forEach((target: Fiber) => {
-      targetInst = target
+  bookKeeping.ancestors.forEach((target: Fiber) => {
+    targetInst = target
 
-      runExtractedEventsInBatch(bookKeeping.topLevelType, targetInst, bookKeeping.nativeEvent, getEventTarget(bookKeeping.nativeEvent))
-    })
-  }
+    runExtractedEventsInBatch(bookKeeping.topLevelType, targetInst, bookKeeping.nativeEvent, getEventTarget(bookKeeping.nativeEvent))
+  })
 }
 
 function findRootContainerNode(inst: Fiber) {

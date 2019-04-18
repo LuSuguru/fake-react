@@ -90,15 +90,12 @@ function setInitialDOMProperties(tag: string, domElement: Element, rootContainer
       case 'autoFocus':
         break
       default: {
-        if (registrationNameModules.hasOwnProperty(propKey)) {// 事件处理
+        if (registrationNameModules.hasOwnProperty(propKey)) { // 事件处理
           if (nextProp != null) {
             ensureListeningTo(rootContainerElement, propKey)
           }
-          break
-        }
-        if (nextProp != null) {
+        } else if (nextProp != null) {
           setValueForProperty(domElement, propKey, nextProp, isCustomComponentTag)
-          break
         }
       }
     }

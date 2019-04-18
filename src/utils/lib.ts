@@ -43,3 +43,24 @@ export function forEachAccumulated<T>(arr: T[] | T, cb: (elem: T) => void, scope
     cb.call(scope, arr)
   }
 }
+
+export function accumulateInto<T>(next: T | T[], current?: T[] | T ): T | T[] {
+  if (current == null) {
+    return next
+  }
+
+  if (Array.isArray(current)) {
+    if (Array.isArray(next)) {
+      current.push.apply(current, next)
+      return current
+    }
+    current.push(next)
+    return current
+  }
+
+  if (Array.isArray(next)) {
+    return [current].concat(next)
+  }
+
+  return [current, next]
+}

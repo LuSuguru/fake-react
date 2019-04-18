@@ -1,6 +1,4 @@
 import { injection as EventPluginHubInjection } from '../event/plugin-hub'
-import { setComponentTree } from '../event/plugin-utils'
-import { getFiberCurrentPropsFromNode, getInstanceFromNode, getNodeFromInstance } from './dom/dom-component-tree'
 
 import BeforeInputEventPlugin from '../event/dom/before-input-event-plugin'
 import ChangeEventPlugin from '../event/dom/change-event-plugin'
@@ -18,12 +16,6 @@ EventPluginHubInjection.injectEventPluginOrder([
   'SelectEventPlugin',
   'BeforeInputEventPlugin',
 ])
-
-setComponentTree(
-  getFiberCurrentPropsFromNode,
-  getInstanceFromNode,
-  getNodeFromInstance,
-)
 
 setBatchingImplementation(
   batchedUpdates,
