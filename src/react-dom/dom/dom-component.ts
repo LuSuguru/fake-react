@@ -1,9 +1,12 @@
 import { listenTo } from '../../event/dom/browser-event-emitter'
+import { trapBubbledEvent } from '../../event/dom/dom-event-listener'
 import { registrationNameModules } from '../../event/plugin-registry'
+import { mediaEventTypes, TOP_ERROR, TOP_INVALID, TOP_LOAD, TOP_RESET, TOP_SUBMIT, TOP_TOGGLE } from '../../event/top-level-type'
 import { Fiber } from '../../react-fiber/fiber'
+import { TopLevelType } from '../../react-type/event-type'
 import { DOCUMENT_FRAGMENT_NODE, DOCUMENT_NODE } from '../../react-type/html-type'
-import { isCustomComponent } from '../../utils/browser'
 import { shouldAutoFocusHostComponent } from '../../utils/browser'
+import { isCustomComponent } from '../../utils/browser'
 import { getIntrinsicNamespace, HTML_NAMESPACE } from '../../utils/dom-namespaces'
 import { isText } from '../../utils/getType'
 import { setValueForStyles } from './css-property-operation'
@@ -167,11 +170,14 @@ function diffProperties(domElement: any, tag: string, lastRawProps: object, newR
       case 'suppressHydrationWarning':
       case 'autoFocus':
         break
-      // case registrationNameModules.hasOwnProperty(propKey): { // 事件对象处理
-      //   break
-      // }
       default:
-        (updatePayload = updatePayload || []).push(propKey, null)
+        if (registrationNameModules.hasOwnProperty(propKey)) {
+          if (!updatePayload) {
+            updatePayload = []
+          }
+        } else {
+          (updatePayload = updatePayload || []).push(propKey, null)
+        }
         break
     }
   }
@@ -228,15 +234,17 @@ function diffProperties(domElement: any, tag: string, lastRawProps: object, newR
       case 'suppressContentEditableWarning':
       case 'suppressHydrationWarning':
         break
-      // case registrationNameModules.hasOwnProperty(propKey): { // 事件监听
-      //   if (nextProp != null) {
-      //     ensureListeningTo(rootContainerElement, propKey);
-      //   }
-      //   break
-      // }
       default:
-        (updatePayload = updatePayload || []).push(propKey, nextProp)
-        break
+        if (registrationNameModules.hasOwnProperty(propKey)) {
+          if (nextProp != null) {
+            ensureListeningTo(rootContainerElement, propKey)
+          }
+          if (!updatePayload && lastProp !== nextProp) {
+            updatePayload = []
+          }
+        } else {
+          (updatePayload = updatePayload || []).push(propKey, nextProp)
+        }
     }
   }
 
@@ -254,48 +262,48 @@ function setInitialProperties(domElement: any, tag: string, rawProps: any, rootC
   switch (tag) {
     case 'iframe':
     case 'object':
-      // trapBubbledEvent(TOP_LOAD, domElement)
+      trapBubbledEvent(TOP_LOAD, domElement)
       props = rawProps
       break
     case 'video':
     case 'audio':
       // Create listener for each media event
-      // for (let i = 0; i < mediaEventTypes.length; i++) {
-      // trapBubbledEvent(mediaEventTypes[i], domElement)
-      // }
+      mediaEventTypes.forEach((mediaEventType: TopLevelType) => {
+        trapBubbledEvent(mediaEventType, domElement)
+      })
       props = rawProps
       break
     case 'source':
-      // trapBubbledEvent(TOP_ERROR, domElement)
+      trapBubbledEvent(TOP_ERROR, domElement)
       props = rawProps
       break
     case 'img':
     case 'image':
     case 'link':
-      // trapBubbledEvent(TOP_ERROR, domElement)
-      // trapBubbledEvent(TOP_LOAD, domElement)
+      trapBubbledEvent(TOP_ERROR, domElement)
+      trapBubbledEvent(TOP_LOAD, domElement)
       props = rawProps
       break
     case 'form':
-      // trapBubbledEvent(TOP_RESET, domElement)
-      // trapBubbledEvent(TOP_SUBMIT, domElement)
+      trapBubbledEvent(TOP_RESET, domElement)
+      trapBubbledEvent(TOP_SUBMIT, domElement)
       props = rawProps
       break
     case 'details':
-      // trapBubbledEvent(TOP_TOGGLE, domElement)
+      trapBubbledEvent(TOP_TOGGLE, domElement)
       props = rawProps
       break
     case 'input':
       initInputProps(domElement, rawProps)
       props = getInputProps(domElement, rawProps)
-      // trapBubbledEvent(TOP_INVALID, domElement)
-      // ensureListeningTo(rootContainerElement, 'onChange')
+      trapBubbledEvent(TOP_INVALID, domElement)
+      ensureListeningTo(rootContainerElement, 'onChange')
       break
     case 'textarea':
       initTextareaProps(domElement, rawProps)
       props = getTextareaProps(domElement, rawProps)
-      // trapBubbledEvent(TOP_INVALID, domElement)
-      // ensureListeningTo(rootContainerElement, 'onChange')
+      trapBubbledEvent(TOP_INVALID, domElement)
+      ensureListeningTo(rootContainerElement, 'onChange')
       break
     case 'option':
       props = getOptionProps(rawProps)
@@ -303,8 +311,8 @@ function setInitialProperties(domElement: any, tag: string, rawProps: any, rootC
     case 'select':
       initSelectProps(domElement, rawProps)
       props = getSelectProps(rawProps)
-      // trapBubbledEvent(TOP_INVALID, domElement)
-      // ensureListeningTo(rootContainerElement, 'onChange')
+      trapBubbledEvent(TOP_INVALID, domElement)
+      ensureListeningTo(rootContainerElement, 'onChange')
       break
     default:
       props = rawProps
