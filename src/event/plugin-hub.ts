@@ -1,3 +1,4 @@
+import { getFiberCurrentPropsFromNode } from '../react-dom/dom/dom-component-tree'
 import { Fiber } from '../react-fiber/fiber'
 import { AnyNativeEvent, PluginModule, TopLevelType } from '../react-type/event-type'
 import { accumulateInto, forEachAccumulated } from '../utils/lib'
@@ -10,6 +11,49 @@ let eventQueue: SyntheticEvent[] | SyntheticEvent = null
 export const injection = {
   injectEventPluginOrder,
   injectEventPluginsByName,
+}
+
+function isInteractive(tag: string) {
+  return (tag === 'button' || tag === 'input' || tag === 'select' || tag === 'textarea')
+}
+
+function shouldPreventMouseEvent(name: string, type: string, props: any) {
+  switch (name) {
+    case 'onClick':
+    case 'onClickCapture':
+    case 'onDoubleClick':
+    case 'onDoubleClickCapture':
+    case 'onMouseDown':
+    case 'onMouseDownCapture':
+    case 'onMouseMove':
+    case 'onMouseMoveCapture':
+    case 'onMouseUp':
+    case 'onMouseUpCapture':
+      return !!(props.disabled && isInteractive(type))
+    default:
+      return false
+  }
+}
+
+function getListener(inst: Fiber, registrationName: string): Function {
+  let listener: Function = null
+
+  const { stateNode } = inst.stateNode
+  if (!stateNode) {
+    return null
+  }
+
+  const props = getFiberCurrentPropsFromNode(stateNode)
+  if (!props) {
+    return null
+  }
+
+  listener = props[registrationName]
+  if (shouldPreventMouseEvent(registrationName, inst.type, props)) {
+    return null
+  }
+
+  return listener
 }
 
 function executeDispatchesAndReleaseTopLevel(event: SyntheticEvent) {
@@ -55,4 +99,5 @@ function runExtractedEventsInBatch(topLevelType: TopLevelType, targetInst: Fiber
 
 export {
   runExtractedEventsInBatch,
+  getListener,
 }

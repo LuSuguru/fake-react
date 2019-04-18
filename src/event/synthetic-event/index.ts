@@ -22,7 +22,7 @@ class SyntheticEvent {
     eventPhase: null,
     bubbles: null,
     cancelable: null,
-    timeStamp(event) {
+    timeStamp(event: any) {
       return event.timeStamp || Date.now()
     },
     defaultPrevented: null,
@@ -41,8 +41,8 @@ class SyntheticEvent {
   isDefaultPrevented: () => boolean
   isPropagationStopped: () => boolean
   _targetInst: Fiber
-  _dispatchListeners: any
-  _dispatchInstances: any
+  _dispatchListeners: Function | Function[]
+  _dispatchInstances: Fiber | Fiber[]
 
   constructor(dispatchConfig: DispatchConfig, targetInst: Fiber, nativeEvent: Event, nativeEventTarget: EventTarget) {
     this.init(dispatchConfig, targetInst, nativeEvent, nativeEventTarget)

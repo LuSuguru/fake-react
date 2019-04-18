@@ -22,7 +22,7 @@ function executeDispatchesInOrder(event: SyntheticEvent) {
   event._dispatchInstances = null
 }
 
-function executeDispatch(event: SyntheticEvent, listener: any, inst: Fiber) {
+function executeDispatch(event: SyntheticEvent, listener: Function, inst: Fiber) {
   event.currentTarget = getNodeFromInstance(inst)
   listener(event)
   event.currentTarget = null
