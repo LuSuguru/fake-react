@@ -65,8 +65,16 @@ function setSelectValue(node: any, props: any) {
   }
 }
 
+function restoreSelectControlledState(node: any, props: any) {
+  const { value } = props
+  if (value !== null) {
+    updateOptions(node, !!props.multiple, value, false)
+  }
+}
+
 export {
   initSelectProps,
   getSelectProps,
   setSelectValue,
+  restoreSelectControlledState,
 }

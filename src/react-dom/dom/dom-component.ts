@@ -10,7 +10,7 @@ import { setValueForStyles } from './css-property-operation'
 import { precacheFiberNode, updateFiberProps } from './dom-component-tree'
 import { getInputProps, initInputProps, setInputValue, updateChecked, updateInputValue } from './dom-input'
 import { getOptionProps, setOptionValue } from './dom-options'
-import { getSelectProps, initSelectProps, setSelectValue } from './dom-select'
+import { getSelectProps, initSelectProps, restoreSelectControlledState, setSelectValue } from './dom-select'
 import { getTextareaProps, initTextareaProps, setTextareaValue, updateTextareaProps } from './dom-textarea'
 import { track } from './input-value-track'
 import { setInnerHtml, setTextContent, setValueForProperty } from './property-operation'
@@ -392,6 +392,21 @@ function updatePropeties(domElement: Element, updatePayload: any, tag: string, n
   }
 }
 
+function restoreControlledState(domElement: Element, tag: string, props: any) {
+  switch (tag) {
+    case 'input':
+      updateInputValue(domElement, props)
+      return
+    case 'texterea':
+      updateTextareaProps(domElement, props)
+      return
+    case 'select':
+      restoreSelectControlledState(domElement, props)
+    default:
+      break
+  }
+}
+
 
 export {
   diffProperties,
@@ -399,4 +414,5 @@ export {
   createTextInstance,
   finalizeInitialChildren,
   updatePropeties,
+  restoreControlledState,
 }

@@ -7,7 +7,6 @@ let restoreImpl: Function = () => null
 function restoreStateOfTarget(target: any) {
   const internalInstance = getInstanceFromNode(target)
   if (!internalInstance) {
-
     return
   }
 
