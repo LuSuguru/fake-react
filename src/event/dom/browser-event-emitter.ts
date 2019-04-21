@@ -36,7 +36,7 @@ function listenTo(registrationName: string, mountAt: Document | Element) {
 
   const dependencies: TopLevelType[] = registrationNameDependencies[registrationName]
   dependencies.forEach((dependency: TopLevelType) => {
-    if (isListening[dependency]) {
+    if (!isListening[dependency]) {
       switch (dependency) {
         case TOP_SCROLL:
           trapCaptureEvent(TOP_SCROLL, mountAt)

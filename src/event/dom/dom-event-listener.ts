@@ -28,10 +28,6 @@ function setEnabled(enabled?: boolean) {
   _enabled = !!enabled
 }
 
-function isEnabled() {
-  return _enabled
-}
-
 function getTopLevelCallbackBookKeeping(topLevelType: TopLevelType, nativeEvent: AnyNativeEvent, targetInst: Fiber): BookKeeping {
   if (callbackBookkeepingPool.length) {
     const instance: BookKeeping = callbackBookkeepingPool.pop()
@@ -144,7 +140,6 @@ function trapCaptureEvent(topLevelType: TopLevelType, element: Document | Elemen
 
 export {
   setEnabled,
-  isEnabled,
   trapBubbledEvent,
   trapCaptureEvent,
 }
