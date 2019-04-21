@@ -48,7 +48,7 @@ export function getLowestCommonAncestor(instA: Fiber, instB: Fiber) {
 /**
  * Return if A is an ancestor of B.
  */
-export function isAncestor(instA, instB) {
+export function isAncestor(instA: Fiber, instB: Fiber) {
   while (instB) {
     if (instA === instB || instA === instB.alternate) {
       return true

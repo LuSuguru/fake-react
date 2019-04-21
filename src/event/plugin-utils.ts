@@ -15,7 +15,7 @@ function executeDispatchesInOrder(event: SyntheticEvent) {
       executeDispatch(event, dispatchListeners[i], dispatchInstances[i])
     }
   } else if (dispatchListeners) {
-    executeDispatch(event, dispatchListeners, dispatchInstances)
+    executeDispatch(event, dispatchListeners, dispatchInstances as Fiber)
   }
 
   event._dispatchListeners = null

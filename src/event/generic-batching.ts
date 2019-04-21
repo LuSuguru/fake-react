@@ -35,7 +35,6 @@ function batchedUpdates(fn: Function, bookKeeping: BookKeeping) {
 
     const controlledComponentsHavePendingUpdates = needsStateRestore()
     if (controlledComponentsHavePendingUpdates) {
-
       _flushInteractiveUpdatesImpl()
       restoreStateIfNeeded()
     }
