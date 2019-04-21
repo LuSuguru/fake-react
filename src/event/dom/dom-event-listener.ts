@@ -104,7 +104,7 @@ function dispatchEvent(topLevelType: TopLevelType, nativeEvent: AnyNativeEvent) 
     return
   }
 
-  const nativeEventTarget = getEventTarget
+  const nativeEventTarget = getEventTarget(nativeEvent)
   let targetInst: Fiber = getClosestInstanceFromNode(nativeEventTarget)
 
   if (targetInst !== null && isNumber(targetInst.tag) && !isFiberMounted(targetInst)) {
