@@ -14,6 +14,16 @@ import {
 export { Component, PureComponent } from './react-component'
 export { createElement } from './react'
 
+export {
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+  useMemo,
+} from '../react-hook'
+
 
 function createRef(): object {
   return { current: null }
@@ -85,4 +95,5 @@ export {
   Fragment,
   StrictMode,
   Suspense,
+
 }

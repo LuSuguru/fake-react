@@ -168,7 +168,7 @@ function propagateContextChange(workInProgress: Fiber, context: ReactContext<any
   }
 }
 
-function readContext<T>(context: ReactContext<T>, observedBits: void | number | boolean) {
+function readContext<T>(context: ReactContext<T>, observedBits: void | number | boolean): any {
   if (lastContextWithAllBitsObserved !== context && !(observedBits === false || observedBits === 0)) {
     let resolvedObservedBits: number
     if (!isNumber(observedBits) || observedBits === MAX_SIGNED_31_BIT_INT) {
