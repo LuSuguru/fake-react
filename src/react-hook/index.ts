@@ -1,9 +1,9 @@
 import { ReactContext } from '../react-context/fiber-context'
+import ReactCurrentDispatcher from './rect-current-dispatcher'
 
 function resolveDispatcher(): any {
-  return {
-    current: null,
-  }
+  const dispatcher = ReactCurrentDispatcher.current
+  return dispatcher
 }
 
 function useContext<T>(Context: ReactContext<T>, unstable_observedBits: number | boolean) {

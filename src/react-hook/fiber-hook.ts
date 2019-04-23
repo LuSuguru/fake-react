@@ -1,35 +1,47 @@
-type Dispatch<A> = A => void
 
-export interface Dispatcher {
-  readContext<T>(
-    context: ReactContext<T>,
-    observedBits: void | number | boolean,
-  ): T,
-  useState<S>(initialState: (() => S) | S): [S, Dispatch<BasicStateAction<S>>],
-  useReducer<S, I, A>(
-    reducer: (S, A) => S,
-    initialArg: I,
-    init?: (I) => S,
-  ): [S, Dispatch<A>],
-  useContext<T>(
-    context: ReactContext<T>,
-    observedBits: void | number | boolean,
-  ): T,
-  useRef<T>(initialValue: T): { current: T },
-  useEffect(
-    create: () => (() => void) | void,
-    deps: mixed[] | void | null,
-  ): void,
-  useLayoutEffect(
-    create: () => (() => void) | void,
-    deps: mixed[] | void | null,
-  ): void,
-  useCallback<T>(callback: T, deps: mixed[] | void | null): T,
-  useMemo<T>(nextCreate: () => T, deps: mixed[] | void | null): T,
-  useImperativeHandle<T>(
-    ref: { current: T | null } | ((inst: T | null) => mixed) | null | void,
-    create: () => T,
-    deps: mixed[] | void | null,
-  ): void,
-  useDebugValue<T>(value: T, formatterFn: ?(value: T) => mixed): void,
+import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
+import { Fiber } from '../react-fiber/fiber'
+import { Passive, Update } from '../react-type/effect-type'
+import { UpdateQueue } from '../react-update/update-queue'
+
+export interface Hook {
+  memoizedState: any,
+  baseState: any,
+  baseUpdate: Update<any>,
+  queue: UpdateQueue<any>,
+  next: Hook,
 }
+
+const didScheduleRenderPhaseUpdate: boolean = false
+
+let renderExpirationTime: ExpirationTime = NoWork
+let currentlyRenderingFiber: Fiber = null
+
+let nextCurrentHook: Hook = null
+
+function bailoutHooks(current: Fiber, workInProgress: Fiber, expirationTime: ExpirationTime) {
+  workInProgress.updateQueue = current.updateQueue
+  workInProgress.effectTag &= ~(Passive | Update)
+  if (current.expirationTime <= expirationTime) {
+    current.expirationTime = NoWork
+  }
+}
+
+function renderWithHooks(current: Fiber, workInProgress: Fiber, Component: Function, props: any, refOrContext: any, nextRenderExpirationTime: ExpirationTime): any {
+  renderExpirationTime = nextRenderExpirationTime
+  currentlyRenderingFiber = workInProgress
+
+  nextCurrentHook = current !== null ? current.memoizedState : null
+
+  // ReactCurrentDispatcher.current = nextCurrentHook === null ? HooksDispatcherOnMount : HooksDispatcherOnUpdate
+
+  const children: any = Component(props, refOrContext)
+  // 待实现
+  // if (didScheduleRenderPhaseUpdate) {
+
+  // }
+
+  return children
+}
+
+export { bailoutHooks, renderWithHooks }

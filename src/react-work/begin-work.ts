@@ -3,7 +3,7 @@ import { pushHostContainer, pushHostContext } from '../react-context/host-contex
 import { addOptionClassInstace, applyDerivedStateFromProps, constructClassInstance, mountClassInstance, resumeMountClassInstance, updateClassInstance } from '../react-fiber/class-component'
 import { ExpirationTime, Never, NoWork } from '../react-fiber/expiration-time'
 import { createFiberFromTypeAndProps, createWorkInProgress, Fiber, isSimpleFunctionComponent } from '../react-fiber/fiber'
-import { bailoutHooks, renderWithHooks } from '../react-fiber/fiber-hook'
+import { bailoutHooks, renderWithHooks, resetHooks } from '../react-fiber/fiber-hook'
 import { FiberRoot } from '../react-fiber/fiber-root'
 import { readLazyComponentType, resolveDefaultProps, resolvedLazyComponentTag } from '../react-fiber/lazy-component'
 import { ContentReset, DidCapture, NoEffect, PerformedWork, Placement, Ref } from '../react-type/effect-type'
@@ -75,7 +75,7 @@ function mountIndeterminateComponent(current: Fiber, workInProgress: Fiber, Comp
   if (typeof value === 'object' && value !== null && typeof value.render === 'function' && value.$$typeof === null) {
     workInProgress.tag = ClassComponent
 
-    // resetHooks() // hook操作
+    resetHooks() // hook操作
 
     workInProgress.memoizedState = isEmpty(value.state) ? null : value.state
     const { getDerivedStateFromProps } = Component
@@ -250,7 +250,7 @@ function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: 
   }
 
   const { stateNode: instance } = workInProgress
-  // ReactCurrentOwner.current = workInProgress // hook，待实现
+
   let nextChildren: any = null
 
   if (didCaptureError && !isFunction(Component.getDerivedStateFromError)) {
