@@ -40,6 +40,8 @@ interface Hook {
 }
 
 export {
+  Update,
+  UpdateQueue,
   BasicStateAction,
   Dispatch,
   Dispatcher,
