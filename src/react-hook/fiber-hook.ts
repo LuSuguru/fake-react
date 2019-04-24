@@ -13,7 +13,6 @@ let renderPhaseUpdates: Map<UpdateQueue<any, any>, Update<any, any>> = null
 
 let renderExpirationTime: ExpirationTime = NoWork
 let currentlyRenderingFiber: Fiber = null
-let nextCurrentHook: Hook = null
 
 let currentHook: Hook = null
 let nextCurrentHook: Hook = null
@@ -70,6 +69,7 @@ function updateWorkInProgressHook(): Hook {
 function dispatchAction<S, A>(fiber: Fiber, queue: UpdateQueue<S, A>, action: A) {
   const { alternate } = fiber
 
+  // 当前处于render状态
   if (fiber === currentlyRenderingFiber || (alternate !== null && alternate === currentlyRenderingFiber)) {
     didScheduleRenderPhaseUpdate = true
     const update: Update<S, A> = {
@@ -167,7 +167,7 @@ const State = {
 const HooksDispatcherOnMount: Dispatcher = {
   readContext,
 
-  useState: mountState,
+  useState: State.mountState,
   useEffect: mountEffect,
   useContext: readContext,
 
@@ -181,7 +181,7 @@ const HooksDispatcherOnMount: Dispatcher = {
 const HooksDispatcherOnUpdate: Dispatcher = {
   readContext,
 
-  useState: updateState,
+  useState: State.updateState,
   useEffect: updateEffect,
   useContext: readContext,
 
