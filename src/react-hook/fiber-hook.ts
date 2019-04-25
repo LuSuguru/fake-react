@@ -188,7 +188,7 @@ const Reducer = {
     const hook = updateWorkInProgressHook()
     const { queue } = hook
 
-    if (numberOfReRenders > 0) {
+    if (numberOfReRenders > 0) { // 处于re-render状态
       const { dispatch: _dispatch } = queue
 
       if (renderPhaseUpdates !== null) {
@@ -199,7 +199,7 @@ const Reducer = {
           let newState = hook.memoizedState
           let update = firstRenderPhaseUpdate
           do {
-            const { action } = update.action
+            const { action } = update
             newState = reducer(newState, action)
             update = update.next
           } while (update !== null)
