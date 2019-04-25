@@ -189,7 +189,7 @@ const Reducer = {
     const { queue } = hook
 
     if (numberOfReRenders > 0) {
-      const { dispatch } = queue
+      const { dispatch: _dispatch } = queue
 
       if (renderPhaseUpdates !== null) {
         const firstRenderPhaseUpdate = renderPhaseUpdates.get(queue)
@@ -217,11 +217,11 @@ const Reducer = {
           queue.eagerReducer = reducer
           queue.eagerState = newState
 
-          return [newState, dispatch]
+          return [newState, _dispatch]
         }
       }
 
-      return [hook.memoizedState, dispatch]
+      return [hook.memoizedState, _dispatch]
     }
 
     const { last } = queue
