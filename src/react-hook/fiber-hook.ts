@@ -302,7 +302,7 @@ const HooksDispatcherOnMount: Dispatcher = {
   useEffect: mountEffect,
   useContext: readContext,
 
-  useReducer: mountReducer,
+  useReducer: Reducer.mountReducer,
   useCallback: mountCallback,
   useMemo: mountMemo,
   useRef: mountRef,
@@ -316,7 +316,7 @@ const HooksDispatcherOnUpdate: Dispatcher = {
   useEffect: updateEffect,
   useContext: readContext,
 
-  useReducer: updateReducer,
+  useReducer: Reducer.updateReducer,
   useCallback: updateCallback,
   useMemo: updateMemo,
   useRef: updateRef,
