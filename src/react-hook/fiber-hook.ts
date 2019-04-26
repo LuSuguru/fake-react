@@ -293,34 +293,51 @@ const Reducer = {
   },
 }
 
+const Effect = {
+  mountEffect(create: () => (() => void) | void, deps?: any[]) {
+    return mountEffectImpl(UpdateTag | Passive, UnmountPassive | MountPassive, create, deps)
+  },
+
+  updateEffect(create: () => (() => void) | void, deps?: any[]) {
+    return updateEffectImpl(UpdateTag | Passive, UnmountPassive | MountPassive, create, deps)
+  },
+  mountLayoutEffect(create: () => (() => void) | void, deps?: any[]) {
+    return mountEffectImpl(UpdateTag, UnmountMutation | MountLayout, create, deps)
+  },
+
+  updateLayoutEffect(create: () => (() => void) | void, deps?: any[]) {
+    return updateEffectImpl(UpdateTag, UnmountMutation | MountLayout, create, deps)
+  },
+}
+
 
 
 const HooksDispatcherOnMount: Dispatcher = {
   readContext,
 
   useState: State.mountState,
-  useEffect: mountEffect,
+  useEffect: Effect.mountEffect,
   useContext: readContext,
 
   useReducer: Reducer.mountReducer,
   useCallback: mountCallback,
   useMemo: mountMemo,
   useRef: mountRef,
-  useLayoutEffect: mountLayoutEffect,
+  useLayoutEffect: Effect.mountLayoutEffect,
 }
 
 const HooksDispatcherOnUpdate: Dispatcher = {
   readContext,
 
   useState: State.updateState,
-  useEffect: updateEffect,
+  useEffect: Effect.updateEffect,
   useContext: readContext,
 
   useReducer: Reducer.updateReducer,
   useCallback: updateCallback,
   useMemo: updateMemo,
   useRef: updateRef,
-  useLayoutEffect: updateLayoutEffect,
+  useLayoutEffect: Effect.updateLayoutEffect,
 }
 
 
