@@ -3,8 +3,8 @@ import { readContext } from '../react-context/fiber-context'
 import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { computeExpirationTimeForFiber, requestCurrentTime, scheduleWork } from '../react-scheduler'
-import { Passive, Update as UpdateTag } from '../react-type/effect-type'
-import { BasicStateAction, Dispatch, Dispatcher, Hook, Update, UpdateQueue } from '../react-type/hook-type'
+import { Passive, SideEffectTag, Update as UpdateTag } from '../react-type/effect-type'
+import { BasicStateAction, Dispatch, Dispatcher, Hook, HookEffectTag, MountLayout, MountPassive, UnmountMutation, UnmountPassive, Update, UpdateQueue } from '../react-type/hook-type'
 import { markWorkInProgressReceivedUpdate } from '../react-work/begin-work'
 import { isFunction } from '../utils/getType'
 import ReactCurrentDispatcher from './rect-current-dispatcher'
@@ -294,19 +294,28 @@ const Reducer = {
 }
 
 const Effect = {
+  mountEffectImpl(fiberEffectTag: SideEffectTag, hookEffectTag: HookEffectTag, create: () => (() => void) | void, deps?: any[]) {
+    return null
+  },
+
+  updateEffectImpl(fiberEffectTag: SideEffectTag, hookEffectTag: HookEffectTag, create: () => (() => void) | void, deps?: any[]) {
+
+  },
+
+
   mountEffect(create: () => (() => void) | void, deps?: any[]) {
-    return mountEffectImpl(UpdateTag | Passive, UnmountPassive | MountPassive, create, deps)
+    return Effect.mountEffectImpl(UpdateTag | Passive, UnmountPassive | MountPassive, create, deps)
   },
 
   updateEffect(create: () => (() => void) | void, deps?: any[]) {
-    return updateEffectImpl(UpdateTag | Passive, UnmountPassive | MountPassive, create, deps)
+    return Effect.updateEffectImpl(UpdateTag | Passive, UnmountPassive | MountPassive, create, deps)
   },
   mountLayoutEffect(create: () => (() => void) | void, deps?: any[]) {
-    return mountEffectImpl(UpdateTag, UnmountMutation | MountLayout, create, deps)
+    return Effect.mountEffectImpl(UpdateTag, UnmountMutation | MountLayout, create, deps)
   },
 
   updateLayoutEffect(create: () => (() => void) | void, deps?: any[]) {
-    return updateEffectImpl(UpdateTag, UnmountMutation | MountLayout, create, deps)
+    return Effect.updateEffectImpl(UpdateTag, UnmountMutation | MountLayout, create, deps)
   },
 }
 
