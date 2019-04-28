@@ -50,6 +50,14 @@ interface Hook {
   next: Hook,
 }
 
+interface Effect {
+  tag: HookEffectTag,
+  create: () => (() => void) | void,
+  destroy: (() => void) | void,
+  deps: any[] | null,
+  next: Effect,
+}
+
 export {
   Update,
   UpdateQueue,
@@ -57,4 +65,5 @@ export {
   Dispatch,
   Dispatcher,
   Hook,
+  Effect,
 }

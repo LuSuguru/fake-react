@@ -4,7 +4,7 @@ import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { computeExpirationTimeForFiber, requestCurrentTime, scheduleWork } from '../react-scheduler'
 import { Passive, SideEffectTag, Update as UpdateTag } from '../react-type/effect-type'
-import { BasicStateAction, Dispatch, Dispatcher, Hook, HookEffectTag, MountLayout, MountPassive, UnmountMutation, UnmountPassive, Update, UpdateQueue } from '../react-type/hook-type'
+import { BasicStateAction, Dispatch, Dispatcher, Effect, Hook, HookEffectTag, MountLayout, MountPassive, UnmountMutation, UnmountPassive, Update, UpdateQueue } from '../react-type/hook-type'
 import { markWorkInProgressReceivedUpdate } from '../react-work/begin-work'
 import { isFunction } from '../utils/getType'
 import ReactCurrentDispatcher from './rect-current-dispatcher'
@@ -25,6 +25,7 @@ let workInProgressHook: Hook = null
 let nextWorkInProgressHook: Hook = null
 
 let remainingExpirationTime: ExpirationTime = NoWork
+let sideEffectTag: SideEffectTag = 0
 
 function mountWorkInProgressHook(): Hook {
   const hook: Hook = {
@@ -297,12 +298,37 @@ const Reducer = {
 }
 
 const Effect = {
+  pushEffect() {
+
+  },
   mountEffectImpl(fiberEffectTag: SideEffectTag, hookEffectTag: HookEffectTag, create: () => (() => void) | void, deps?: any[]) {
-    return null
+    const hook = mountWorkInProgressHook()
+    const nextDeps = deps === undefined ? null : deps
+    sideEffectTag |= fiberEffectTag
+
+    hook.memoizedState = Effect.pushEffect(hookEffectTag, create, undefined, nextDeps)
   },
 
   updateEffectImpl(fiberEffectTag: SideEffectTag, hookEffectTag: HookEffectTag, create: () => (() => void) | void, deps?: any[]) {
+    const hook = updateWorkInProgressHook()
+    const nextDeps = deps === undefined ? null : deps
+    let destroy: any
 
+    if (currentHook !== null) {
+      const prevEffect: Effect = currentHook.memoizedState
+      destroy = prevEffect.destroy
+
+      if (nextDeps !== null) {
+        const prevDeps = prevEffect.deps
+        if (areHookInputsEqual(nextDeps, prevDeps)) {
+          Effect.pushEffect(NoHookEffect, create, destroy, nextDeps)
+          return
+        }
+      }
+    }
+
+    sideEffectTag |= fiberEffectTag
+    hook.memoizedState = pushEffect(hookEffectTag, create, destroy, nextDeps)
   },
 
 
