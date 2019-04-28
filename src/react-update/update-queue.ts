@@ -14,7 +14,7 @@ export function getHasForceUpdate() {
 }
 
 export class UpdateQueue<State> {
-  baseState: State // 记录上一次更新后的state,用于调用的基值
+  baseState: State // 记录上一次更新后低优先级的first state,用于调用的基值
 
   firstUpdate: Update<State> = null  // 更新对象链表
   lastUpdate: Update<State> = null

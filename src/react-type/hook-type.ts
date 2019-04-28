@@ -36,17 +36,17 @@ interface Update<S, A> {
 }
 
 interface UpdateQueue<S, A> {
-  last: Update<S, A> | null,
+  last: Update<S, A> | null, // update的环形链表
   dispatch: ((a: A) => any) | null,
-  eagerReducer: ((s: S, a: A) => S) | null,
-  eagerState: S | null,
+  eagerReducer: ((s: S, a: A) => S) | null, // 记录当前的reducer，在dispatch时用于提前计算state
+  eagerState: S | null, // 计算当前的state，在dispath中做为提前计算的基值
 }
 
 interface Hook {
-  memoizedState: any,
-  baseState: any,
-  baseUpdate: Update<any, any>,
-  queue: UpdateQueue<any, any>,
+  memoizedState: any, // 当前的state
+  baseState: any, // 记录低优先级的第一个跳过的state
+  baseUpdate: Update<any, any>, // 记录低优先级的第一个跳过的update
+  queue: UpdateQueue<any, any>, // 更新队列
   next: Hook,
 }
 
