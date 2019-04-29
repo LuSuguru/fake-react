@@ -3,7 +3,7 @@ import { ExpirationTime } from '../react-fiber/expiration-time'
 
 export type HookEffectTag = number
 
-export const NoEffect = /*             */ 0b00000000
+export const NoHookEffect = /*             */ 0b00000000
 export const UnmountSnapshot = /*      */ 0b00000010
 export const UnmountMutation = /*      */ 0b00000100
 export const MountMutation = /*        */ 0b00001000
@@ -58,6 +58,10 @@ interface Effect {
   next: Effect,
 }
 
+interface FunctionComponentUpdateQueue {
+  lastEffect: Effect | null,
+}
+
 export {
   Update,
   UpdateQueue,
@@ -66,4 +70,5 @@ export {
   Dispatcher,
   Hook,
   Effect,
+  FunctionComponentUpdateQueue,
 }

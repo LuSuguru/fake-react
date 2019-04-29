@@ -4,7 +4,22 @@ import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { computeExpirationTimeForFiber, requestCurrentTime, scheduleWork } from '../react-scheduler'
 import { Passive, SideEffectTag, Update as UpdateTag } from '../react-type/effect-type'
-import { BasicStateAction, Dispatch, Dispatcher, Effect, Hook, HookEffectTag, MountLayout, MountPassive, UnmountMutation, UnmountPassive, Update, UpdateQueue } from '../react-type/hook-type'
+import {
+  BasicStateAction,
+  Dispatch,
+  Dispatcher,
+  Effect,
+  FunctionComponentUpdateQueue,
+  Hook,
+  HookEffectTag,
+  MountLayout,
+  MountPassive,
+  NoHookEffect,
+  UnmountMutation,
+  UnmountPassive,
+  Update,
+  UpdateQueue,
+} from '../react-type/hook-type'
 import { markWorkInProgressReceivedUpdate } from '../react-work/begin-work'
 import { isFunction } from '../utils/getType'
 import ReactCurrentDispatcher from './rect-current-dispatcher'
@@ -25,6 +40,7 @@ let workInProgressHook: Hook = null
 let nextWorkInProgressHook: Hook = null
 
 let remainingExpirationTime: ExpirationTime = NoWork
+let componentUpdateQueue: FunctionComponentUpdateQueue = null
 let sideEffectTag: SideEffectTag = 0
 
 function mountWorkInProgressHook(): Hook {
@@ -146,7 +162,19 @@ function dispatchAction<S, A>(fiber: Fiber, queue: UpdateQueue<S, A>, action: A)
   }
 }
 
+function areHookInputsEqual(nextDeps: any[], prevDeps: any[] | null): Boolean {
+  if (prevDeps === null) {
+    return false
+  }
 
+  for (let i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
+    if (Object.is(nextDeps[i], prevDeps[i])) {
+      continue
+    }
+    return false
+  }
+  return true
+}
 
 const State = {
   basicStateReducer<S>(state: S, action: BasicStateAction<S>): S {
@@ -298,9 +326,26 @@ const Reducer = {
 }
 
 const Effect = {
-  pushEffect() {
+  pushEffect(tag: HookEffectTag, create: () => (() => void) | void, destroy: (() => void) | void, deps?: any[]) {
+    const effect: Effect = { tag, create, destroy, deps, next: null }
 
+    if (componentUpdateQueue === null) {
+      componentUpdateQueue = { lastEffect: null }
+      componentUpdateQueue.lastEffect = effect.next = effect
+    } else {
+      const { lastEffect } = componentUpdateQueue
+      if (lastEffect === null) {
+        componentUpdateQueue.lastEffect = effect.next = effect
+      } else {
+        const firstEffect: Effect = lastEffect.next
+        lastEffect.next = effect
+        effect.next = firstEffect
+        componentUpdateQueue.lastEffect = effect
+      }
+    }
+    return effect
   },
+
   mountEffectImpl(fiberEffectTag: SideEffectTag, hookEffectTag: HookEffectTag, create: () => (() => void) | void, deps?: any[]) {
     const hook = mountWorkInProgressHook()
     const nextDeps = deps === undefined ? null : deps
@@ -328,7 +373,7 @@ const Effect = {
     }
 
     sideEffectTag |= fiberEffectTag
-    hook.memoizedState = pushEffect(hookEffectTag, create, destroy, nextDeps)
+    hook.memoizedState = Effect.pushEffect(hookEffectTag, create, destroy, nextDeps)
   },
 
 
