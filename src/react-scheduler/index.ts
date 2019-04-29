@@ -4,6 +4,7 @@ import {
 } from '../react-fiber/expiration-time'
 import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Batch, FiberRoot } from '../react-fiber/fiber-root'
+import { resetHooks } from '../react-hook/fiber-hook'
 import {
   Callback,
   ContentReset,

@@ -26,8 +26,7 @@ import ReactCurrentDispatcher from './rect-current-dispatcher'
 
 let didScheduleRenderPhaseUpdate: boolean = false
 let renderPhaseUpdates: Map<UpdateQueue<any, any>, Update<any, any>> = null // 存储render阶段的queue update
-
-const numberOfReRenders: number = 0
+let numberOfReRenders: number = 0
 
 let renderExpirationTime: ExpirationTime = NoWork
 let currentlyRenderingFiber: Fiber = null
@@ -458,7 +457,7 @@ const Ref = {
     return ref
   },
 
-  updateRef<T>(initialValue: T): { current: T } {
+  updateRef<T>(_initialValue: T): { current: T } {
     const hook = updateWorkInProgressHook()
     return hook.memoizedState
   },
@@ -492,7 +491,19 @@ const HooksDispatcherOnUpdate: Dispatcher = {
   useLayoutEffect: Effect.updateLayoutEffect,
 }
 
+const HooksDispatcherOnEmpty: Dispatcher = {
+  readContext,
 
+  useState: () => { throw new Error('请在function中使用') },
+  useEffect: () => { throw new Error('请在function中使用') },
+  useContext: () => { throw new Error('请在function中使用') },
+
+  useReducer: () => { throw new Error('请在function中使用') },
+  useCallback: () => { throw new Error('请在function中使用') },
+  useMemo: () => { throw new Error('请在function中使用') },
+  useRef: () => { throw new Error('请在function中使用') },
+  useLayoutEffect: () => { throw new Error('请在function中使用') },
+}
 
 function bailoutHooks(current: Fiber, workInProgress: Fiber, expirationTime: ExpirationTime) {
   workInProgress.updateQueue = current.updateQueue
@@ -509,13 +520,71 @@ function renderWithHooks(current: Fiber, workInProgress: Fiber, Component: Funct
 
   ReactCurrentDispatcher.current = nextCurrentHook === null ? HooksDispatcherOnMount : HooksDispatcherOnUpdate
 
-  const children: any = Component(props, refOrContext)
-  // 待实现
-  // if (didScheduleRenderPhaseUpdate) {
+  let children: any = Component(props, refOrContext)
 
-  // }
+  if (didScheduleRenderPhaseUpdate) {
+    do {
+      didScheduleRenderPhaseUpdate = false
+      numberOfReRenders += 1
+
+      // 从链表头开始
+      nextCurrentHook = current !== null ? current.memoizedState : null
+      nextWorkInProgressHook = firstWorkInProgressHook
+
+      currentHook = null
+      workInProgressHook = null
+      componentUpdateQueue = null
+
+      children = Component(props, refOrContext)
+    } while (didScheduleRenderPhaseUpdate)
+
+    renderPhaseUpdates = null
+    numberOfReRenders = 0
+  }
+
+  ReactCurrentDispatcher.current = HooksDispatcherOnEmpty
+
+  currentlyRenderingFiber.memoizedState = firstWorkInProgressHook
+  currentlyRenderingFiber.expirationTime = remainingExpirationTime
+  currentlyRenderingFiber.updateQueue = componentUpdateQueue as any
+  currentlyRenderingFiber.effectTag |= sideEffectTag
+
+  renderExpirationTime = NoWork
+  currentlyRenderingFiber = null
+
+  currentHook = null
+  nextCurrentHook = null
+  firstWorkInProgressHook = null
+  workInProgressHook = null
+  nextWorkInProgressHook = null
+
+  remainingExpirationTime = NoWork
+  componentUpdateQueue = null
+  sideEffectTag = 0
 
   return children
 }
 
-export { bailoutHooks, renderWithHooks }
+function resetHooks() {
+  ReactCurrentDispatcher.current = HooksDispatcherOnEmpty
+
+  renderExpirationTime = NoWork
+  currentlyRenderingFiber = null
+
+  currentHook = null
+  nextCurrentHook = null
+
+  firstWorkInProgressHook = null
+  workInProgressHook = null
+  nextWorkInProgressHook = null
+
+  remainingExpirationTime = NoWork
+  componentUpdateQueue = null
+  sideEffectTag = 0
+
+  didScheduleRenderPhaseUpdate = false
+  renderPhaseUpdates = null
+  numberOfReRenders = 0
+}
+
+export { bailoutHooks, renderWithHooks, resetHooks }
