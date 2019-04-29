@@ -393,7 +393,61 @@ const Effect = {
   },
 }
 
+const Callback = {
+  mountCallback<T>(callback: T, deps?: any[]): T {
+    const hook = mountWorkInProgressHook()
+    const nextDeps = deps === undefined ? null : deps
+    hook.memoizedState = [callback, nextDeps]
+    return callback
+  },
 
+  updateCallback<T>(callback: T, deps?: any[]): T {
+    const hook = updateWorkInProgressHook()
+    const nextDeps = deps === undefined ? null : deps
+    const prevState = hook.memoizedState
+
+    if (prevState !== null) {
+      if (nextDeps !== null) {
+        const prevDeps: any[] | null = prevState[1]
+        if (areHookInputsEqual(nextDeps, prevDeps)) {
+          return prevState[0]
+        }
+      }
+    }
+
+    hook.memoizedState = [callback, nextDeps]
+    return callback
+  },
+}
+
+const Memo = {
+  mountMemo<T>(nextCreate: () => T, deps?: any[] | null): T {
+    const hook = mountWorkInProgressHook()
+    const nextDeps = deps === undefined ? null : deps
+    const nextValue = nextCreate()
+    hook.memoizedState = [nextValue, nextDeps]
+
+    return nextValue
+  },
+
+  updateMemo<T>(nextCreate: () => T, deps?: any[] | null): T {
+    const hook = updateWorkInProgressHook()
+    const nextDeps = deps === undefined ? null : deps
+    const prevState = hook.memoizedState
+    if (prevState !== null) {
+      if (nextDeps !== null) {
+        const prevDeps: any[] | null = prevState[1]
+        if (areHookInputsEqual(nextDeps, prevDeps)) {
+          return prevState[0]
+        }
+      }
+    }
+
+    const nextValue = nextCreate()
+    hook.memoizedState = [nextValue, nextDeps]
+    return nextValue
+  },
+}
 
 const HooksDispatcherOnMount: Dispatcher = {
   readContext,
@@ -403,7 +457,7 @@ const HooksDispatcherOnMount: Dispatcher = {
   useContext: readContext,
 
   useReducer: Reducer.mountReducer,
-  useCallback: mountCallback,
+  useCallback: Callback.mountCallback,
   useMemo: mountMemo,
   useRef: mountRef,
   useLayoutEffect: Effect.mountLayoutEffect,
@@ -417,7 +471,7 @@ const HooksDispatcherOnUpdate: Dispatcher = {
   useContext: readContext,
 
   useReducer: Reducer.updateReducer,
-  useCallback: updateCallback,
+  useCallback: Callback.updateCallback,
   useMemo: updateMemo,
   useRef: updateRef,
   useLayoutEffect: Effect.updateLayoutEffect,
