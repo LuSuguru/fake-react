@@ -449,6 +449,21 @@ const Memo = {
   },
 }
 
+const Ref = {
+  mountRef<T>(initialValue: T): { current: T } {
+    const hook = mountWorkInProgressHook()
+    const ref = { current: initialValue }
+
+    hook.memoizedState = ref
+    return ref
+  },
+
+  updateRef<T>(initialValue: T): { current: T } {
+    const hook = updateWorkInProgressHook()
+    return hook.memoizedState
+  },
+}
+
 const HooksDispatcherOnMount: Dispatcher = {
   readContext,
 
@@ -458,8 +473,8 @@ const HooksDispatcherOnMount: Dispatcher = {
 
   useReducer: Reducer.mountReducer,
   useCallback: Callback.mountCallback,
-  useMemo: mountMemo,
-  useRef: mountRef,
+  useMemo: Memo.mountMemo,
+  useRef: Ref.mountRef,
   useLayoutEffect: Effect.mountLayoutEffect,
 }
 
@@ -472,8 +487,8 @@ const HooksDispatcherOnUpdate: Dispatcher = {
 
   useReducer: Reducer.updateReducer,
   useCallback: Callback.updateCallback,
-  useMemo: updateMemo,
-  useRef: updateRef,
+  useMemo: Memo.updateMemo,
+  useRef: Ref.updateRef,
   useLayoutEffect: Effect.updateLayoutEffect,
 }
 
