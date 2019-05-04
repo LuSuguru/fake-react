@@ -1,7 +1,8 @@
+import { isFunction } from 'util'
 import { now } from '../utils/browser'
 import { isNumber } from '../utils/getType'
 import { isObject } from '../utils/getType'
-import { cancelHostCallback, requestHostCallback } from './config'
+import { cancelHostCallback, requestHostCallback, shouldYieldToHost } from './config'
 
 interface CallbackNode {
   previous: CallbackNode,
@@ -28,11 +29,13 @@ const IDLE_PRIORITY = 1073741823
 
 let firstCallbackNode: CallbackNode = null // 双向链表
 
-const currentPriorityLevel: number = NormalPriority
-const currentEventStartTime: number = 0
-const currentExpirationTime: number = 0
+let currentDidTimeout: boolean = false
 
-const isExecutingCallback: boolean = false
+let currentPriorityLevel: number = NormalPriority
+let currentExpirationTime: number = 0
+const currentEventStartTime: number = 0
+
+let isExecutingCallback: boolean = false
 
 let isHostCallbackScheduled: boolean = false
 
@@ -41,13 +44,92 @@ function ensureHostCallbackIsScheduled() {
     return
   }
 
-  const expirationTime = firstCallbackNode.expirationTime
+  const { expirationTime } = firstCallbackNode
   if (!isHostCallbackScheduled) {
     isHostCallbackScheduled = true
   } else {
     cancelHostCallback()
   }
   requestHostCallback(flushWork, expirationTime)
+}
+
+function flushFirstCallback() {
+  const flushedNode: CallbackNode = firstCallbackNode
+
+  // 在执行前从链表中删除该node
+  let next: CallbackNode = firstCallbackNode.next
+  if (firstCallbackNode === next) {
+    firstCallbackNode = null
+    next = null
+  } else {
+    const lastCallbackNode: CallbackNode = firstCallbackNode.previous
+    firstCallbackNode = lastCallbackNode.next = next
+    next.previous = lastCallbackNode
+  }
+  flushedNode.next = flushedNode.previous = null
+
+  const { callback, expirationTime, priorityLevel } = flushedNode
+  const previousPriorityLevel = currentPriorityLevel
+  const previousExpirationTime = currentExpirationTime
+
+  currentPriorityLevel = priorityLevel
+  currentExpirationTime = expirationTime
+
+  let continuationCallback: any = null
+
+  try {
+    continuationCallback = callback(currentDidTimeout)
+  } finally {
+    currentPriorityLevel = previousPriorityLevel
+    currentExpirationTime = previousExpirationTime
+  }
+
+  if (isFunction(continuationCallback)) {
+    const continuationNode: CallbackNode = {
+      callback: continuationCallback,
+      priorityLevel,
+      expirationTime,
+      next: null,
+      previous: null,
+    }
+    scheduleCallNode(continuationNode, expirationTime)
+  }
+}
+
+function flushWork(didTimeout: boolean) {
+  isExecutingCallback = true
+  const previousDidTimeout = currentDidTimeout
+  currentDidTimeout = didTimeout
+
+  try {
+    if (didTimeout) {
+      while (firstCallbackNode !== null) {
+        const currentTime = now()
+        if (firstCallbackNode.expirationTime < currentTime) {
+          do {
+            flushFirstCallback()
+          } while (firstCallbackNode !== null && firstCallbackNode.expirationTime <= currentTime)
+          continue
+        }
+        break
+      }
+    } else {
+      if (firstCallbackNode !== null) {
+        do {
+          flushFirstCallback()
+        } while (firstCallbackNode !== null && !shouldYieldToHost())
+      }
+    }
+  } finally {
+    isExecutingCallback = false
+    currentDidTimeout = previousDidTimeout
+    if (firstCallbackNode !== null) {
+      ensureHostCallbackIsScheduled()
+    } else {
+      isHostCallbackScheduled = false
+    }
+    flushImmediateWork()
+  }
 }
 
 function cancelDeferredCallback(callbackNode: CallbackNode) {
@@ -70,6 +152,37 @@ function cancelDeferredCallback(callbackNode: CallbackNode) {
   }
 
   callbackNode.next = callbackNode.previous = null
+}
+
+function scheduleCallNode(newNode: CallbackNode, expirationTime: number) {
+  if (firstCallbackNode === null) {
+    firstCallbackNode = newNode.next = newNode.previous = newNode
+    ensureHostCallbackIsScheduled()
+  } else {
+    let next: CallbackNode = null
+    let node: CallbackNode = firstCallbackNode
+    do {
+      if (node.expirationTime >= expirationTime) {
+        next = node
+        break
+      }
+      node = node.next
+    } while (node !== firstCallbackNode)
+
+    if (next === null) {
+      // 没有找到比当前callback到期时间大的，将当前callback放到链表最后
+      next = firstCallbackNode
+    } else if (next === firstCallbackNode) {
+      // 当前任务过期时间最小
+      firstCallbackNode = newNode
+      ensureHostCallbackIsScheduled()
+    }
+
+    const previous = next.previous
+    previous.next = next.previous = newNode
+    newNode.next = next
+    newNode.previous = previous
+  }
 }
 
 function scheduleDeferredCallback(callback: Function, options?: any): CallbackNode {
@@ -106,35 +219,7 @@ function scheduleDeferredCallback(callback: Function, options?: any): CallbackNo
     previous: null,
   }
 
-  if (firstCallbackNode === null) {
-    firstCallbackNode = newNode.next = newNode.previous = newNode
-    ensureHostCallbackIsScheduled()
-  } else {
-    let next: CallbackNode = null
-    let node: CallbackNode = firstCallbackNode
-    do {
-      if (node.expirationTime > expirationTime) {
-        next = node
-        break
-      }
-      node = node.next
-    } while (node !== firstCallbackNode)
-
-    if (next === null) {
-      // 没有找到比当前callback到期时间大的，将当前callback放到链表最后
-      next = firstCallbackNode
-    } else if (next === firstCallbackNode) {
-      // 当前任务过期时间最小
-      firstCallbackNode = newNode
-      ensureHostCallbackIsScheduled()
-    }
-
-    const previous = next.previous
-    previous.next = next.previous = newNode
-    newNode.next = next
-    newNode.previous = previous
-  }
-
+  scheduleCallNode(newNode, expirationTime)
   return newNode
 }
 
