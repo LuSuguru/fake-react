@@ -554,6 +554,7 @@ function renderWithHooks(current: Fiber, workInProgress: Fiber, Component: Funct
 
   currentHook = null
   nextCurrentHook = null
+
   firstWorkInProgressHook = null
   workInProgressHook = null
   nextWorkInProgressHook = null

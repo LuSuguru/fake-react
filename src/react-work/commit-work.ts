@@ -302,7 +302,7 @@ function commitNestedUnmounts(root: Fiber) {
   }
 }
 
-function unmountComponents(current) {
+function unmountComponents(current: Fiber) {
   let currentParentIsValid: boolean = false
 
   let currentParent: Element = null
