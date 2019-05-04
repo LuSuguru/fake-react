@@ -1,17 +1,37 @@
 import { now } from '../utils/browser'
 
-let scheduledHostCallback: Function = null
-let isMessageEventScheduled: boolean = false
-let timeoutTime = -1
-
-let isAnimationFrameScheduled: boolean = false
-
-const frameDeadline: number = 0
-
 const channel = new MessageChannel()
 const port = channel.port2
 
-channel.port1.onmessage = (event) => {
+let scheduledHostCallback: Function = null
+let timeoutTime: number = -1
+let isMessageEventScheduled: boolean = false
+
+let isAnimationFrameScheduled: boolean = false
+
+let isFlushingHostCallback: boolean = false
+
+let frameDeadline: number = 0  // 从30fps（即30帧）开始调整得到的更适于当前环境的一帧限制时间
+let previousFrameTime: number = 33
+let activeFrameTime: number = 33 // 30fps为参考值
+
+const ANIMATION_FRAME_TIMEOUT = 100
+let raFID: number = -1
+let rAFTimeoutID: any = -1
+
+function requestAnimationFrameWithTimeout(callback: Function) {
+  raFID = requestAnimationFrame((timestamp) => {
+    clearTimeout(rAFTimeoutID)
+    callback(timestamp)
+  })
+
+  rAFTimeoutID = setTimeout(() => {
+    cancelAnimationFrame(raFID)
+    callback(now())
+  }, ANIMATION_FRAME_TIMEOUT)
+}
+
+channel.port1.onmessage = (_event) => {
   isMessageEventScheduled = true
 
   const prevScheduledCallback = scheduledHostCallback
@@ -29,9 +49,74 @@ channel.port1.onmessage = (event) => {
     } else {
       if (!isAnimationFrameScheduled) {
         isAnimationFrameScheduled = true
-
+        requestAnimationFrameWithTimeout(animationTick)
       }
+      scheduledHostCallback = prevScheduledCallback
+      timeoutTime = prevTimeoutTime
+      return
     }
   }
 
+  if (prevScheduledCallback !== null) {
+    isFlushingHostCallback = true
+    try {
+      prevScheduledCallback(didTimeout)
+    } finally {
+      isFlushingHostCallback = false
+    }
+  }
 }
+
+function animationTick(rafTime: number) {
+  if (scheduledHostCallback !== null) {
+    requestAnimationFrameWithTimeout(animationTick)
+  } else {
+    isAnimationFrameScheduled = false
+    return
+  }
+
+  // 自发地调整使activeFrameTime约为当前设备的帧时间，便于计算帧过期时间
+  let nextFrameTime = rafTime - frameDeadline + activeFrameTime
+  if (nextFrameTime < activeFrameTime && previousFrameTime < activeFrameTime) {
+    if (nextFrameTime < 8) {
+      nextFrameTime = 8
+    }
+    activeFrameTime = nextFrameTime < previousFrameTime ? previousFrameTime : nextFrameTime
+  } else {
+    previousFrameTime = nextFrameTime
+  }
+  frameDeadline = rafTime + activeFrameTime
+  if (!isMessageEventScheduled) {
+    isMessageEventScheduled = true
+    port.postMessage(undefined)
+  }
+}
+
+function requestHostCallback(callback: Function, absoluteTimeout: number) {
+  scheduledHostCallback = callback
+  timeoutTime = absoluteTimeout
+
+  if (isFlushingHostCallback || absoluteTimeout < 0) {
+    port.postMessage(undefined)
+  } else if (!isAnimationFrameScheduled) {
+    isAnimationFrameScheduled = true
+    requestAnimationFrameWithTimeout(animationTick)
+  }
+}
+
+function cancelHostCallback() {
+  scheduledHostCallback = null
+  timeoutTime = -1
+  isMessageEventScheduled = false
+}
+
+function shouldYieldToHost() {
+  return frameDeadline <= now()
+}
+
+export {
+  requestHostCallback,
+  cancelHostCallback,
+  shouldYieldToHost,
+}
+

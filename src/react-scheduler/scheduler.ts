@@ -1,6 +1,7 @@
 import { now } from '../utils/browser'
 import { isNumber } from '../utils/getType'
 import { isObject } from '../utils/getType'
+import { cancelHostCallback, requestHostCallback } from './config'
 
 interface CallbackNode {
   previous: CallbackNode,
