@@ -161,7 +161,7 @@ function dispatchAction<S, A>(fiber: Fiber, queue: UpdateQueue<S, A>, action: A)
   }
 }
 
-function areHookInputsEqual(nextDeps: any[], prevDeps: any[] | null): Boolean {
+function areHookInputsEqual(nextDeps: any[], prevDeps: any[] | null): boolean {
   if (prevDeps === null) {
     return false
   }

@@ -1,4 +1,3 @@
-import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
 import { now } from '../utils/browser'
 import { isNumber } from '../utils/getType'
 import { isObject } from '../utils/getType'
@@ -8,7 +7,7 @@ interface CallbackNode {
   next: CallbackNode,
   callback: Function,
   priorityLevel: number,
-  expirationTime: ExpirationTime
+  expirationTime: number
 }
 
 const ImmediatePriority = 1
@@ -26,11 +25,11 @@ const LOW_PRIORITY_TIMEOUT = 10000
 const IdlePriority = 5
 const IDLE_PRIORITY = 1073741823
 
-let firstCallbackNode: CallbackNode = null
+let firstCallbackNode: CallbackNode = null // 双向链表
 
 const currentPriorityLevel: number = NormalPriority
-const currentEventStartTime: ExpirationTime = NoWork
-const currentExpirationTime: ExpirationTime = NoWork
+const currentEventStartTime: number = 0
+const currentExpirationTime: number = 0
 
 const isExecutingCallback: boolean = false
 
@@ -72,9 +71,9 @@ function cancelDeferredCallback(callbackNode: CallbackNode) {
   callbackNode.next = callbackNode.previous = null
 }
 
-function scheduleDeferredCallback(callback: Function, options: any) {
+function scheduleDeferredCallback(callback: Function, options?: any): CallbackNode {
   const startTime = currentEventStartTime !== -1 ? currentEventStartTime : now()
-  let expirationTime: ExpirationTime = NoWork
+  let expirationTime: number = 0
 
   if (isObject(options) && isNumber(options.timeout)) {
     expirationTime = startTime + options.timeout
@@ -98,7 +97,7 @@ function scheduleDeferredCallback(callback: Function, options: any) {
     }
   }
 
-  const newNode = {
+  const newNode: CallbackNode = {
     callback,
     priorityLevel: currentPriorityLevel,
     expirationTime,
@@ -106,7 +105,7 @@ function scheduleDeferredCallback(callback: Function, options: any) {
     previous: null,
   }
 
-  if (firstCallbackNode) {
+  if (firstCallbackNode === null) {
     firstCallbackNode = newNode.next = newNode.previous = newNode
     ensureHostCallbackIsScheduled()
   } else {
@@ -121,10 +120,10 @@ function scheduleDeferredCallback(callback: Function, options: any) {
     } while (node !== firstCallbackNode)
 
     if (next === null) {
-      // newNode -> firstCallbackNode
+      // 没有找到比当前callback到期时间大的，将当前callback放到链表最后
       next = firstCallbackNode
     } else if (next === firstCallbackNode) {
-      // only newNode
+      // 当前任务过期时间最小
       firstCallbackNode = newNode
       ensureHostCallbackIsScheduled()
     }
@@ -134,6 +133,8 @@ function scheduleDeferredCallback(callback: Function, options: any) {
     newNode.next = next
     newNode.previous = previous
   }
+
+  return newNode
 }
 
 export {

@@ -183,7 +183,7 @@ function flushInteractiveUpdates() {
 
 function flushPassiveEffects() {
   if (passiveEffectCallbackHandle !== null) {
-    cancelPassiveEffects(passiveEffectCallbackHandle)
+    cancelDeferredCallback(passiveEffectCallbackHandle)
   }
   if (passiveEffectCallback !== null) {
     passiveEffectCallback()
@@ -618,7 +618,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
 
   if (firstEffect !== null && rootWithPendingPassiveEffects !== null) {
     const callback = commitPassiveEffects.bind(null, root, firstEffect)
-    passiveEffectCallbackHandle = schedulePassiveEffects(callback)
+    passiveEffectCallbackHandle = scheduleDeferredCallback(callback)
     passiveEffectCallback = callback
   }
 
