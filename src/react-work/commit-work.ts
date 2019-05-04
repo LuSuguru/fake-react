@@ -4,6 +4,7 @@ import { setTextContent, setTextInstance } from '../react-dom/dom/property-opera
 import { detachFiber, Fiber } from '../react-fiber/fiber'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
 import { ContentReset, Placement, Update } from '../react-type/effect-type'
+import { Effect as HookEffect, FunctionComponentUpdateQueue, HookEffectTag, MountLayout, MountMutation, NoHookEffect, UnmountLayout, UnmountMutation, UnmountSnapshot } from '../react-type/hook-type'
 import {
   ClassComponent,
   DehydratedSuspenseComponent,
@@ -102,12 +103,38 @@ function getHostSibling(fiber: Fiber): any {
   }
 }
 
+function commitHookEffectList(unMountTag: HookEffectTag, mountTag: HookEffectTag, finishedWork: Fiber) {
+  const updateQueue: FunctionComponentUpdateQueue = finishedWork.updateQueue as any
+  const lastEffect: HookEffect = updateQueue !== null ? updateQueue.lastEffect : null
+
+  if (lastEffect !== null) {
+    const firstEffect: HookEffect = lastEffect.next
+    let effect: HookEffect = firstEffect
+    do {
+      if ((effect.tag & unMountTag) !== NoHookEffect) {
+        const { destroy } = effect
+
+        effect.destroy = undefined
+        if (destroy !== undefined) {
+          (destroy as Function)()
+        }
+      }
+
+      if ((effect.tag & mountTag) !== NoHookEffect) {
+        const { create } = effect
+        effect.create = create() as any
+      }
+      effect = effect.next
+    } while (effect !== firstEffect)
+  }
+}
+
 function commitBeforeMutationLifecycle(current: Fiber, finishedWork: Fiber) {
   switch (finishedWork.tag) {
     case FunctionComponent:
     case ForwardRef:
     case SimpleMemoComponent:
-      // commitHookEffectList(UnmountSnapshot, NoHookEffect, finishedWork) // hook操作
+      commitHookEffectList(UnmountSnapshot, NoHookEffect, finishedWork)
       return
     case ClassComponent: {
       if (current !== null) {
@@ -204,13 +231,13 @@ function commitPlacement(finishedWork: Fiber) {
   }
 }
 
-function commitWork(current: Fiber, finishedWork: Fiber) {
+function commitWork(_current: Fiber, finishedWork: Fiber) {
   switch (finishedWork.tag) {
     case FunctionComponent:
     case ForwardRef:
     case MemoComponent:
     case SuspenseComponent: {
-      // commitHookEffectList(UnmountMutation, MountMutation, finishedWork)
+      commitHookEffectList(UnmountMutation, MountMutation, finishedWork)
       return
     }
     case ClassComponent: {
@@ -258,8 +285,22 @@ function commitUnmount(current: Fiber) {
     case ForwardRef:
     case MemoComponent:
     case SimpleMemoComponent: {
-      const { updateQueue } = current
-      // hook 操作，待实现
+      const updateQueue: FunctionComponentUpdateQueue = current.updateQueue as any
+      if (updateQueue !== null) {
+        const { lastEffect } = updateQueue
+        if (lastEffect !== null) {
+          const firstEffect = lastEffect.next
+
+          let effect = firstEffect
+          do {
+            const destroy = effect.destroy
+            if (destroy !== undefined) {
+              destroy()
+            }
+            effect = effect.next
+          } while (effect !== firstEffect)
+        }
+      }
       return
     }
     case ClassComponent: {
@@ -386,7 +427,7 @@ function commitLifeCycles(current: Fiber, finishedWork: Fiber) {
     case FunctionComponent:
     case ForwardRef:
     case SimpleMemoComponent:
-      // commitHookEffectList(UnmountLayout, MountLayout, finishedWork) // hook待实现
+      commitHookEffectList(UnmountLayout, MountLayout, finishedWork)
       break
     case ClassComponent: {
       const instance = finishedWork.stateNode

@@ -325,7 +325,7 @@ const Reducer = {
 }
 
 const Effect = {
-  pushEffect(tag: HookEffectTag, create: () => (() => void) | void, destroy: (() => void) | void, deps?: any[]) {
+  pushEffect(tag: HookEffectTag, create: () => (() => void), destroy: (() => void), deps?: any[]) {
     const effect: Effect = { tag, create, destroy, deps, next: null }
 
     if (componentUpdateQueue === null) {
@@ -345,7 +345,7 @@ const Effect = {
     return effect
   },
 
-  mountEffectImpl(fiberEffectTag: SideEffectTag, hookEffectTag: HookEffectTag, create: () => (() => void) | void, deps?: any[]) {
+  mountEffectImpl(fiberEffectTag: SideEffectTag, hookEffectTag: HookEffectTag, create: () => (() => void), deps?: any[]) {
     const hook = mountWorkInProgressHook()
     const nextDeps = deps === undefined ? null : deps
     sideEffectTag |= fiberEffectTag
@@ -353,7 +353,7 @@ const Effect = {
     hook.memoizedState = Effect.pushEffect(hookEffectTag, create, undefined, nextDeps)
   },
 
-  updateEffectImpl(fiberEffectTag: SideEffectTag, hookEffectTag: HookEffectTag, create: () => (() => void) | void, deps?: any[]) {
+  updateEffectImpl(fiberEffectTag: SideEffectTag, hookEffectTag: HookEffectTag, create: () => (() => void), deps?: any[]) {
     const hook = updateWorkInProgressHook()
     const nextDeps = deps === undefined ? null : deps
     let destroy: any
@@ -376,18 +376,18 @@ const Effect = {
   },
 
 
-  mountEffect(create: () => (() => void) | void, deps?: any[]) {
+  mountEffect(create: () => (() => void), deps?: any[]) {
     return Effect.mountEffectImpl(UpdateTag | Passive, UnmountPassive | MountPassive, create, deps)
   },
 
-  updateEffect(create: () => (() => void) | void, deps?: any[]) {
+  updateEffect(create: () => (() => void), deps?: any[]) {
     return Effect.updateEffectImpl(UpdateTag | Passive, UnmountPassive | MountPassive, create, deps)
   },
-  mountLayoutEffect(create: () => (() => void) | void, deps?: any[]) {
+  mountLayoutEffect(create: () => (() => void), deps?: any[]) {
     return Effect.mountEffectImpl(UpdateTag, UnmountMutation | MountLayout, create, deps)
   },
 
-  updateLayoutEffect(create: () => (() => void) | void, deps?: any[]) {
+  updateLayoutEffect(create: () => (() => void), deps?: any[]) {
     return Effect.updateEffectImpl(UpdateTag, UnmountMutation | MountLayout, create, deps)
   },
 }

@@ -3,7 +3,7 @@ import { ExpirationTime } from '../react-fiber/expiration-time'
 
 export type HookEffectTag = number
 
-export const NoHookEffect = /*             */ 0b00000000
+export const NoHookEffect = /*         */ 0b00000000
 export const UnmountSnapshot = /*      */ 0b00000010
 export const UnmountMutation = /*      */ 0b00000100
 export const MountMutation = /*        */ 0b00001000
@@ -30,16 +30,16 @@ interface Dispatcher {
 interface Update<S, A> {
   expirationTime: ExpirationTime,
   action: A,
-  eagerReducer: ((s: S, a: A) => S) | null,
-  eagerState: S | null,
-  next: Update<S, A> | null,
+  eagerReducer: ((s: S, a: A) => S),
+  eagerState: S,
+  next: Update<S, A>,
 }
 
 interface UpdateQueue<S, A> {
-  last: Update<S, A> | null, // update的环形链表
-  dispatch: ((a: A) => any) | null,
-  eagerReducer: ((s: S, a: A) => S) | null, // 记录当前的reducer，在dispatch时用于提前计算state
-  eagerState: S | null, // 计算当前的state，在dispath中做为提前计算的基值
+  last: Update<S, A>, // update的环形链表
+  dispatch: ((a: A) => any),
+  eagerReducer: ((s: S, a: A) => S), // 记录当前的reducer，在dispatch时用于提前计算state
+  eagerState: S, // 计算当前的state，在dispath中做为提前计算的基值
 }
 
 interface Hook {
@@ -52,9 +52,9 @@ interface Hook {
 
 interface Effect {
   tag: HookEffectTag,
-  create: () => (() => void) | void,
-  destroy: (() => void) | void,
-  deps: any[] | null,
+  create: () => (() => void),
+  destroy: (() => void),
+  deps: any[],
   next: Effect,
 }
 
