@@ -2,7 +2,7 @@
 import { readContext } from '../react-context/fiber-context'
 import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
-import { computeExpirationTimeForFiber, requestCurrentTime, scheduleWork } from '../react-scheduler'
+import { computeExpirationTimeForFiber, flushPassiveEffects, requestCurrentTime, scheduleWork } from '../react-scheduler'
 import { Passive, SideEffectTag, Update as UpdateTag } from '../react-type/effect-type'
 import {
   BasicStateAction,
@@ -116,7 +116,7 @@ function dispatchAction<S, A>(fiber: Fiber, queue: UpdateQueue<S, A>, action: A)
       lastRenderPhaseUpdate.next = update
     }
   } else {
-    // flushPassiveEffects() // 待实现
+    flushPassiveEffects()
 
     const currentTime = requestCurrentTime()
     const expirationTime = computeExpirationTimeForFiber(currentTime, fiber)
@@ -588,4 +588,9 @@ function resetHooks() {
   numberOfReRenders = 0
 }
 
-export { bailoutHooks, renderWithHooks, resetHooks }
+export {
+  HooksDispatcherOnEmpty,
+  bailoutHooks,
+  renderWithHooks,
+  resetHooks,
+}

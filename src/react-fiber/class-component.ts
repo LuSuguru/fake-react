@@ -1,5 +1,5 @@
 import { readContext } from '../react-context/fiber-context'
-import { computeExpirationTimeForFiber, requestCurrentTime, scheduleWork } from '../react-scheduler'
+import { computeExpirationTimeForFiber, flushPassiveEffects, requestCurrentTime, scheduleWork } from '../react-scheduler'
 import { Snapshot, Update as UpdateTag } from '../react-type/effect-type'
 import Update, { ForceUpdate, ReplaceState, UpdateState } from '../react-update/update'
 import { changeHasForceUpdate, enqueueUpdate, getHasForceUpdate, processUpdateQueue, UpdateQueue } from '../react-update/update-queue'
@@ -20,7 +20,7 @@ const classComponentUpdater: ReactUpdateQueue = {
     const expirationTime = computeExpirationTimeForFiber(currentTime, fiber)
     const update = new Update(expirationTime, UpdateState, payload, callback)
 
-    // flushPassiveEffects() // 事件相关，待实现
+    flushPassiveEffects()
     enqueueUpdate(fiber, update)
     scheduleWork(fiber, expirationTime)
   },
@@ -31,7 +31,7 @@ const classComponentUpdater: ReactUpdateQueue = {
     const expirationTime = computeExpirationTimeForFiber(currentTime, fiber)
     const update = new Update(expirationTime, ReplaceState, payload, callback)
 
-    // flushPassiveEffects() // 事件相关，待实现
+    flushPassiveEffects()
     enqueueUpdate(fiber, update)
     scheduleWork(fiber, expirationTime)
   },
@@ -43,7 +43,7 @@ const classComponentUpdater: ReactUpdateQueue = {
     const update = new Update(expirationTime, ForceUpdate, null, callback)
 
 
-    // flushPassiveEffects() // 事件相关，待实现
+    flushPassiveEffects()
     enqueueUpdate(fiber, update)
     scheduleWork(fiber, expirationTime)
   },

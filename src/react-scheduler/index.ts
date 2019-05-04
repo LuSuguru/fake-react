@@ -4,7 +4,8 @@ import {
 } from '../react-fiber/expiration-time'
 import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Batch, FiberRoot } from '../react-fiber/fiber-root'
-import { resetHooks } from '../react-hook/fiber-hook'
+import { HooksDispatcherOnEmpty, resetHooks } from '../react-hook/fiber-hook'
+import ReactCurrentDispatcher from '../react-hook/rect-current-dispatcher'
 import {
   Callback,
   ContentReset,
@@ -25,7 +26,17 @@ import {
 import { HostRoot } from '../react-type/tag-type'
 import { ConcurrentMode } from '../react-type/work-type'
 import { beginWork } from '../react-work/begin-work'
-import { commitAttachRef, commitBeforeMutationLifecycle, commitDeletion, commitDetachRef, commitLifeCycles, commitPlacement, commitResetTextContent, commitWork } from '../react-work/commit-work'
+import {
+  commitAttachRef,
+  commitBeforeMutationLifecycle,
+  commitDeletion,
+  commitDetachRef,
+  commitLifeCycles,
+  commitPassiveHookEffects,
+  commitPlacement,
+  commitResetTextContent,
+  commitWork,
+} from '../react-work/commit-work'
 import { completeWork } from '../react-work/complete-work'
 import { throwException, unwindInterruptedWork, unwindWork } from '../react-work/unwind-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
@@ -80,6 +91,9 @@ let nextRenderDidError: boolean = false
 let nextEffect: Fiber = null
 
 let rootWithPendingPassiveEffects: FiberRoot = null
+let passiveEffectCallbackHandle: any = null
+let passiveEffectCallback: any = null
+
 let legacyErrorBoundariesThatAlreadyFailed: Set<any> = null
 
 let interruptedBy: Fiber = null
@@ -164,6 +178,15 @@ function flushInteractiveUpdates() {
   if (!isRendering && lowestPriorityPendingInteractiveExpirationTime !== NoWork) {
     performWork(lowestPriorityPendingInteractiveExpirationTime, false)
     lowestPriorityPendingInteractiveExpirationTime = NoWork
+  }
+}
+
+function flushPassiveEffects() {
+  if (passiveEffectCallbackHandle !== null) {
+    cancelPassiveEffects(passiveEffectCallbackHandle)
+  }
+  if (passiveEffectCallback !== null) {
+    passiveEffectCallback()
   }
 }
 
@@ -515,8 +538,6 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
 
   markCommittedPriorityLevels(root, earliestRemainingTimeBeforeCommit)
 
-  // ReactCurrentOwner.current = null
-
   let firstEffect: Fiber = null
   if (finishedWork.effectTag > PerformedWork) {
     if (finishedWork.lastEffect !== null) {
@@ -614,6 +635,47 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
   root.finishedWork = null
 }
 
+function commitPassiveEffects(root: FiberRoot, firstEffect: Fiber) {
+  rootWithPendingPassiveEffects = null
+  passiveEffectCallbackHandle = null
+  passiveEffectCallback = null
+
+  const previousIsRendering = isRendering
+  isRendering = true
+
+  let effect = firstEffect
+  do {
+    if (effect.effectTag & Passive) {
+      let didError: boolean = false
+      let error: Error
+
+      try {
+        commitPassiveHookEffects(effect)
+      } catch (e) {
+        didError = true
+        error = e
+      }
+
+      if (didError) {
+        // captureCommitPhaseError(effect, error)
+      }
+    }
+
+    effect = effect.nextEffect
+  } while (effect !== null)
+
+  isRendering = previousIsRendering
+
+  const rootExpirationTime = root.expirationTime
+  if (rootExpirationTime !== NoWork) {
+    requestWork(root, rootExpirationTime)
+  }
+
+  if (!isBatchingUpdates && !isRendering) {
+    performSyncWork()
+  }
+}
+
 function commitAllLifeCycles(finishedRoot: FiberRoot) {
   while (nextEffect !== null) {
     const { effectTag } = nextEffect
@@ -688,11 +750,11 @@ function commitBeforeMutationLifecycles() {
 }
 
 function renderRoot(root: FiberRoot, isYieldy: boolean) {
-  // flushPassiveEffects() // 事件相关待实现
+  flushPassiveEffects()
 
   isWorking = true
-  //  const previousDispatcher = ReactCurrentDispatcher.current
-  // ReactCurrentDispatcher.current = ContextOnlyDispatcher
+  const previousDispatcher = ReactCurrentDispatcher.current
+  ReactCurrentDispatcher.current = HooksDispatcherOnEmpty
 
   const expirationTime = root.nextExpirationTimeToWorkOn
 
@@ -736,9 +798,9 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
   } while (true)
 
   isWorking = false
-  // ReactCurrentDispatcher.current = previousDispatcher // hook
+  ReactCurrentDispatcher.current = previousDispatcher
   resetContextDependences()
-  resetHooks() // 待实现
+  resetHooks()
 
   if (didFatal) {
     nextRoot = null
@@ -792,7 +854,6 @@ function performUnitOfWork(workInProgress: Fiber): Fiber {
     next = completeUnitOfWork(workInProgress)
   }
 
-  // ReactCurrentOwner.current = null
   return next
 }
 
@@ -865,4 +926,5 @@ export {
   computeExpirationTimeForFiber,
   requestCurrentTime,
   scheduleWork,
+  flushPassiveEffects,
 }

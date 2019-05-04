@@ -1,10 +1,22 @@
-import { Container, updatePropeties } from '../react-dom/dom/dom-component'
+import { updatePropeties } from '../react-dom/dom/dom-component'
 import { updateFiberProps } from '../react-dom/dom/dom-component-tree'
 import { setTextContent, setTextInstance } from '../react-dom/dom/property-operation'
 import { detachFiber, Fiber } from '../react-fiber/fiber'
 import { resolveDefaultProps } from '../react-fiber/lazy-component'
 import { ContentReset, Placement, Update } from '../react-type/effect-type'
-import { Effect as HookEffect, FunctionComponentUpdateQueue, HookEffectTag, MountLayout, MountMutation, NoHookEffect, UnmountLayout, UnmountMutation, UnmountSnapshot } from '../react-type/hook-type'
+import {
+  Effect as HookEffect,
+  FunctionComponentUpdateQueue,
+  HookEffectTag,
+  MountLayout,
+  MountMutation,
+  MountPassive,
+  NoHookEffect,
+  UnmountLayout,
+  UnmountMutation,
+  UnmountPassive,
+  UnmountSnapshot,
+} from '../react-type/hook-type'
 import {
   ClassComponent,
   DehydratedSuspenseComponent,
@@ -127,6 +139,11 @@ function commitHookEffectList(unMountTag: HookEffectTag, mountTag: HookEffectTag
       effect = effect.next
     } while (effect !== firstEffect)
   }
+}
+
+function commitPassiveHookEffects(finishedWork: Fiber) {
+  commitHookEffectList(UnmountPassive, NoHookEffect, finishedWork)
+  commitHookEffectList(NoHookEffect, MountPassive, finishedWork)
 }
 
 function commitBeforeMutationLifecycle(current: Fiber, finishedWork: Fiber) {
@@ -496,4 +513,5 @@ export {
   commitDeletion,
   commitLifeCycles,
   commitAttachRef,
+  commitPassiveHookEffects,
 }
