@@ -96,6 +96,25 @@ function flushFirstCallback() {
   }
 }
 
+function flushImmediateWork() {
+  if (currentEventStartTime === -1 && firstCallbackNode !== null && firstCallbackNode.priorityLevel === ImmediatePriority) {
+    isExecutingCallback = true
+
+    try {
+      do {
+        flushFirstCallback()
+      } while (firstCallbackNode !== null && firstCallbackNode.priorityLevel === ImmediatePriority)
+    } finally {
+      isExecutingCallback = false
+      if (firstCallbackNode !== null) {
+        ensureHostCallbackIsScheduled()
+      } else {
+        isHostCallbackScheduled = true
+      }
+    }
+  }
+}
+
 function flushWork(didTimeout: boolean) {
   isExecutingCallback = true
   const previousDidTimeout = currentDidTimeout
@@ -123,6 +142,7 @@ function flushWork(didTimeout: boolean) {
   } finally {
     isExecutingCallback = false
     currentDidTimeout = previousDidTimeout
+
     if (firstCallbackNode !== null) {
       ensureHostCallbackIsScheduled()
     } else {
