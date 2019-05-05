@@ -5,10 +5,9 @@ const port = channel.port2
 
 let scheduledHostCallback: Function = null
 let timeoutTime: number = -1
+
 let isMessageEventScheduled: boolean = false
-
 let isAnimationFrameScheduled: boolean = false
-
 let isFlushingHostCallback: boolean = false
 
 let frameDeadline: number = 0  // 从30fps（即30帧）开始调整得到的更适于当前环境的一帧限制时间
@@ -32,7 +31,7 @@ function requestAnimationFrameWithTimeout(callback: Function) {
 }
 
 channel.port1.onmessage = (_event) => {
-  isMessageEventScheduled = true
+  isMessageEventScheduled = false
 
   const prevScheduledCallback = scheduledHostCallback
   const prevTimeoutTime = timeoutTime

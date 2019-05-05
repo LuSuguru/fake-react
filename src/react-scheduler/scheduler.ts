@@ -27,7 +27,7 @@ const LOW_PRIORITY_TIMEOUT = 10000
 const IdlePriority = 5
 const IDLE_PRIORITY = 1073741823
 
-let firstCallbackNode: CallbackNode = null // 双向链表
+let firstCallbackNode: CallbackNode = null // 存储callback双向链表,按过期时间从小到大
 
 let currentDidTimeout: boolean = false
 
@@ -109,7 +109,7 @@ function flushImmediateWork() {
       if (firstCallbackNode !== null) {
         ensureHostCallbackIsScheduled()
       } else {
-        isHostCallbackScheduled = true
+        isHostCallbackScheduled = false
       }
     }
   }
@@ -121,6 +121,7 @@ function flushWork(didTimeout: boolean) {
   currentDidTimeout = didTimeout
 
   try {
+    // 处理全部已经过期的callback
     if (didTimeout) {
       while (firstCallbackNode !== null) {
         const currentTime = now()
@@ -133,6 +134,7 @@ function flushWork(didTimeout: boolean) {
         break
       }
     } else {
+      // 保持处理直到帧到期
       if (firstCallbackNode !== null) {
         do {
           flushFirstCallback()
