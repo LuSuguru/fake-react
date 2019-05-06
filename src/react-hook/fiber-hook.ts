@@ -197,7 +197,8 @@ const Reducer = {
     const hook: Hook = mountWorkInProgressHook()
 
     let initialState: S = null
-    if (init !== null) {
+
+    if (init !== undefined) {
       initialState = init(initialArg)
     } else {
       initialState = initialArg as any
@@ -212,6 +213,7 @@ const Reducer = {
     }
 
     const dispatch: Dispatch<A> = queue.dispatch = dispatchAction.bind(null, currentlyRenderingFiber, queue)
+
     return [hook.memoizedState, dispatch]
   },
 

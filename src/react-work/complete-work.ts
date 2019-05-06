@@ -63,7 +63,7 @@ function appendAllChildren(parent: any, workInProgress: Fiber) {
   }
 }
 
-function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime) {
+function completeWork(current: Fiber, workInProgress: Fiber) {
   const newProps = workInProgress.pendingProps
 
   switch (workInProgress.tag) {
@@ -77,7 +77,6 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
       }
 
       if (current === null || current.child === null) {
-        // popHydrationState(workInProgress)
         workInProgress.effectTag &= ~Placement
       }
       break
@@ -99,28 +98,21 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
         }
 
         const currentHostContext = getHostContext()
-        const wasHydrated = popHydrationState(workInProgress)
 
-        if (wasHydrated) {
-          // hydrated模式的操作
-          //   if (prepareToHydrateHostInstance(workInProgress, rootContainerInstance, currentHostContext)) {
-          //     workInProgress.effectTag |= Update
-          //   }
-        } else {
-          const instance = createInstance(type, newProps, rootContainerInstance, currentHostContext, workInProgress)
+        const instance = createInstance(type, newProps, rootContainerInstance, currentHostContext, workInProgress)
 
-          appendAllChildren(instance, workInProgress)
+        appendAllChildren(instance, workInProgress)
 
-          if (finalizeInitialChildren(instance, type, newProps, rootContainerInstance)) {
-            workInProgress.effectTag |= Update
-          }
-          workInProgress.stateNode = instance
+        if (finalizeInitialChildren(instance, type, newProps, rootContainerInstance)) {
+          workInProgress.effectTag |= Update
         }
-
-        if (workInProgress.ref !== null) {
-          workInProgress.effectTag |= Ref
-        }
+        workInProgress.stateNode = instance
       }
+
+      if (workInProgress.ref !== null) {
+        workInProgress.effectTag |= Ref
+      }
+
       break
     }
     case HostText: {
@@ -131,15 +123,8 @@ function completeWork(current: Fiber, workInProgress: Fiber, renderExpirationTim
         updateHostText(workInProgress, oldText, newText)
       } else {
         const rootContainerInstance = getRootHostContainer()
-        const wasHydrated = false // popHydrationState(workInProgress)
 
-        if (wasHydrated) {
-          // if (prepareToHydrateHostTextInstance(workInProgress)) {
-          //   workInProgress.effectTag |= Update
-          // }
-        } else {
-          workInProgress.stateNode = createTextInstance(newText, rootContainerInstance, workInProgress)
-        }
+        workInProgress.stateNode = createTextInstance(newText, rootContainerInstance, workInProgress)
       }
       break
     }

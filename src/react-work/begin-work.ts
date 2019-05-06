@@ -3,7 +3,6 @@ import { pushHostContainer, pushHostContext } from '../react-context/host-contex
 import { addOptionClassInstace, applyDerivedStateFromProps, constructClassInstance, mountClassInstance, resumeMountClassInstance, updateClassInstance } from '../react-fiber/class-component'
 import { ExpirationTime, Never, NoWork } from '../react-fiber/expiration-time'
 import { createFiberFromTypeAndProps, createWorkInProgress, Fiber, isSimpleFunctionComponent } from '../react-fiber/fiber'
-import { FiberRoot } from '../react-fiber/fiber-root'
 import { readLazyComponentType, resolveDefaultProps, resolvedLazyComponentTag } from '../react-fiber/lazy-component'
 import { bailoutHooks, renderWithHooks, resetHooks } from '../react-hook/fiber-hook'
 import { ContentReset, DidCapture, NoEffect, PerformedWork, Placement, Ref } from '../react-type/effect-type'
@@ -18,7 +17,7 @@ import {
   HostPortal,
   HostRoot,
   HostText,
-  IncompleteClassComponent,
+  IndeterminateComponent,
   LazyComponent,
   MemoComponent,
   SimpleMemoComponent,
@@ -287,12 +286,7 @@ function updateHostRoot(current: Fiber, workInProgress: Fiber, renderExpirationT
     return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
   }
 
-  if ((current === null || current.child === null)) {
-    workInProgress.effectTag |= Placement
-    workInProgress.child = mountChildFibers(workInProgress, null, nextChildren, renderExpirationTime)
-  } else {
-    reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
-  }
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
   return workInProgress.child
 }
 
@@ -434,7 +428,7 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
   workInProgress.expirationTime = NoWork
 
   switch (workInProgress.tag) {
-    case IncompleteClassComponent: {
+    case IndeterminateComponent: {
       const { elementType } = workInProgress
       return mountIndeterminateComponent(current, workInProgress, elementType, renderExpirationTime)
     }

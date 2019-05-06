@@ -910,10 +910,9 @@ function performUnitOfWork(workInProgress: Fiber): Fiber {
   const current = workInProgress.alternate
 
   let next: Fiber = null
-
+  // debugger
   next = beginWork(current, workInProgress, nextRenderExpirationTime)
   workInProgress.memoizedProps = workInProgress.pendingProps
-
 
   if (next === null) {
     next = completeUnitOfWork(workInProgress)
@@ -929,7 +928,7 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber {
     const siblingFiber = workInProgress.sibling
 
     if ((workInProgress.effectTag & Incomplete) === NoEffect) {
-      nextUnitOfWork = completeWork(current, workInProgress, nextRenderExpirationTime)
+      nextUnitOfWork = completeWork(current, workInProgress)
       resetChildExpirationTime(workInProgress, nextRenderExpirationTime)
 
       if (nextUnitOfWork !== null) {
