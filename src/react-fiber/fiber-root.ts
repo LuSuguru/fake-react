@@ -34,11 +34,6 @@ class FiberRoot {
 
   timeoutHandle: number = noTimeout
 
-  context: Object = null
-  pendingContext: Object = null
-
-  hydrate: boolean
-
   nextExpirationTimeToWorkOn: ExpirationTime = NoWork
   expirationTime: ExpirationTime = NoWork
 
@@ -46,14 +41,11 @@ class FiberRoot {
 
   nextScheduledRoot: FiberRoot = null
 
-  constructor(containerInfo: Element, isConcurrent: boolean, hydrate: boolean) {
+  constructor(containerInfo: Element, isConcurrent: boolean) {
     const mode = isConcurrent ? ConcurrentMode : NoContext
 
     this.current = new Fiber(HostRoot, null, null, mode)
-
     this.containerInfo = containerInfo
-    this.hydrate = hydrate
-
     this.current.stateNode = this
   }
 }

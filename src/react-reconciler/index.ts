@@ -23,12 +23,6 @@ function updateContainerAtExpirationTime(
 ) {
   const { current } = container
 
-  if (container.context === null) {
-    container.context = {}
-  } else {
-    container.pendingContext = {}
-  }
-
   const update = new Update<any>(expirationTime, UpdateState, { element }, callback)
 
   flushPassiveEffects()
@@ -36,8 +30,8 @@ function updateContainerAtExpirationTime(
   scheduleWork(current, expirationTime)
 }
 
-function createContainer(container: Element, isConcurrent: boolean, hydate: boolean): FiberRoot {
-  return new FiberRoot(container, isConcurrent, hydate)
+function createContainer(container: Element, isConcurrent: boolean): FiberRoot {
+  return new FiberRoot(container, isConcurrent)
 }
 
 function updateContainer(

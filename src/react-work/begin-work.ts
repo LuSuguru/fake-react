@@ -277,33 +277,27 @@ function updateHostRoot(current: Fiber, workInProgress: Fiber, renderExpirationT
 
   const nextProps = workInProgress.pendingProps
   const prevState = workInProgress.memoizedState
-  const prevChildren = prevState === null ? prevState.element : null
+  const prevChildren = prevState !== null ? prevState.element : null
 
   processUpdateQueue(workInProgress, updateQueue, nextProps, null, renderExpirationTime)
   const nextState = workInProgress.memoizedState
   const nextChildren = nextState.element
 
   if (prevChildren === nextChildren) {
-    // resetHydrationState() // hydrate 待实现
     return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
   }
 
-  const root: FiberRoot = workInProgress.stateNode
-  if ((current === null || current.child === null) && root.hydrate) {//  &&enterHydrationState(workInProgress)) // 待实现
+  if ((current === null || current.child === null)) {
     workInProgress.effectTag |= Placement
     workInProgress.child = mountChildFibers(workInProgress, null, nextChildren, renderExpirationTime)
   } else {
     reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
-    // resetHydrationState() // hydrate 待实现
   }
   return workInProgress.child
 }
 
 function updateHostComponent(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
   pushHostContext(workInProgress)
-  // if (current === null) {
-  //   tryToClaimNextHydratableInstance(workInProgress)
-  // }
 
   const type = workInProgress.type
   const nextProps = workInProgress.pendingProps
@@ -329,10 +323,7 @@ function updateHostComponent(current: Fiber, workInProgress: Fiber, renderExpira
   return workInProgress.child
 }
 
-function updateHostText(current: Fiber, workInProgress: Fiber): Fiber {
-  // if (current === null) { // hydrate操作
-  //   tryToClaimNextHydratableInstance(workInProgress)
-  // }
+function updateHostText(_current: Fiber, _workInProgress: Fiber): Fiber {
   return null
 }
 
@@ -418,7 +409,6 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
       switch (workInProgress.tag) {
         case HostRoot:
           pushHostContainer(workInProgress, workInProgress.stateNode.containerInfo)
-          // resetHydrationState() // 待实现
           break
         case HostComponent:
           pushHostContext(workInProgress)
@@ -510,7 +500,6 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
     }
   }
 }
-
 
 export {
   markWorkInProgressReceivedUpdate,

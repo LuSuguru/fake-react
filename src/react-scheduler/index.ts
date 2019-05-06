@@ -321,8 +321,8 @@ function requestCurrentTime(): ExpirationTime {
   return currentSchedulerTime
 }
 
-function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): FiberRoot | null {
-  let { alternate }: { alternate: Fiber } = fiber
+function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): FiberRoot {
+  let alternate: Fiber = fiber.alternate
 
   if (fiber.expirationTime < expirationTime) {
     fiber.expirationTime = expirationTime
@@ -335,7 +335,7 @@ function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): Fiber
   let node: Fiber = fiber.return
   let root: FiberRoot = null
 
-  if (node === null && node.tag === HostRoot) {
+  if (node === null && fiber.tag === HostRoot) {
     root = fiber.stateNode
   } else {
     while (node !== null) {

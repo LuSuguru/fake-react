@@ -4,25 +4,23 @@ import { isFunction } from '../utils/getType'
 import './dom-client-inject'
 import ReactRoot from './react-root'
 
-function createRootFromContainer(container: any, forceHydrate: boolean): ReactRoot {
-  if (!forceHydrate) {
-    let rootSibling: ChildNode = null
+function createRootFromContainer(container: any): ReactRoot {
+  let rootSibling: ChildNode = null
 
-    while ((rootSibling = container.lastChild)) {
-      container.remove(rootSibling)
-    }
+  while ((rootSibling = container.lastChild)) {
+    container.remove(rootSibling)
   }
 
   const isConcurrent = false
-  return new ReactRoot(container, isConcurrent, forceHydrate)
+  return new ReactRoot(container, isConcurrent)
 }
 
-function renderSubtreeIntoContainer(children: any, container: any, forceHydrate: boolean, callback?: Function) {
+function renderSubtreeIntoContainer(children: any, container: any, callback?: Function) {
   let root: ReactRoot = null
   let isMount: boolean = false
 
   if (!root) {
-    root = container._reactrootContainer = createRootFromContainer(container, forceHydrate)
+    root = container._reactrootContainer = createRootFromContainer(container)
     isMount = true
   }
 
@@ -46,7 +44,7 @@ function renderSubtreeIntoContainer(children: any, container: any, forceHydrate:
 
 const ReactDOM = {
   render(element: any, container: Element, callback?: Function) {
-    return renderSubtreeIntoContainer(element, container, false, callback)
+    return renderSubtreeIntoContainer(element, container, callback)
   },
 }
 

@@ -6,8 +6,8 @@ import ReactWork from './react-work'
 class ReactRoot {
   public internalRoot: FiberRoot
 
-  constructor(container: Element, isConcurrent: boolean, hydrate: boolean) {
-    this.internalRoot = createContainer(container, isConcurrent, hydrate)
+  constructor(container: Element, isConcurrent: boolean) {
+    this.internalRoot = createContainer(container, isConcurrent)
   }
 
   public render(children: ReactNodeList, callback?: Function): ReactWork {
