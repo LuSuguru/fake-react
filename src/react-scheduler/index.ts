@@ -10,7 +10,6 @@ import {
   Callback,
   ContentReset,
   Deletion,
-  DidCapture,
   HostEffectMask,
   Incomplete,
   NoEffect,
@@ -19,7 +18,6 @@ import {
   Placement,
   PlacementAndUpdate,
   Ref,
-  SideEffectTag,
   Snapshot,
   Update,
 } from '../react-type/effect-type'
@@ -40,8 +38,8 @@ import {
 import { completeWork } from '../react-work/complete-work'
 import { throwException, unwindInterruptedWork, unwindWork } from '../react-work/unwind-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
-import { markCommittedPriorityLevels, markPendingPriorityLevel } from './pending-priority'
-import { cancelDeferredCallback, scheduleDeferredCallback } from './scheduler'
+import { didExpireAtExpirationTime, markCommittedPriorityLevels, markPendingPriorityLevel } from './pending-priority'
+import { cancelDeferredCallback, scheduleDeferredCallback, shouldYield } from './scheduler'
 
 const NESTED_UPDATE_LIMIT: number = 50
 let nestedUpdateCount: number = 0
@@ -96,7 +94,6 @@ let passiveEffectCallback: any = null
 
 let legacyErrorBoundariesThatAlreadyFailed: Set<any> = null
 
-let interruptedBy: Fiber = null
 
 function resetStack() {
   if (nextUnitOfWork !== null) {
@@ -365,7 +362,6 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
   const root = scheduleWorkToRoot(fiber, expirationTime)
 
   if (!isWorking && nextRenderExpirationTime !== NoWork && expirationTime > nextRenderExpirationTime) {
-    interruptedBy = fiber
     resetStack()
   }
 
@@ -399,7 +395,7 @@ function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
   if (expirationTime === Sync) {
     performSyncWork() // 同步
   } else {
-    scheduleCallbackWithExpirationTime(expirationTime) // 异步，待实现
+    scheduleCallbackWithExpirationTime(expirationTime) // 异步
   }
 }
 
@@ -443,14 +439,39 @@ function scheduleCallbackWithExpirationTime(expirationTime: ExpirationTime) {
   callbackID = scheduleDeferredCallback(performAsyncWork, { timeout })
 }
 
-/**
- * @param isYieldy 是否可以中断
- */
+function performAsyncWork(didTimeout: boolean) {
+  if (didTimeout) {
+    if (firstScheduledRoot !== null) {
+      recomputeCurrentRendererTime()
+
+      let root: FiberRoot = firstScheduledRoot
+      do {
+        didExpireAtExpirationTime(root, currentRendererTime)
+        root = root.nextScheduledRoot
+      } while (root !== firstScheduledRoot)
+    }
+  }
+  performWork(NoWork, true)
+}
+
 function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
   findHighestPriorityRoot()
 
-  if (isYieldy) {
-    // 异步,待实现
+  if (isYieldy) { // 异步
+    recomputeCurrentRendererTime()
+    currentSchedulerTime = currentRendererTime
+
+    while (
+      nextFlushedRoot !== null
+      && nextFlushedExpirationTime !== NoWork
+      && minExpirationTime <= nextFlushedExpirationTime
+      && !(shouldYield() && currentRendererTime > nextFlushedExpirationTime)) {
+
+      performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, currentRendererTime > nextFlushedExpirationTime)
+      findHighestPriorityRoot()
+      recomputeCurrentRendererTime()
+      currentSchedulerTime = currentRendererTime
+    }
   } else { // 同步
     while (nextFlushedRoot !== null && nextFlushedExpirationTime && minExpirationTime <= nextFlushedExpirationTime) {
       performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, false)
@@ -458,12 +479,44 @@ function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
     }
   }
 
-  // if (isYieldy) {
-  //   callbackExpirationTime = NoWork
-  //   callbackID = null
-  // }
+  if (isYieldy) {
+    callbackExpirationTime = NoWork
+    callbackID = null
+  }
 
-  // finishRendering() // 待实现
+  if (nextFlushedExpirationTime !== NoWork) {
+    scheduleCallbackWithExpirationTime(nextFlushedExpirationTime)
+  }
+
+  finishRendering()
+}
+
+function finishRendering() {
+  nestedUpdateCount = 0
+  lastCommittedRootDuringThisBatch = null
+
+  if (completedBatches !== null) {
+    const batches = completedBatches
+    completedBatches = null
+
+    batches.forEach((batch) => {
+      try {
+        batch._onComplete()
+      } catch (error) {
+        if (!hasUnhandledError) {
+          hasUnhandledError = true
+          unhandledError = error
+        }
+      }
+    })
+  }
+
+  if (hasUnhandledError) {
+    const error = unhandledError
+    unhandledError = null
+    hasUnhandledError = false
+    throw error
+  }
 }
 
 function performWorkOnRoot(root: FiberRoot, expirationTime: ExpirationTime, isYieldy: boolean) {
@@ -815,18 +868,16 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
 
   nextRoot = null
 
-  const rootWorkInProgress = root.current.alternate
-
   if (nextRenderDidError) {
     // 待实现，错误处理
   }
 
-  if (isYieldy) { // 异步待实现
-    return
+  if (isYieldy && nextLatestAbsoluteTimeoutMs !== -1) {
+    // 待实现
   }
 
   root.pendingCommitExpirationTime = expirationTime
-  root.finishedWork = rootWorkInProgress
+  root.finishedWork = root.current.alternate
 }
 
 function workLoop(isYieldy: boolean) {

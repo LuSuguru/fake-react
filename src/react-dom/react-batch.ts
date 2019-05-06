@@ -1,9 +1,9 @@
+import { ReactNodeList } from '../react-type/react-type'
 import ReactRoot from './react-root'
-import { ReactNodeList } from '../type/react-type'
 import ReactWork from './react-work'
 
 class ReactBatch {
-  private expirationTime: number = 0 //有个默认值，待实现
+  private expirationTime: number = 0 // 有个默认值，待实现
   private root: ReactRoot
   private next: any
   private callbacks: Function[] = []

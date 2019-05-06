@@ -245,7 +245,12 @@ function scheduleDeferredCallback(callback: Function, options?: any): CallbackNo
   return newNode
 }
 
+function shouldYield() {
+  return (!currentDidTimeout && ((firstCallbackNode !== null && firstCallbackNode.expirationTime < currentExpirationTime) || shouldYieldToHost()))
+}
+
 export {
   cancelDeferredCallback,
   scheduleDeferredCallback,
+  shouldYield,
 }

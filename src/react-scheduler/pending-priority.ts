@@ -91,7 +91,15 @@ function markCommittedPriorityLevels(root: FiberRoot, earliestRemainingTime: Exp
   findNextExpirationTimeToWorkOn(root, NoWork)
 }
 
+function didExpireAtExpirationTime(root: FiberRoot, currentTime: ExpirationTime) {
+  const { expirationTime } = root
+  if (expirationTime !== NoWork && currentTime <= expirationTime) {
+    root.nextExpirationTimeToWorkOn = currentTime
+  }
+}
+
 export {
   markPendingPriorityLevel,
   markCommittedPriorityLevels,
+  didExpireAtExpirationTime,
 }
