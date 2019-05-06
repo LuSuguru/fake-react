@@ -12,6 +12,7 @@ function Ceshi() {
   useEffect(() => {
     console.log(1)
   }, [])
+
   return <h1 className="ceshi" onClick={onClick}>{test}</h1>
 }
 
