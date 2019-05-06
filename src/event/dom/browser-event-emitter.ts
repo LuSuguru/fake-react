@@ -23,7 +23,7 @@ function isEventSupported(eventNameSuffix: string) {
 }
 
 function getListeningForDocument(mountAt: Document | Element): any {
-  if (!mountAt[topListenersIDKey]) {
+  if (!Object.prototype.hasOwnProperty.call(mountAt, topListenersIDKey)) {
     mountAt[topListenersIDKey] = reactTopListenersCounter++
     alreadyListeningTo[mountAt[topListenersIDKey]] = {}
   }

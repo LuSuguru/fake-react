@@ -12,7 +12,7 @@ function executeDispatchesInOrder(event: SyntheticEvent) {
       if (event.isPropagationStopped()) {
         break
       }
-      // console.log(i)
+
       executeDispatch(event, dispatchListeners[i], dispatchInstances[i])
     }
   } else if (dispatchListeners) {
@@ -24,8 +24,6 @@ function executeDispatchesInOrder(event: SyntheticEvent) {
 
 function executeDispatch(event: SyntheticEvent, listener: Function, inst: Fiber) {
   event.currentTarget = getNodeFromInstance(inst)
-  // console.log(listener)
-  // console.log(inst)
   listener(event)
   event.currentTarget = null
 }

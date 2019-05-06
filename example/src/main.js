@@ -7,7 +7,6 @@ function Ceshi() {
 
   function onClick(e) {
     console.log(e)
-    setTest(1)
   }
 
   function onDivClick() {
@@ -16,6 +15,7 @@ function Ceshi() {
 
   useEffect(() => {
     console.log(1)
+
   }, [])
 
   return (
