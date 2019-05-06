@@ -42,10 +42,13 @@ channel.port1.onmessage = (_event) => {
 
   let didTimeout: boolean = false
 
+  // 帧过期
   if (frameDeadline - currentTime <= 0) {
     if (prevTimeoutTime !== -1 && prevTimeoutTime <= currentTime) {
+      // 超时
       didTimeout = true
     } else {
+      // 没有超时，重新起animation frame
       if (!isAnimationFrameScheduled) {
         isAnimationFrameScheduled = true
         requestAnimationFrameWithTimeout(animationTick)
@@ -95,6 +98,7 @@ function requestHostCallback(callback: Function, absoluteTimeout: number) {
   scheduledHostCallback = callback
   timeoutTime = absoluteTimeout
 
+  // 不等待下一帧，尽快执行下一个callback
   if (isFlushingHostCallback || absoluteTimeout < 0) {
     port.postMessage(undefined)
   } else if (!isAnimationFrameScheduled) {
