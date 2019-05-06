@@ -1,4 +1,6 @@
+import { getBrowserEventEmitterisEnabled, setBrowserEventEmitterisEnabled } from '../event/dom/dom-event-listener'
 import { resetContextDependences } from '../react-context/fiber-context'
+import { Container } from '../react-dom/dom/dom-component'
 import {
   computeAsyncExpiration, computeInteractiveExpiration, ExpirationTime, expirationTimeToMS, msToExpirationTime, Never, NoWork, Sync,
 } from '../react-fiber/expiration-time'
@@ -94,6 +96,7 @@ let passiveEffectCallback: any = null
 
 let legacyErrorBoundariesThatAlreadyFailed: Set<any> = null
 
+let eventsEnabled: boolean = false
 
 function resetStack() {
   if (nextUnitOfWork !== null) {
@@ -581,6 +584,17 @@ function completeRoot(root: FiberRoot, finishedWork: Fiber, expirationTime: Expi
   commitRoot(root, finishedWork)
 }
 
+function prepareForCommit(containerInfo: Container) {
+  eventsEnabled = getBrowserEventEmitterisEnabled()
+  // 重新设置焦点，先忽略
+  setBrowserEventEmitterisEnabled(false)
+}
+
+function resetAfterCommit(containerInfo: Container) {
+  setBrowserEventEmitterisEnabled(eventsEnabled)
+  eventsEnabled = false
+}
+
 function commitRoot(root: FiberRoot, finishedWork: Fiber) {
   isWorking = true
   isCommitting = true
@@ -603,7 +617,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
     firstEffect = finishedWork.firstEffect
   }
 
-  // prepareForCommit(root.containerInfo)
+  prepareForCommit(root.containerInfo)
   nextEffect = firstEffect
   while (nextEffect !== null) {
     let didError = false
@@ -645,7 +659,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
     }
   }
 
-  // resetAfterCommit() // 待实现
+  resetAfterCommit(root.containerInfo)
 
   root.current = finishedWork
 

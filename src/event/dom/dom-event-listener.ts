@@ -24,8 +24,12 @@ const callbackBookkeepingPool: BookKeeping[] = []
 
 export let _enabled: boolean = true
 
-function setEnabled(enabled?: boolean) {
+function setBrowserEventEmitterisEnabled(enabled?: boolean) {
   _enabled = !!enabled
+}
+
+function getBrowserEventEmitterisEnabled() {
+  return _enabled
 }
 
 function getTopLevelCallbackBookKeeping(topLevelType: TopLevelType, nativeEvent: AnyNativeEvent, targetInst: Fiber): BookKeeping {
@@ -139,7 +143,8 @@ function trapCaptureEvent(topLevelType: TopLevelType, element: Document | Elemen
 }
 
 export {
-  setEnabled,
+  setBrowserEventEmitterisEnabled,
+  getBrowserEventEmitterisEnabled,
   trapBubbledEvent,
   trapCaptureEvent,
 }
