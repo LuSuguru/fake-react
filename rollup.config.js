@@ -13,7 +13,7 @@ module.exports = {
   plugins: [
     typescript({
       lib: ['es2017', 'dom'],
-      target: 'es5',
+      target: 'es6',
       include: 'src/**/*',
       experimentalDecorators:true
     })

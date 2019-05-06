@@ -10,11 +10,19 @@ function Ceshi() {
     setTest(1)
   }
 
+  function onDivClick() {
+    console.log(2)
+  }
+
   useEffect(() => {
     console.log(1)
   }, [])
 
-  return <h1 className="ceshi" onClick={onClick}>{test}</h1>
+  return (
+    <div onClick={onDivClick}>
+      <h1 className="ceshi" onClick={onClick}>{test}</h1>
+    </div>
+  )
 }
 
 ReactDOM.render(
