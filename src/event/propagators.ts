@@ -24,7 +24,7 @@ function accumulateDirectionalDispatches(inst: Fiber, phase: Phases, event: Synt
 
 function accumulateDispatches(inst: Fiber, _phase: Phases, event: SyntheticEvent) {
   if (inst && event && event.dispatchConfig.registrationName) {
-    const registrationName = event.dispatchConfig.registrationName
+    const { registrationName } = event.dispatchConfig
     const listener = getListener(inst, registrationName)
 
     if (listener) {

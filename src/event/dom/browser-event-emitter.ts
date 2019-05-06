@@ -35,6 +35,7 @@ function listenTo(registrationName: string, mountAt: Document | Element) {
   const isListening: any = getListeningForDocument(mountAt)
 
   const dependencies: TopLevelType[] = registrationNameDependencies[registrationName]
+
   dependencies.forEach((dependency: TopLevelType) => {
     if (!isListening[dependency]) {
       switch (dependency) {

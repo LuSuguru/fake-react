@@ -17,9 +17,7 @@
     "url": "https://github.com/LuSuguru/learn-react/issues"
   },
   "homepage": "https://github.com/LuSuguru/learn-react#readme",
-  "dependencies": {
-
-  },
+  "dependencies": {},
   "devDependencies": {
     "rollup-plugin-typescript": "^1.0.0",
     "tslib": "^1.9.3",

@@ -24,6 +24,7 @@ function executeDispatchesInOrder(event: SyntheticEvent) {
 
 function executeDispatch(event: SyntheticEvent, listener: Function, inst: Fiber) {
   event.currentTarget = getNodeFromInstance(inst)
+
   listener(event)
   event.currentTarget = null
 }

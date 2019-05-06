@@ -173,11 +173,11 @@ const BeforeInputEventPlugin: PluginModule<KeyboardEvent> = {
     const composition = extractCompositionEvent(topLevelType, targetInst, nativeEvent, nativeTarget)
     const beforeInput = extractBeforeInputEvent(topLevelType, targetInst, nativeEvent, nativeTarget)
 
-    if (composition) {
+    if (composition === null) {
       return beforeInput
     }
 
-    if (beforeInput) {
+    if (beforeInput === null) {
       return composition
     }
 

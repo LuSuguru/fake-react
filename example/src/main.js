@@ -5,7 +5,8 @@ const { useState, useEffect } = React
 function Ceshi() {
   const [test, setTest] = useState(0)
 
-  function onClick() {
+  function onClick(e) {
+    console.log(e)
     setTest(1)
   }
 

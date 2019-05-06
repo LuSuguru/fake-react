@@ -25,7 +25,9 @@ export interface StaticSyntheticEvent {
   release: (event: SyntheticEvent) => void,
 }
 
-export interface EventTypes { [key: string]: DispatchConfig }
+export interface EventTypes {
+  [key: string]: DispatchConfig
+}
 
 export type AnyNativeEvent = Event | KeyboardEvent | MouseEvent | Touch
 

@@ -72,6 +72,7 @@ export function traverseTwoPhase(inst: Fiber, fn: Function, arg: SyntheticEvent)
     path.push(inst)
     inst = getParent(inst)
   }
+
   let i: number
   for (i = path.length; i-- > 0;) {
     fn(path[i], 'captured', arg)

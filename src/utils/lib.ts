@@ -44,7 +44,7 @@ export function forEachAccumulated<T>(arr: T[] | T, cb: (elem: T) => void, scope
   }
 }
 
-export function accumulateInto<T>(next: T | T[], current?: T[] | T ): T | T[] {
+export function accumulateInto<T>(current: T | T[], next?: T[] | T ): T | T[] {
   if (current == null) {
     return next
   }

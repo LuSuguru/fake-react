@@ -89,6 +89,7 @@ const ChangeEventPlugin: PluginModule<AnyNativeEvent> = {
   eventTypes,
 
   extractEvents(topLevelType: TopLevelType, targetInst: Fiber, nativeEvent: AnyNativeEvent, nativeEventTarget: EventTarget): SyntheticEvent {
+
     const targetNode: any = targetInst ? getNodeFromInstance(targetInst) : window
 
     let getTargetInstFunc: Function
@@ -102,6 +103,7 @@ const ChangeEventPlugin: PluginModule<AnyNativeEvent> = {
 
     if (getTargetInstFunc) {
       const inst: Fiber = getTargetInstFunc(topLevelType, targetInst)
+
       if (inst) {
         const event = createAndAccumulateChangeEvent(inst, nativeEvent as Event, nativeEventTarget)
         return event

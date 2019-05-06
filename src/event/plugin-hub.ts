@@ -38,7 +38,7 @@ function shouldPreventMouseEvent(name: string, type: string, props: any) {
 function getListener(inst: Fiber, registrationName: string): Function {
   let listener: Function = null
 
-  const { stateNode } = inst.stateNode
+  const { stateNode } = inst
   if (!stateNode) {
     return null
   }
@@ -70,9 +70,10 @@ function extractEvents(topLevelType: TopLevelType, targetInst: Fiber, nativeEven
   return plugins.reduce((events: SyntheticEvent[] | SyntheticEvent, plugin: PluginModule<any>): SyntheticEvent[] | SyntheticEvent => {
     const extractedEvents = plugin.extractEvents(topLevelType, targetInst, nativeEvent, nativeEventTarget)
 
-    if (extractEvents) {
-      events = accumulateInto(extractedEvents, events)
+    if (extractedEvents) {
+      events = accumulateInto(events, extractedEvents)
     }
+
     return events
   }, null)
 }
@@ -93,6 +94,7 @@ function runEventsInBatch(events: SyntheticEvent[] | SyntheticEvent) {
 }
 
 function runExtractedEventsInBatch(topLevelType: TopLevelType, targetInst: Fiber, nativeEvent: AnyNativeEvent, nativeEventTarget: EventTarget) {
+
   const events = extractEvents(topLevelType, targetInst, nativeEvent, nativeEventTarget)
   runEventsInBatch(events)
 }

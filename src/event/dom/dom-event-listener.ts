@@ -72,6 +72,7 @@ function handleTopLevel(bookKeeping: BookKeeping) {
     }
 
     const root = findRootContainerNode(ancestor)
+
     if (!root) {
       break
     }
@@ -130,6 +131,7 @@ function trapBubbledEvent(topLevelType: TopLevelType, element: Document | Elemen
   }
 
   const dispatch = isInteractiveTopLevelEventType(topLevelType) ? dispatchInteractiveEvent : dispatchEvent
+
   addEventBubbledListener(element, topLevelType, dispatch.bind(null, topLevelType))
 }
 
