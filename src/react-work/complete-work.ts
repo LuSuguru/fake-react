@@ -23,6 +23,7 @@ function updateHostComponent(current: Fiber, workInProgress: Fiber | any, type: 
 
   const { stateNode: instance } = workInProgress
   const updatePayload = diffProperties(instance, type, oldProps, newProps, rootContainerInstance)
+
   workInProgress.updateQueue = updatePayload
 
   if (updatePayload) {

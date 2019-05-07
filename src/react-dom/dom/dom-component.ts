@@ -370,7 +370,7 @@ function updatePropeties(domElement: Element, updatePayload: any, tag: string, n
   const isCustomComponentTag = isCustomComponent(tag, newRawProps)
   for (let i = 0; i < updatePayload.length; i += 2) {
     const propKey = updatePayload[i]
-    const propValue = updateFiberProps[i + 1]
+    const propValue = updatePayload[i + 1]
 
     switch (propKey) {
       case 'style':

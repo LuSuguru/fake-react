@@ -2,12 +2,11 @@ import { ExpirationTime, NoWork } from '../react-fiber/expiration-time'
 import { FiberRoot } from '../react-fiber/fiber-root'
 
 function findNextExpirationTimeToWorkOn(root: FiberRoot, completedExpiration: ExpirationTime) {
-  const { earliestPendingTime, earliestSuspendedTime, latestSuspendedTime, latestPingedTime } = root
+  const { earliestSuspendedTime, latestSuspendedTime, earliestPendingTime, latestPingedTime } = root
 
-  let nextExpirationTimeToWorkOn: ExpirationTime =
-    earliestPendingTime !== NoWork ? earliestPendingTime : latestPingedTime
-  if (nextExpirationTimeToWorkOn === NoWork &&
-    (completedExpiration === NoWork || latestSuspendedTime < completedExpiration)) {
+  let nextExpirationTimeToWorkOn: ExpirationTime = earliestPendingTime !== NoWork ? earliestPendingTime : latestPingedTime
+
+  if (nextExpirationTimeToWorkOn === NoWork && (completedExpiration === NoWork || latestSuspendedTime < completedExpiration)) {
     nextExpirationTimeToWorkOn = latestSuspendedTime
   }
 

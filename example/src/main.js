@@ -5,8 +5,10 @@ const { useState, useEffect } = React
 function Ceshi() {
   const [test, setTest] = useState(0)
 
-  function onClick(e) {
-    console.log(e)
+  function onClick() {
+    setTest(1)
+    setTest(2)
+    // console.log(1)
   }
 
   function onDivClick() {
@@ -14,8 +16,7 @@ function Ceshi() {
   }
 
   useEffect(() => {
-    console.log(1)
-
+    console.log('effect')
   }, [])
 
   return (

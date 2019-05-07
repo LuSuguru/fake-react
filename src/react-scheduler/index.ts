@@ -2,7 +2,14 @@ import { getBrowserEventEmitterisEnabled, setBrowserEventEmitterisEnabled } from
 import { resetContextDependences } from '../react-context/fiber-context'
 import { Container } from '../react-dom/dom/dom-component'
 import {
-  computeAsyncExpiration, computeInteractiveExpiration, ExpirationTime, expirationTimeToMS, msToExpirationTime, Never, NoWork, Sync,
+  computeAsyncExpiration,
+  computeInteractiveExpiration,
+  ExpirationTime,
+  expirationTimeToMS,
+  msToExpirationTime,
+  Never,
+  NoWork,
+  Sync,
 } from '../react-fiber/expiration-time'
 import { createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Batch, FiberRoot } from '../react-fiber/fiber-root'
@@ -231,8 +238,8 @@ function resetChildExpirationTime(workInProgress: Fiber, renderTime: ExpirationT
   let child: Fiber = workInProgress.child
 
   while (child !== null) {
-    const childUpdateExpirationTime = workInProgress.expirationTime
-    const childChildExpirationTime = workInProgress.childExpirationTime
+    const childUpdateExpirationTime = child.expirationTime
+    const childChildExpirationTime = child.childExpirationTime
 
     if (childUpdateExpirationTime > newChildExpiration) {
       newChildExpiration = childUpdateExpirationTime
@@ -349,8 +356,8 @@ function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): Fiber
         alternate.childExpirationTime = expirationTime
       }
 
-      if (node === null && node.tag === HostRoot) {
-        root = fiber.stateNode
+      if (node.return === null && node.tag === HostRoot) {
+        root = node.stateNode
         break
       }
 
@@ -584,13 +591,13 @@ function completeRoot(root: FiberRoot, finishedWork: Fiber, expirationTime: Expi
   commitRoot(root, finishedWork)
 }
 
-function prepareForCommit(containerInfo: Container) {
+function prepareForCommit(_containerInfo: Container) {
   eventsEnabled = getBrowserEventEmitterisEnabled()
   // 重新设置焦点，先忽略
   setBrowserEventEmitterisEnabled(false)
 }
 
-function resetAfterCommit(containerInfo: Container) {
+function resetAfterCommit(_containerInfo: Container) {
   setBrowserEventEmitterisEnabled(eventsEnabled)
   eventsEnabled = false
 }
@@ -910,7 +917,7 @@ function performUnitOfWork(workInProgress: Fiber): Fiber {
   const current = workInProgress.alternate
 
   let next: Fiber = null
-  // debugger
+
   next = beginWork(current, workInProgress, nextRenderExpirationTime)
   workInProgress.memoizedProps = workInProgress.pendingProps
 
@@ -936,7 +943,7 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber {
       }
 
       if (returnFiber !== null && (returnFiber.effectTag & Incomplete) === NoEffect) {
-        if (returnFiber.firstEffect !== null) {
+        if (returnFiber.firstEffect === null) {
           returnFiber.firstEffect = workInProgress.firstEffect
         }
 

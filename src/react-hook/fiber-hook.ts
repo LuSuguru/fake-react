@@ -157,6 +157,7 @@ function dispatchAction<S, A>(fiber: Fiber, queue: UpdateQueue<S, A>, action: A)
         }
       }
     }
+
     scheduleWork(fiber, expirationTime)
   }
 }
