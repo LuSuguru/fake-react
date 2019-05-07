@@ -7,8 +7,8 @@ class Component {
   refs: any
   updater: ReactUpdateQueue
   state: any
+  isReactComponent: boolean
   _reactInternalFiber: Fiber = null
-  isReactComponent: object = {}
 
   constructor(props: any, context: any, updater: ReactUpdateQueue) {
     this.props = props
@@ -26,6 +26,8 @@ class Component {
   }
 }
 
+Component.prototype.isReactComponent = true
+
 class PureComponent extends Component {
   isPureReactComponent: boolean
 
@@ -34,5 +36,7 @@ class PureComponent extends Component {
     this.isPureReactComponent = true
   }
 }
+
+PureComponent.prototype.isPureReactComponent = true
 
 export { Component, PureComponent }

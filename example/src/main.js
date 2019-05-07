@@ -1,29 +1,36 @@
 import { React, ReactDOM } from 'fake-react'
 
-const { useState, useEffect } = React
+const { useState, useEffect, Component } = React
 
-function Ceshi() {
-  const [test, setTest] = useState(0)
-
-  function onClick() {
-    setTest(1)
-    setTest(2)
-    // console.log(1)
+class Ceshi extends Component {
+  state = {
+    test: 1
   }
 
-  function onDivClick() {
+
+  onClick = () => {
+    this.setState({ test: 2 })
+    this.setState({ test: 3 })
+  }
+
+  onDivClick = () => {
     console.log(2)
   }
 
-  useEffect(() => {
-    console.log('effect')
-  }, [])
+  componentDidMount() {
+    console.log('componentDidMount')
+  }
 
-  return (
-    <div onClick={onDivClick}>
-      <h1 className="ceshi" onClick={onClick}>{test}</h1>
-    </div>
-  )
+  render() {
+    const { test } = this.state
+    const { onClick, onDivClick } = this
+
+    return (
+      <div onClick={onDivClick}>
+        <h1 className="ceshi" onClick={onClick} style={{ color: 'red' }}>{test}</h1>
+      </div>
+    )
+  }
 }
 
 ReactDOM.render(

@@ -389,6 +389,7 @@ function updateContextConsumer(current: Fiber, workInProgress: Fiber, renderExpi
 }
 
 function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
+  // debugger
   const updateExpirationTime = workInProgress.expirationTime
 
   if (current !== null) {

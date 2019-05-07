@@ -82,6 +82,7 @@ class Fiber {
 
 function shouldConstruct(Component: Function): boolean {
   const prototype = Component.prototype
+  console.log(Component.isReactComponent)
   return !!(prototype && prototype.isReactComponent)
 }
 
