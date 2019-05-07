@@ -849,7 +849,7 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
     } catch (thrownValue) {
       resetContextDependences()
       resetHooks()
-
+      console.error(thrownValue)
       if (nextUnitOfWork === null) {
         // 不可预期的错误
         didFatal = true

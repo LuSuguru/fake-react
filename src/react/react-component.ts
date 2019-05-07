@@ -33,7 +33,6 @@ class PureComponent extends Component {
 
   constructor(props: any, context: any, updater: ReactUpdateQueue) {
     super(props, context, updater)
-    this.isPureReactComponent = true
   }
 }
 

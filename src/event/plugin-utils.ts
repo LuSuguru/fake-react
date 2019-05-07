@@ -3,7 +3,6 @@ import { Fiber } from '../react-fiber/fiber'
 import SyntheticEvent from './synthetic-event'
 
 function executeDispatchesInOrder(event: SyntheticEvent) {
-  // console.log(1)
   const dispatchListeners = event._dispatchListeners
   const dispatchInstances = event._dispatchInstances
 

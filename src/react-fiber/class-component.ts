@@ -95,8 +95,8 @@ function checkShouldComponentUpdate(instance: any, ctor: any, oldProps: any, new
     return shouldUpdate
   }
 
-  if (ctor.isPureReactComponent) {
-    !shallowEqual(oldProps, newProps) || !shallowEqual(oldState, newState)
+  if (ctor.prototype && ctor.prototype.isPureReactComponent) {
+    return (!shallowEqual(oldProps, newProps) || !shallowEqual(oldState, newState))
   }
   return true
 }

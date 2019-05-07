@@ -350,7 +350,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
       lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
 
       if (previousNewFiber === null) {
-        resultingFirstChild = previousNewFiber
+        resultingFirstChild = newFiber
       } else {
         previousNewFiber.sibling = newFiber
       }
@@ -373,13 +373,13 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
         lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
 
         if (previousNewFiber === null) {
-          resultingFirstChild = previousNewFiber
+          resultingFirstChild = newFiber
         } else {
           previousNewFiber.sibling = newFiber
         }
         previousNewFiber = newFiber
-        return resultingFirstChild
       }
+      return resultingFirstChild
     }
 
     const existingChildren = mapRemainingChildren(oldFiber)
