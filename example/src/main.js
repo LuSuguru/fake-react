@@ -45,11 +45,9 @@ class Ceshi extends PureComponent {
     return (
       <div onClick={onDivClick}>
         123
-        <Fragment>
-          <h1 className="ceshi" onClick={onClick} style={{ color: 'red' }}>{test}</h1>
-          <h2 className="ceshi" onClick={onClick} style={{ color: 'red' }}>{test}</h2>
-        </Fragment>
-        {/* <input type="text" value={test} /> */}
+        <h1 className="ceshi" onClick={onClick} style={{ color: 'red' }}>{test}</h1>
+        <h2 className="ceshi" onClick={onClick} style={{ color: 'red' }}>{test}</h2>
+        <input type="text" />
       </div>
     )
   }

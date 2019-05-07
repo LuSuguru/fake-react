@@ -29,7 +29,7 @@ function getInputProps(element: any, props: any) {
   }
 }
 
-function setInputValue(node: any, props: any, isHydrating: boolean) {
+function setInputValue(node: any, props: any) {
   if (props.hasOwnProperty('value') || props.hasOwnProperty('defaultValue')) {
     const { type } = props
     const isButton = type === 'submit' || type === 'reset'
@@ -41,11 +41,10 @@ function setInputValue(node: any, props: any, isHydrating: boolean) {
 
     const initialValue = '' + node._wrapperState.initialValue
 
-    if (!isHydrating) {
-      if (initialValue !== node.value) {
-        node.value = initialValue
-      }
+    if (initialValue !== node.value) {
+      node.value = initialValue
     }
+
     node.defaultValue = initialValue
   }
 

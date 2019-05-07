@@ -323,7 +323,7 @@ function setInitialProperties(domElement: any, tag: string, rawProps: any, rootC
   switch (tag) {
     case 'input':
       track(domElement)
-      setInputValue(domElement, rawProps, false)
+      setInputValue(domElement, rawProps)
       break
     case 'textarea':
       track(domElement)

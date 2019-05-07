@@ -65,8 +65,10 @@ function trackValueOnNode(node: any): ValueTracker {
     getValue() {
       return currentValue
     },
-    setValue(value) {
+    setValue(value: any) {
+      // console.log(value)
       currentValue = '' + value
+      console.log(currentValue)
     },
     stopTracking() {
       node._valueTracker = null
@@ -97,6 +99,8 @@ function updateValueIfChanged(node: ElementWithValueTracker) {
 
   const lastValue = tracker.getValue()
   const nextValue = getValueFromNode(node)
+  console.log(lastValue)
+  console.log(nextValue)
   if (nextValue !== lastValue) {
     tracker.setValue(nextValue)
     return true
