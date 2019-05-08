@@ -407,11 +407,13 @@ const Callback = {
     const hook = updateWorkInProgressHook()
     const nextDeps = deps === undefined ? null : deps
     const prevState = hook.memoizedState
-
+    // console.log(prevState[1])
+    // console.log(nextDeps)
     if (prevState !== null) {
       if (nextDeps !== null) {
         const prevDeps: any[] | null = prevState[1]
         if (areHookInputsEqual(nextDeps, prevDeps)) {
+          console.log(3)
           return prevState[0]
         }
       }

@@ -69,7 +69,7 @@ function updateInputValue(element: any, props: any) {
   const value = getToStringValue(props.value)
   const type = props.type
 
-  if (value !== null) {
+  if (value != null) {
     if (type === 'number') {
       if ((value === 0 && element.value === '') || element.value !== value) {
         element.value = '' + value

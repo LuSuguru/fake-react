@@ -14,6 +14,7 @@ function isCheckable(elem: HTMLInputElement) {
 
 function getValueFromNode(node: HTMLInputElement): string {
   let value = ''
+
   if (!node) {
     return value
   }
@@ -66,9 +67,7 @@ function trackValueOnNode(node: any): ValueTracker {
       return currentValue
     },
     setValue(value: any) {
-      // console.log(value)
       currentValue = '' + value
-      console.log(currentValue)
     },
     stopTracking() {
       node._valueTracker = null
@@ -99,8 +98,7 @@ function updateValueIfChanged(node: ElementWithValueTracker) {
 
   const lastValue = tracker.getValue()
   const nextValue = getValueFromNode(node)
-  console.log(lastValue)
-  console.log(nextValue)
+
   if (nextValue !== lastValue) {
     tracker.setValue(nextValue)
     return true

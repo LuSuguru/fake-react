@@ -82,14 +82,12 @@ function handleControlledInputBlur(node: any) {
   }
 
   setDefaultValue(node, 'number', node.value)
-
 }
 
 const ChangeEventPlugin: PluginModule<AnyNativeEvent> = {
   eventTypes,
 
   extractEvents(topLevelType: TopLevelType, targetInst: Fiber, nativeEvent: AnyNativeEvent, nativeEventTarget: EventTarget): SyntheticEvent {
-
     const targetNode: any = targetInst ? getNodeFromInstance(targetInst) : window
 
     let getTargetInstFunc: Function
