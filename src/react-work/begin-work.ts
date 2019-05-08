@@ -187,6 +187,7 @@ function updateMemoComponent(current: Fiber, workInProgress: Fiber, Component: a
 function updateSimpleMemoComponent(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, updateExpirationTime: ExpirationTime, renderExpirationTime: ExpirationTime): Fiber {
   if (current !== null) {
     const prevProps = current.memoizedProps
+
     if (shallowEqual(prevProps, nextProps) && current.ref === workInProgress.ref) {
       didReceiveUpdate = false
 

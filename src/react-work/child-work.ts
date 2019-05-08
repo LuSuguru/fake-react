@@ -2,7 +2,7 @@ import { ExpirationTime } from '../react-fiber/expiration-time'
 import { createFiberFromElement, createFiberFromFragment, createFiberFromPortal, createFiberFromText, createWorkInProgress, Fiber } from '../react-fiber/fiber'
 import { Deletion, Placement } from '../react-type/effect-type'
 import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, REACT_PORTAL_TYPE, ReactPortal } from '../react-type/react-type'
-import { Fragment, HostPortal, HostText } from '../react-type/tag-type'
+import { ClassComponent, Fragment, HostPortal, HostText } from '../react-type/tag-type'
 import { ReactElement } from '../react/react'
 import { isArray, isObject, isText } from '../utils/getType'
 
@@ -435,7 +435,9 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
     }
 
     if (typeof newChild === 'undefined' && !isUnkeyedTopLevelFragment) {
-      console.error('render必须返回内容')
+      if (returnFiber.tag === ClassComponent) {
+        console.error('render必须返回内容')
+      }
     }
 
     return deleteRemainingChildren(returnFiber, currentFirstChild)

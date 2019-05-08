@@ -1,3 +1,8 @@
+
+function is(x, y) {
+  return x === y && (x !== 0 || 1 / x === 1 / y) || x !== x && y !== y // eslint-disable-line no-self-compare
+}
+
 export function shallowEqual(objA: any, objB: any): boolean {
   if (Object.is(objA, objB)) {
     return true
@@ -44,7 +49,7 @@ export function forEachAccumulated<T>(arr: T[] | T, cb: (elem: T) => void, scope
   }
 }
 
-export function accumulateInto<T>(current: T | T[], next?: T[] | T ): T | T[] {
+export function accumulateInto<T>(current: T | T[], next?: T[] | T): T | T[] {
   if (current == null) {
     return next
   }

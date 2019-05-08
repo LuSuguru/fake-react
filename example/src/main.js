@@ -46,6 +46,10 @@ const Input = memo((props) => {
   )
 })
 
+const H1 = memo(({ test }) => (
+    <h1>{test}</h1>
+))
+
 
 function Com() {
   const [test1, setTest1] = useState(0)
@@ -62,7 +66,7 @@ function Com() {
   return (
     <div>
       123
-      <h1 className="ceshi" style={{ color: 'red' }}>{test1}</h1>
+      <H1 test={test1} />
       <h2 className="ceshi" style={{ color: 'red' }}>{test2}</h2>
       <Input type="text" value={test1} onChange={onChange1} />
       <Input type="text" value={test2} onChange={onChange2} />
@@ -70,7 +74,7 @@ function Com() {
   )
 }
 
-const Ceshi = memo(Com)
+const Ceshi = Com
 
 ReactDOM.render(
   <Ceshi />,

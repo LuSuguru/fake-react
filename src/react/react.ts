@@ -17,7 +17,12 @@ function createElement(type: any, config: any = {}, ...children: any[]): ReactEl
     ...props
   } = config
 
-  props.children = children.length === 1 ? children[0] : children
+  if (children.length === 1) {
+    props.children = children[0]
+  } else if (children.length > 1) {
+    props.children = children
+  }
+
 
   if (type && type.defaultProps) {
     const { defaultProps } = type
