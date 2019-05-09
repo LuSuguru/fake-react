@@ -40,30 +40,34 @@ const { useState, useEffect, PureComponent, memo, useCallback } = React
 // }
 
 
+function If({ visible, children }) {
+  if (visible) {
+    return children
+  }
+  return null
+}
+
 function Com() {
-  const [test1, setTest1] = useState('grapefruit')
-  const [test2, setTest2] = useState(0)
+  const [test, setTest] = useState('grapefruit')
+
 
   const onChange = ({ target }) => {
-    setTest1(target.value)
-  }
-
-  const onChange2 = ({ target }) => {
-    setTest2(target.value)
+    setTest(target.value)
   }
 
   return (
     <div>
-      123
-
-      <h2 className="ceshi" style={{ color: 'red' }}>{test2}</h2>
-
-      <select value={test1} onChange={onChange}>
+      <select onChange={onChange} value={test}>
         <option value="grapefruit">Grapefruit</option>
         <option value="lime">Lime</option>
         <option selected value="coconut">Coconut</option>
         <option value="mango">Mango</option>
       </select>
+
+      <h2 className="ceshi" style={{ color: 'red' }}>{test}</h2>
+      <If visible={test === 'grapefruit'}>
+        {[1, 2, 3].map(name => <h1 key={name}>{name}</h1>)}
+      </If>
     </div>
   )
 }
