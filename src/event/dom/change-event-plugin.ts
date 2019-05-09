@@ -30,8 +30,7 @@ const eventTypes = {
 }
 
 function createAndAccumulateChangeEvent(inst: Fiber, nativeEvent: Event, target: EventTarget) {
-  const event = SyntheticRootEvent.getPooled(eventTypes.change, inst, nativeEvent,
-    target)
+  const event = SyntheticRootEvent.getPooled(eventTypes.change, inst, nativeEvent, target)
   event.type = 'change'
 
   enqueueStateRestore(target)
@@ -49,15 +48,15 @@ function shouldUseClickEvent(elem: any) {
   return nodeName && nodeName.toLowerCase() === 'input' && (elem.type === 'checkbox' || elem.type === 'radio')
 }
 
-function getInstIfValueChanged(targetInst: Fiber) {
-  const targetNode: any = getNodeFromInstance(targetInst)
-  if (updateValueIfChanged(targetNode)) {
+function getTargetInstForChangeEvent(topLevelType: TopLevelType, targetInst: Fiber) {
+  if (topLevelType === TOP_CHANGE) {
     return targetInst
   }
 }
 
-function getTargetInstForChangeEvent(topLevelType: TopLevelType, targetInst: Fiber) {
-  if (topLevelType === TOP_CHANGE) {
+function getInstIfValueChanged(targetInst: Fiber) {
+  const targetNode: any = getNodeFromInstance(targetInst)
+  if (updateValueIfChanged(targetNode)) {
     return targetInst
   }
 }

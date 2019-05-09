@@ -57,12 +57,7 @@ function Com() {
 
   return (
     <div>
-      <select onChange={onChange} value={test}>
-        <option value="grapefruit">Grapefruit</option>
-        <option value="lime">Lime</option>
-        <option selected value="coconut">Coconut</option>
-        <option value="mango">Mango</option>
-      </select>
+   <input type="text" value={test} onChange={onChange} />
 
       <h2 className="ceshi" style={{ color: 'red' }}>{test}</h2>
       <If visible={test === 'grapefruit'}>
