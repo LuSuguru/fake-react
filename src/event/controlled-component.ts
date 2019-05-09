@@ -11,6 +11,7 @@ function restoreStateOfTarget(target: any) {
   }
 
   const props = getFiberCurrentPropsFromNode(internalInstance.stateNode)
+
   restoreImpl(internalInstance.stateNode, internalInstance.type, props)
 }
 

@@ -96,7 +96,7 @@ function updateInputValue(element: any, props: any) {
 function updateChecked(element: Element, props: any) {
   const { checked } = props
 
-  if (checked !== null) {
+  if (checked != null) {
     setValueForProperty(element, 'checked', checked, false)
   }
 }
