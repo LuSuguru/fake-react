@@ -41,10 +41,10 @@ const { useState, useEffect, PureComponent, memo, useCallback } = React
 
 
 function Com() {
-  const [test1, setTest1] = useState(0)
+  const [test1, setTest1] = useState('grapefruit')
   const [test2, setTest2] = useState(0)
 
-  const onChange1 = ({ target }) => {
+  const onChange = ({ target }) => {
     setTest1(target.value)
   }
 
@@ -58,7 +58,12 @@ function Com() {
 
       <h2 className="ceshi" style={{ color: 'red' }}>{test2}</h2>
 
-      <input type="checkbox" />
+      <select value={test1} onChange={onChange}>
+        <option value="grapefruit">Grapefruit</option>
+        <option value="lime">Lime</option>
+        <option selected value="coconut">Coconut</option>
+        <option value="mango">Mango</option>
+      </select>
     </div>
   )
 }

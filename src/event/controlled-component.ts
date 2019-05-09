@@ -12,7 +12,7 @@ function restoreStateOfTarget(target: any) {
 
   const props = getFiberCurrentPropsFromNode(internalInstance.stateNode)
 
-  restoreImpl(internalInstance.stateNode, internalInstance.type, props)
+  // restoreImpl(internalInstance.stateNode, internalInstance.type, props)
 }
 
 export function setRestoreImplementation(impl: (domElement: Element, tag: string, props: Object) => void): void {
