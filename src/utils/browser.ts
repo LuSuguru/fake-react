@@ -22,6 +22,7 @@ function getActiveElement(doc?: Document): Element {
   try {
     return doc.activeElement || doc.body
   } catch (e) {
+    console.error(e)
     return doc.body
   }
 }

@@ -2,7 +2,7 @@ class ReactWork {
   private callbacks: Function[] = []
   private didCommit: boolean = false
 
-  then(onCommit: Function) {
+  then = (onCommit: Function) => {
     if (this.didCommit) {
       return onCommit()
     }
@@ -10,11 +10,11 @@ class ReactWork {
     this.callbacks.push(onCommit)
   }
 
-  onCommit() {
+  onCommit = () => {
     if (this.didCommit) {
       return
     }
-
+    console.log(this.callbacks)
     this.didCommit = true
     this.callbacks.forEach((callback: Function) => {
       callback()

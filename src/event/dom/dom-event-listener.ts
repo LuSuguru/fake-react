@@ -116,7 +116,8 @@ function dispatchEvent(topLevelType: TopLevelType, nativeEvent: AnyNativeEvent) 
 
   try {
     batchedUpdates(handleTopLevel, bookKeeping)
-  } catch {
+  } catch (e) {
+    console.error(e)
     releaseTopLevelCallbackBookKeeping(bookKeeping)
   }
 }

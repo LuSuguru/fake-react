@@ -513,6 +513,7 @@ function finishRendering() {
       try {
         batch._onComplete()
       } catch (error) {
+        console.error(error)
         if (!hasUnhandledError) {
           hasUnhandledError = true
           unhandledError = error
@@ -635,6 +636,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
     } catch (e) {
       didError = true
       error = e
+      console.error(error)
     }
     if (didError) {
       // captureCommitPhaseError(nextEffect, error)
@@ -655,6 +657,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
     } catch (e) {
       didError = true
       error = e
+      console.error(error)
     }
 
     if (didError) {
@@ -680,6 +683,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
     } catch (e) {
       didError = true
       error = e
+      console.error(error)
     }
     if (didError) {
       // captureCommitPhaseError(nextEffect, error)
@@ -728,6 +732,7 @@ function commitPassiveEffects(root: FiberRoot, firstEffect: Fiber) {
       } catch (e) {
         didError = true
         error = e
+        console.error(error)
       }
 
       if (didError) {
@@ -847,9 +852,11 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
     try {
       workLoop(isYieldy)
     } catch (thrownValue) {
+      console.error(thrownValue)
+
       resetContextDependences()
       resetHooks()
-      console.error(thrownValue)
+
       if (nextUnitOfWork === null) {
         // 不可预期的错误
         didFatal = true

@@ -43,6 +43,7 @@ function safelyDetachRef(current: Fiber) {
       try {
         ref(null)
       } catch (error) {
+        console.error(error)
         // captureCommitPhaseError(current, refError) 待实现
       }
     } else {
@@ -52,7 +53,7 @@ function safelyDetachRef(current: Fiber) {
 }
 
 function safelyCallComponentWillUnmount(current: Fiber) {
-  const { instance } = current.stateNode
+  const instance = current.stateNode
 
   if (isFunction(instance.componentWillUnmount)) {
     try {
@@ -60,6 +61,7 @@ function safelyCallComponentWillUnmount(current: Fiber) {
       instance.state = current.memoizedState
       instance.componentWillUnmount()
     } catch (unmountError) {
+      console.error(unmountError)
       // captureCommitPhaseError(current, unmountError) 待实现
     }
   }

@@ -1,6 +1,6 @@
 import { React } from 'fake-react'
-import Input from './components/input'
-import ToDoItem from './components/to-do-item'
+import Input from './components/input2'
+import ToDoItem from './components/to-do-item/index2'
 import { formatDate } from './utils'
 import './styles/page.less'
 
@@ -34,11 +34,11 @@ export default class extends PureComponent {
 
     const newList = list.slice()
     deleteList.forEach(index => newList.splice(index, 1))
-
     this.setState({
       list: newList,
       deleteList: []
     })
+    // debugger
   }
 
   onAddDetail = (index, checked) => {
@@ -57,6 +57,7 @@ export default class extends PureComponent {
   render() {
     const { deleteList, list } = this.state
     const { onDelete, onAdd, onAddDetail } = this
+
     return (
       <div className="todo-list">
         <Input
@@ -64,15 +65,18 @@ export default class extends PureComponent {
           onAdd={onAdd}
           disabled={deleteList.length === 0} />
         <ul>
-          {list.map(({ content, date }, index) => (
-            <ToDoItem
-              date={date}
-              key={date}
-              index={index}
-              onAddDetail={onAddDetail}>
-              {content}
-            </ToDoItem>
-          ))}
+          {list.map(({ content, date }, index) => {
+            console.log(1)
+            return (
+              <ToDoItem
+                date={date}
+                key={date}
+                index={index}
+                onAddDetail={onAddDetail}>
+                {content}
+              </ToDoItem>
+            )
+          })}
         </ul>
       </div>
     )
