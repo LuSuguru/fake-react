@@ -39,37 +39,30 @@ const { useState, useEffect, PureComponent, memo, useCallback } = React
 //   }
 // }
 
-const Input = memo((props) => {
-  console.log(1)
-  return (
-    <input {...props} />
-  )
-})
 
-const H1 = memo(({ test }) => (
-    <h1>{test}</h1>
-))
-
+function If({ visible, children }) {
+  if (visible) {
+    return children
+  }
+  return null
+}
 
 function Com() {
-  const [test1, setTest1] = useState(0)
-  const [test2, setTest2] = useState(0)
+  const [test, setTest] = useState('grapefruit')
 
-  const onChange1 = useCallback(({ target }) => {
-    setTest1(target.value)
-  }, [test1])
 
-  const onChange2 = useCallback(({ target }) => {
-    setTest2(target.value)
-  }, [test2])
+  const onChange = ({ target }) => {
+    setTest(target.value)
+  }
 
   return (
     <div>
-      123
-      <H1 test={test1} />
-      <h2 className="ceshi" style={{ color: 'red' }}>{test2}</h2>
-      <Input type="text" value={test1} onChange={onChange1} />
-      <Input type="text" value={test2} onChange={onChange2} />
+   <input type="text" value={test} onChange={onChange} />
+
+      <h2 className="ceshi" style={{ color: 'red' }}>{test}</h2>
+      <If visible={test === 'grapefruit'}>
+        {[1, 2, 3].map(name => <h1 key={name}>{name}</h1>)}
+      </If>
     </div>
   )
 }
