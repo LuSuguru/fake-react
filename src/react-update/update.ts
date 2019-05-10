@@ -1,4 +1,3 @@
-
 import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { DidCapture, ShouldCapture } from '../react-type/effect-type'
