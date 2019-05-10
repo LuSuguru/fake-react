@@ -19,7 +19,8 @@ export default class extends PureComponent {
     if (value) {
       newList.push({
         content: value,
-        date: formatDate('YYYY-MM-DD hh:mm:ss', new Date())
+        date: formatDate('YYYY-MM-DD hh:mm:ss', new Date()),
+        key: Date.now()
       })
       this.setState({ list: newList })
     }
@@ -38,7 +39,6 @@ export default class extends PureComponent {
       list: newList,
       deleteList: []
     })
-    // debugger
   }
 
   onAddDetail = (index, checked) => {
@@ -60,23 +60,21 @@ export default class extends PureComponent {
 
     return (
       <div className="todo-list">
+       <h1>Class Component Test</h1>
         <Input
           onDelete={onDelete}
           onAdd={onAdd}
           disabled={deleteList.length === 0} />
         <ul>
-          {list.map(({ content, date }, index) => {
-            console.log(1)
-            return (
-              <ToDoItem
-                date={date}
-                key={date}
-                index={index}
-                onAddDetail={onAddDetail}>
-                {content}
-              </ToDoItem>
-            )
-          })}
+          {list.map(({ content, date, key }, index) => (
+            <ToDoItem
+              date={date}
+              key={key}
+              index={index}
+              onAddDetail={onAddDetail}>
+              {content}
+            </ToDoItem>
+          ))}
         </ul>
       </div>
     )

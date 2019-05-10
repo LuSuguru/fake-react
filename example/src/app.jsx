@@ -19,9 +19,9 @@ function ToDoList() {
         const newList = list.slice()
         newList.push({
           content: value,
-          date: formatDate('YYYY-MM-DD hh:mm:ss', new Date())
+          date: formatDate('YYYY-MM-DD hh:mm:ss', new Date()),
+          key: Date.now()
         })
-
         return { list: newList }
       })
     }
@@ -56,16 +56,18 @@ function ToDoList() {
   }
 
   return (
+
     <div className="todo-list">
+      <h1>Function Component Test</h1>
       <Input
         onDelete={onDelete}
         onAdd={onAdd}
         disabled={state.deleteList.length === 0} />
       <ul>
-        {state.list.map(({ content, date }, index) => (
+        {state.list.map(({ content, date, key }, index) => (
           <ToDoItem
             date={date}
-            key={date}
+            key={key}
             index={index}
             onAddDetail={onAddDetail}>
             {content}
