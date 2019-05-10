@@ -17,6 +17,7 @@ export { createElement } from './react'
 export {
   useContext,
   useState,
+  useReducer,
   useRef,
   useEffect,
   useLayoutEffect,

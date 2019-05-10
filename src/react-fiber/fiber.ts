@@ -204,7 +204,7 @@ function createFiberFromTypeAndProps(type: any, key: null | string, pendingProps
     }
   }
 
-  const fiber = new Fiber(fiberTag, pendingProps, mode, key)
+  const fiber = new Fiber(fiberTag, pendingProps, key, mode)
   fiber.elementType = type
   fiber.type = resolvedType
   fiber.expirationTime = expirationTime

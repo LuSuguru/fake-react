@@ -16,6 +16,11 @@ function useState<S>(initialState: () => S | S) {
   return dispatcher.useState(initialState)
 }
 
+function useReducer<S, I, A>(reducer: (s: S, a: A) => S, initialArg: I, init?: (i: I) => S) {
+  const dispatcher = resolveDispatcher()
+  return dispatcher.useReducer(reducer, initialArg, init)
+}
+
 function useRef<T>(initialValue: T): { current: T } {
   const dispatcher = resolveDispatcher()
   return dispatcher.useRef(initialValue)
@@ -44,6 +49,7 @@ function useMemo(create: () => any, inputs: any[] | void | null) {
 export {
   useContext,
   useState,
+  useReducer,
   useRef,
   useEffect,
   useLayoutEffect,
