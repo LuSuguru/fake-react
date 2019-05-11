@@ -11,7 +11,8 @@
 - [x] 事件机制
 - [x] functoin component and hook
 - [x] diff 
-- [x] 一些常见的api，如memo,fragment等
+- [x] 一些常用的api，如memo,fragment等
+- [x] context 未测试
 
 ## 使用
 
