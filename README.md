@@ -1,6 +1,8 @@
 # fake-react
 
-基于官方 React 16.8.6 的源码并使用 TypeScript 仿写的 React，便于学习和掌握其原理
+基于官方 React 16.8.6 的源码并使用 TypeScript 实现的 React
+
+## 实现部分
 
 - [x] virtual DOM
 - [x] DOM render
@@ -12,13 +14,90 @@
 - [x] 一些常见的api，如memo,fragment等
 
 ## 使用
+
+### build
+
 ``` sh
   git clone https://github.com/LuSuguru/fake-react.git
 
-  yarn watch
-  yarn build
-
-  // test
-  cd example
-  yarn start
+  yarn watch 
+  yarn link 
 ````
+
+### test
+```sh
+  cd example
+
+  yarn link fake-react
+  yarn start
+```
+
+### class component
+``` javascript
+import { React, ReactDOM } from 'fake-react'
+
+const { PureComponent } = React
+
+class Test extends PureComponent {
+  state = {
+    test: ''
+  }
+
+  onChange = (e) => {
+    this.setState({ test: e.target.value })
+  }
+
+  componentDidMount() {
+    console.log('componentDidMount')
+  }
+
+  render() {
+    const { test } = this.state
+    const { onChange } = this
+
+    return (
+      <input type="text" value={test} onChange={onChange} />
+    )
+  }
+}
+
+ReactDOM.render(<Test />, document.getElementById('root'))
+```
+
+### function component
+``` javascript
+import { React, ReactDOM } from 'fake-react'
+
+const { memo, useCallback, useState } = React
+
+function Component() {
+  const [test, setTest] = useState('')
+
+  const onChange = useCallback((e) => {
+    setTest(e.target.value)
+  }, [])
+
+  return (
+    <input type="text" value={test} onChange={onChange} />
+  )
+}
+
+const Test = memo(Component)
+
+ReactDOM.render(<Test />, document.getElementById('root'))
+```
+
+## 为什么写这个
+
+在工作中自己平时一直使用 React 开发业务，使用的过程中经常会有困惑，然后便去看博客，查文档。照着别人的分析文写一个简易版的，貌似已经掌握它了？
+
+渐渐地，我发现自己只懂了那套皮毛概念和很零散的原理，哦！它使用了vDOM，有diff算法，列表渲染使用key的原因，setState是异步的，有自己实现的一套事件机制等。但是它是如何实现事件机制的，setState的过程，异步的原因等，依然不知。
+
+索性，就看它源码吧！相信有了一个系统的研究后，疑问会少很多。嗯，fork仓库，clone下来，刷。磕磕绊绊了1个半月，虽然很多地方啃起来都无比艰辛，但总算是全部啃完。
+
+开这个项目的初衷也是为了记录自己的源码阅读过程，现在基本实现了 React 16.8的90%功能（部分未测），便于自己学习研究和掌握其原理
+
+## 接下来要做
+
+输出自己的看源码过程中的心得和理解，然后，继续变强
+
