@@ -15,12 +15,11 @@ function getPublicRootInstance(container: FiberRoot): any {
   return containerFiber.child.stateNode
 }
 
-function updateContainerAtExpirationTime(
-  element: ReactNodeList,
-  container: FiberRoot,
-  expirationTime: ExpirationTime,
-  callback?: Function,
-) {
+function createContainer(container: Element, isConcurrent: boolean): FiberRoot {
+  return new FiberRoot(container, isConcurrent)
+}
+
+function updateContainerAtExpirationTime(element: ReactNodeList, container: FiberRoot, expirationTime: ExpirationTime, callback?: Function) {
   const { current } = container
 
   const update = new Update<any>(expirationTime, UpdateState, { element }, callback)
@@ -30,15 +29,7 @@ function updateContainerAtExpirationTime(
   scheduleWork(current, expirationTime)
 }
 
-function createContainer(container: Element, isConcurrent: boolean): FiberRoot {
-  return new FiberRoot(container, isConcurrent)
-}
-
-function updateContainer(
-  element: ReactNodeList,
-  container: FiberRoot,
-  callback?: Function,
-) {
+function updateContainer(element: ReactNodeList, container: FiberRoot, callback?: Function) {
   const { current } = container
 
   const currentTime: ExpirationTime = requestCurrentTime()

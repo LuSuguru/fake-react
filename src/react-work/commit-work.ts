@@ -294,7 +294,6 @@ function commitWork(_current: Fiber, finishedWork: Fiber) {
     case IncompleteClassComponent: {
       return
     }
-
   }
 }
 
