@@ -55,7 +55,7 @@ let nestedUpdateCount: number = 0
 let lastCommittedRootDuringThisBatch: FiberRoot = null
 
 let callbackExpirationTime: ExpirationTime = NoWork // 异步记录时间
-let callbackID: CallbackNode
+let callbackID: CallbackNode // 异步回调对象
 
 let isRendering: boolean = false
 let isWorking: boolean = false
@@ -74,9 +74,13 @@ let isBatchingInteractiveUpdates: boolean = false
 
 let completedBatches: Batch[] = null
 
-function recomputeCurrentRendererTime() {
+function recomputeCurrentRendererTime(canUpdateSchedulerTime: boolean) {
   const currentTimeMs: number = now() - originalStartTimeMs
   currentRendererTime = msToExpirationTime(currentTimeMs)
+
+  if (canUpdateSchedulerTime) {
+    currentSchedulerTime = currentRendererTime
+  }
 }
 
 // 一条需要调度的 FiberRoot 链表
@@ -104,9 +108,9 @@ let rootWithPendingPassiveEffects: FiberRoot = null
 let passiveEffectCallbackHandle: any = null
 let passiveEffectCallback: any = null
 
-let legacyErrorBoundariesThatAlreadyFailed: Set<any> = null
-
 let eventsEnabled: boolean = false
+
+const legacyErrorBoundariesThatAlreadyFailed: Set<any> = null
 
 function resetStack() {
   if (nextUnitOfWork !== null) {
@@ -325,8 +329,7 @@ function requestCurrentTime(): ExpirationTime {
   findHighestPriorityRoot()
 
   if (nextFlushedExpirationTime === NoWork || nextFlushedExpirationTime === Never) {
-    recomputeCurrentRendererTime()
-    currentSchedulerTime = currentRendererTime
+    recomputeCurrentRendererTime(true)
     return currentSchedulerTime
   }
 
@@ -460,8 +463,9 @@ function scheduleCallbackWithExpirationTime(expirationTime: ExpirationTime) {
 
 function performAsyncWork(didTimeout: boolean) {
   if (didTimeout) {
+    // 当前已到期，更新优先级大于当前时间的 FiberRoot
     if (firstScheduledRoot !== null) {
-      recomputeCurrentRendererTime()
+      recomputeCurrentRendererTime(false)
 
       let root: FiberRoot = firstScheduledRoot
       do {
@@ -477,25 +481,25 @@ function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
   findHighestPriorityRoot()
 
   if (isYieldy) { // 异步
-    recomputeCurrentRendererTime()
-    currentSchedulerTime = currentRendererTime
+    recomputeCurrentRendererTime(true)
 
     while (
       nextFlushedRoot !== null
       && nextFlushedExpirationTime !== NoWork
       && minExpirationTime <= nextFlushedExpirationTime
-      && !(shouldYield() && currentRendererTime > nextFlushedExpirationTime)) {
-
+      && currentRendererTime <= nextFlushedExpirationTime
+      && !shouldYield()
+    ) {
       performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, currentRendererTime > nextFlushedExpirationTime)
       findHighestPriorityRoot()
-      recomputeCurrentRendererTime()
-      currentSchedulerTime = currentRendererTime
+      recomputeCurrentRendererTime(true)
     }
   } else { // 同步
     while (
       nextFlushedRoot !== null
       && nextFlushedExpirationTime
-      && minExpirationTime <= nextFlushedExpirationTime) {
+      && minExpirationTime <= nextFlushedExpirationTime
+    ) {
       performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, false)
       findHighestPriorityRoot()
     }
@@ -615,6 +619,28 @@ function resetAfterCommit(_containerInfo: Container) {
   eventsEnabled = false
 }
 
+function commitTask(task: Function, firstEffect: Fiber) {
+  nextEffect = firstEffect
+
+  while (nextEffect !== null) {
+    let didError = false
+    let error: Error
+
+    try {
+      task()
+    } catch (e) {
+      didError = true
+      error = e
+      console.error(error)
+    }
+    if (didError) {
+      if (nextEffect !== null) {
+        nextEffect = nextEffect.nextEffect
+      }
+    }
+  }
+}
+
 function commitRoot(root: FiberRoot, finishedWork: Fiber) {
   isWorking = true
   isCommitting = true
@@ -638,74 +664,18 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
   }
 
   prepareForCommit(root.containerInfo)
-  nextEffect = firstEffect
-  while (nextEffect !== null) {
-    let didError = false
-    let error: Error
 
-    try {
-      commitBeforeMutationLifecycles()
-    } catch (e) {
-      didError = true
-      error = e
-      console.error(error)
-    }
-    if (didError) {
-      // captureCommitPhaseError(nextEffect, error)
+  commitTask(commitBeforeMutationLifecycles, firstEffect)
 
-      if (nextEffect !== null) {
-        nextEffect = nextEffect.nextEffect
-      }
-    }
-  }
-
-  nextEffect = firstEffect
-  while (nextEffect !== null) {
-    let didError: boolean = false
-    let error: Error
-
-    try {
-      commitAllHostEffects()
-    } catch (e) {
-      didError = true
-      error = e
-      console.error(error)
-    }
-
-    if (didError) {
-      // captureCommitPhaseError(nextEffect, error)
-
-      if (nextEffect !== null) {
-        nextEffect = nextEffect.nextEffect
-      }
-    }
-  }
-
+  // 第一阶段，提交 dom 的操作
+  commitTask(commitAllHostEffects, firstEffect)
   resetAfterCommit(root.containerInfo)
 
+  // 第二阶段，更新生命周期，ref
   root.current = finishedWork
+  commitTask(commitAllLifeCycles.bind(null, root), firstEffect)
 
-  nextEffect = firstEffect
-  while (nextEffect !== null) {
-    let didError = false
-    let error: Error
-
-    try {
-      commitAllLifeCycles(root)
-    } catch (e) {
-      didError = true
-      error = e
-      console.error(error)
-    }
-    if (didError) {
-      // captureCommitPhaseError(nextEffect, error)
-
-      if (nextEffect !== null) {
-        nextEffect = nextEffect.nextEffect
-      }
-    }
-  }
-
+  // useEffect 放到下一个 event loop 调用
   if (firstEffect !== null && rootWithPendingPassiveEffects !== null) {
     const callback = commitPassiveEffects.bind(null, root, firstEffect)
     passiveEffectCallbackHandle = scheduleDeferredCallback(callback)
@@ -714,12 +684,6 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
 
   isCommitting = false
   isWorking = false
-
-  const earliestRemainingTimeAfterCommit = finishedWork.expirationTime > finishedWork.childExpirationTime ? finishedWork.expirationTime : finishedWork.childExpirationTime
-
-  if (earliestRemainingTimeAfterCommit === NoWork) {
-    legacyErrorBoundariesThatAlreadyFailed = null
-  }
 
   root.expirationTime = earliestRemainingTimeAfterCommit
   root.finishedWork = null

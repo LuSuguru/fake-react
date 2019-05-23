@@ -245,6 +245,8 @@ function scheduleDeferredCallback(callback: Function, options?: any): CallbackNo
   return newNode
 }
 
+// 是否需要中断
+// 时间片未超时但下一个任务已过期
 function shouldYield() {
   return (
     !currentDidTimeout &&
