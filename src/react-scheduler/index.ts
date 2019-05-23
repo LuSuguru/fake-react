@@ -372,7 +372,6 @@ function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): Fiber
   return root
 }
 
-
 function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
   const root: FiberRoot = scheduleWorkToRoot(fiber, expirationTime)
 
@@ -842,6 +841,8 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
   flushPassiveEffects()
 
   isWorking = true
+
+  // 清空对 hook 的引用
   const previousDispatcher = ReactCurrentDispatcher.current
   ReactCurrentDispatcher.current = HooksDispatcherOnEmpty
 
