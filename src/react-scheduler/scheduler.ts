@@ -32,11 +32,12 @@ let currentDidTimeout: boolean = false
 
 let currentPriorityLevel: number = NormalPriority
 let currentExpirationTime: number = 0
+
 const currentEventStartTime: number = 0
 
-let isExecutingCallback: boolean = false
+let isExecutingCallback: boolean = false // 是否正在工作中的 flag
 
-let isHostCallbackScheduled: boolean = false
+let isHostCallbackScheduled: boolean = false // 是否初始状态的 flag
 
 function ensureHostCallbackIsScheduled() {
   if (isExecutingCallback) {
@@ -245,7 +246,11 @@ function scheduleDeferredCallback(callback: Function, options?: any): CallbackNo
 }
 
 function shouldYield() {
-  return (!currentDidTimeout && ((firstCallbackNode !== null && firstCallbackNode.expirationTime < currentExpirationTime) || shouldYieldToHost()))
+  return (
+    !currentDidTimeout &&
+    ((firstCallbackNode !== null && firstCallbackNode.expirationTime < currentExpirationTime) ||
+      shouldYieldToHost())
+  )
 }
 
 export {
