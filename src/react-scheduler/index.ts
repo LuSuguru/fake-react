@@ -27,6 +27,7 @@ import {
   Placement,
   PlacementAndUpdate,
   Ref,
+  SideEffectTag,
   Snapshot,
   Update,
 } from '../react-type/effect-type'
@@ -627,7 +628,10 @@ function commitTask(task: Function, firstEffect: Fiber) {
     let error: Error
 
     try {
-      task()
+      while (nextEffect !== null) {
+        task(nextEffect.effectTag)
+        nextEffect = nextEffect.nextEffect
+      }
     } catch (e) {
       didError = true
       error = e
@@ -739,76 +743,62 @@ function commitPassiveEffects(root: FiberRoot, firstEffect: Fiber) {
   }
 }
 
-function commitAllLifeCycles(finishedRoot: FiberRoot) {
-  while (nextEffect !== null) {
-    const { effectTag } = nextEffect
+function commitAllLifeCycles(finishedRoot: FiberRoot, effectTag: SideEffectTag) {
+  if (effectTag & (Update | Callback)) {
+    const current = nextEffect.alternate
+    commitLifeCycles(current, nextEffect)
+  }
 
-    if (effectTag & (Update | Callback)) {
-      const current = nextEffect.alternate
-      commitLifeCycles(current, nextEffect)
-    }
+  if (effectTag & Ref) {
+    commitAttachRef(nextEffect)
+  }
 
-    if (effectTag & Ref) {
-      commitAttachRef(nextEffect)
-    }
-
-    if (effectTag & Passive) {
-      rootWithPendingPassiveEffects = finishedRoot
-    }
-    nextEffect = nextEffect.nextEffect
+  if (effectTag & Passive) {
+    rootWithPendingPassiveEffects = finishedRoot
   }
 }
 
-function commitAllHostEffects() {
-  while (nextEffect !== null) {
-    const { effectTag } = nextEffect
+function commitAllHostEffects(effectTag: SideEffectTag) {
+  if (effectTag & ContentReset) {
+    commitResetTextContent(nextEffect)
+  }
 
-    if (effectTag & ContentReset) {
-      commitResetTextContent(nextEffect)
+  if (effectTag & Ref) {
+    const current = nextEffect.alternate
+    if (current !== null) {
+      commitDetachRef(nextEffect)
     }
+  }
 
-    if (effectTag & Ref) {
-      const current = nextEffect.alternate
-      if (current !== null) {
-        commitDetachRef(nextEffect)
-      }
+  const primaryEffectTag = effectTag & (Placement | Update | Deletion)
+  switch (primaryEffectTag) {
+    case Placement: {
+      commitPlacement(nextEffect)
+      nextEffect.effectTag &= ~Placement // 清除placemenet
+      break
     }
+    case PlacementAndUpdate: {
+      commitPlacement(nextEffect)
+      nextEffect.effectTag &= ~Placement
 
-    const primaryEffectTag = effectTag & (Placement | Update | Deletion)
-    switch (primaryEffectTag) {
-      case Placement: {
-        commitPlacement(nextEffect)
-        nextEffect.effectTag &= ~Placement // 清除placemenet
-        break
-      }
-      case PlacementAndUpdate: {
-        commitPlacement(nextEffect)
-        nextEffect.effectTag &= ~Placement
-
-        commitWork(nextEffect.alternate, nextEffect)
-        break
-      }
-      case Update: {
-        commitWork(nextEffect.alternate, nextEffect)
-        break
-      }
-      case Deletion: {
-        commitDeletion(nextEffect)
-        break
-      }
+      commitWork(nextEffect.alternate, nextEffect)
+      break
     }
-    nextEffect = nextEffect.nextEffect
+    case Update: {
+      commitWork(nextEffect.alternate, nextEffect)
+      break
+    }
+    case Deletion: {
+      commitDeletion(nextEffect)
+      break
+    }
   }
 }
 
-function commitBeforeMutationLifecycles() {
-  while (nextEffect !== null) {
-    const { effectTag } = nextEffect
-    if (effectTag & Snapshot) {
-      const current = nextEffect.alternate
-      commitBeforeMutationLifecycle(current, nextEffect)
-    }
-    nextEffect = nextEffect.nextEffect
+function commitBeforeMutationLifecycles(effectTag: SideEffectTag) {
+  if (effectTag & Snapshot) {
+    const current = nextEffect.alternate
+    commitBeforeMutationLifecycle(current, nextEffect)
   }
 }
 
