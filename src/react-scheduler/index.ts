@@ -110,7 +110,7 @@ let passiveEffectCallback: any = null
 
 let eventsEnabled: boolean = false
 
-const legacyErrorBoundariesThatAlreadyFailed: Set<any> = null
+let legacyErrorBoundariesThatAlreadyFailed: Set<any> = null
 
 function resetStack() {
   if (nextUnitOfWork !== null) {
@@ -634,6 +634,8 @@ function commitTask(task: Function, firstEffect: Fiber) {
       console.error(error)
     }
     if (didError) {
+      // captureCommitPhaseError(nextEffect, error)
+
       if (nextEffect !== null) {
         nextEffect = nextEffect.nextEffect
       }
@@ -684,6 +686,12 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
 
   isCommitting = false
   isWorking = false
+
+  const earliestRemainingTimeAfterCommit = finishedWork.expirationTime > finishedWork.childExpirationTime ? finishedWork.expirationTime : finishedWork.childExpirationTime
+
+  if (earliestRemainingTimeAfterCommit === NoWork) {
+    legacyErrorBoundariesThatAlreadyFailed = null
+  }
 
   root.expirationTime = earliestRemainingTimeAfterCommit
   root.finishedWork = null
