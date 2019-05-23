@@ -68,8 +68,8 @@ let currentSchedulerTime: ExpirationTime = currentRendererTime
 
 const expirationContext: ExpirationTime = NoWork
 
-let isBatchingUpdates: boolean = false
-let isUnbatchingUpdates: boolean = false
+let isBatchingUpdates: boolean = false // 批量更新的 flag
+let isUnbatchingUpdates: boolean = false // 关闭批量更新的 flag
 let isBatchingInteractiveUpdates: boolean = false
 
 let completedBatches: Batch[] = null
@@ -79,11 +79,12 @@ function recomputeCurrentRendererTime() {
   currentRendererTime = msToExpirationTime(currentTimeMs)
 }
 
+// 一条需要调度的 FiberRoot 链表
 let firstScheduledRoot: FiberRoot = null
 let lastScheduledRoot: FiberRoot = null
 
-let nextFlushedRoot: FiberRoot = null
-let nextFlushedExpirationTime: ExpirationTime = NoWork
+let nextFlushedRoot: FiberRoot = null // 当前需要调和的 FiberRoot
+let nextFlushedExpirationTime: ExpirationTime = NoWork // 全局过期时间
 let lowestPriorityPendingInteractiveExpirationTime: ExpirationTime = NoWork
 
 let hasUnhandledError: boolean = false
@@ -253,6 +254,7 @@ function resetChildExpirationTime(workInProgress: Fiber, renderTime: ExpirationT
   workInProgress.childExpirationTime = newChildExpiration
 }
 
+// 遍历scheduleRoot 链表，清除掉已经完成调和的FiberRoot，找出当前优先级最高的 FiberRoot
 function findHighestPriorityRoot() {
   let highestPriorityWork: ExpirationTime = NoWork
   let highestPriorityRoot: FiberRoot = null
@@ -328,6 +330,9 @@ function requestCurrentTime(): ExpirationTime {
   return currentSchedulerTime
 }
 
+// 更新当前 Fiber的 expirationTime
+// 从当前往上遍历，找到 FiberRoot
+// 每个遍历过的 Fiber 都更新其 childExpirationTime
 function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): FiberRoot {
   let alternate: Fiber = fiber.alternate
 
@@ -409,6 +414,8 @@ function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
   }
 }
 
+// 将当前 FiberRoot 加到 scheduleRoot 链表中
+// 如果已在链表中，更新 expirationTime
 function addRootToSchedule(root: FiberRoot, expirationTime: ExpirationTime) {
   if (root.nextScheduledRoot === null) {
     root.expirationTime = expirationTime
@@ -483,7 +490,10 @@ function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
       currentSchedulerTime = currentRendererTime
     }
   } else { // 同步
-    while (nextFlushedRoot !== null && nextFlushedExpirationTime && minExpirationTime <= nextFlushedExpirationTime) {
+    while (
+      nextFlushedRoot !== null
+      && nextFlushedExpirationTime
+      && minExpirationTime <= nextFlushedExpirationTime) {
       performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, false)
       findHighestPriorityRoot()
     }
