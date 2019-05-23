@@ -43,8 +43,10 @@ function markCommittedPriorityLevels(root: FiberRoot, earliestRemainingTime: Exp
   if (earliestRemainingTime === NoWork) {
     root.earliestPendingTime = NoWork
     root.latestPendingTime = NoWork
+
     root.earliestSuspendedTime = NoWork
     root.latestSuspendedTime = NoWork
+
     root.latestPingedTime = NoWork
     findNextExpirationTimeToWorkOn(root, NoWork)
     return
@@ -75,6 +77,7 @@ function markCommittedPriorityLevels(root: FiberRoot, earliestRemainingTime: Exp
   if (earliestRemainingTime < latestSuspendedTime) {
     root.earliestSuspendedTime = NoWork
     root.latestSuspendedTime = NoWork
+
     root.latestPingedTime = NoWork
 
     markPendingPriorityLevel(root, earliestRemainingTime)

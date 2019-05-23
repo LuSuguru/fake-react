@@ -1,7 +1,6 @@
 import { popProvider } from '../react-context/fiber-context'
 import { getHostContext, getRootHostContainer, popHostContainer, popHostContext } from '../react-context/host-context'
 import { Container, createInstance, createTextInstance, diffProperties, finalizeInitialChildren } from '../react-dom/dom/dom-component'
-import { ExpirationTime } from '../react-fiber/expiration-time'
 import { Fiber } from '../react-fiber/fiber'
 import { DidCapture, NoEffect, Placement, Ref, Update } from '../react-type/effect-type'
 import {

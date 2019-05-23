@@ -16,12 +16,15 @@ class FiberRoot {
   pendingChildren: any = null
   current: Fiber
 
+  // 最老和最新的被挂起的任务
   earliestSuspendedTime: ExpirationTime = NoWork
   latestSuspendedTime: ExpirationTime = NoWork
 
+  // 最老和最新的不确定是否挂起的任务
   earliestPendingTime: ExpirationTime = NoWork
   latestPendingTime: ExpirationTime = NoWork
 
+  //
   latestPingedTime: ExpirationTime = NoWork
 
   pingCache: any = null
@@ -30,6 +33,7 @@ class FiberRoot {
 
   pendingCommitExpirationTime: ExpirationTime = NoWork
 
+  // 完成render后的 fiber 树
   finishedWork: Fiber = null
 
   timeoutHandle: number = noTimeout

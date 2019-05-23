@@ -3,7 +3,7 @@ import { isFunction, isNumber } from '../utils/getType'
 import { isObject } from '../utils/getType'
 import { cancelHostCallback, requestHostCallback, shouldYieldToHost } from './config'
 
-interface CallbackNode {
+export interface CallbackNode {
   previous: CallbackNode,
   next: CallbackNode,
   callback: Function,

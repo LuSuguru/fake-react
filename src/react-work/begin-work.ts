@@ -30,7 +30,7 @@ import { isEmpty, isFunction } from '../utils/getType'
 import { shallowEqual } from '../utils/lib'
 import { cloneChildFiber, mountChildFibers, reconcileChildFibers, reconcileChildren } from './child-work'
 
-let didReceiveUpdate: boolean = false
+let didReceiveUpdate: boolean = false // 是否需要更新的 flag
 function markWorkInProgressReceivedUpdate() {
   didReceiveUpdate = true
 }
@@ -48,6 +48,8 @@ function bailoutOnAlreadyFinishedWork(current: Fiber, workInProgress: Fiber, ren
   }
 
   const { childExpirationTime } = workInProgress
+
+  // 判断子树是否需要更新，不需要直接进入complete阶段
   if (childExpirationTime < renderExpirationTime) {
     return null
   } else {
@@ -392,6 +394,9 @@ function updateContextConsumer(current: Fiber, workInProgress: Fiber, renderExpi
 function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
   const updateExpirationTime = workInProgress.expirationTime
 
+  // 判断是否需要更新，不需要的话直接跳过
+  // 1. 新旧 props 是否相等
+  // 2. 优先级是否较低
   if (current !== null) {
     const oldProps = current.memoizedProps
     const newProps = workInProgress.pendingProps
@@ -426,7 +431,7 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
     didReceiveUpdate = false
   }
 
-  workInProgress.expirationTime = NoWork
+  workInProgress.expirationTime = NoWork // 将当前 fiber 的更新时间清零
 
   switch (workInProgress.tag) {
     case IndeterminateComponent: {

@@ -48,14 +48,14 @@ import { completeWork } from '../react-work/complete-work'
 import { throwException, unwindInterruptedWork, unwindWork } from '../react-work/unwind-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
 import { didExpireAtExpirationTime, markCommittedPriorityLevels, markPendingPriorityLevel } from './pending-priority'
-import { cancelDeferredCallback, scheduleDeferredCallback, shouldYield } from './scheduler'
+import { CallbackNode, cancelDeferredCallback, scheduleDeferredCallback, shouldYield } from './scheduler'
 
 const NESTED_UPDATE_LIMIT: number = 50
 let nestedUpdateCount: number = 0
 let lastCommittedRootDuringThisBatch: FiberRoot = null
 
-let callbackExpirationTime: ExpirationTime = NoWork
-let callbackID: any
+let callbackExpirationTime: ExpirationTime = NoWork // 异步记录时间
+let callbackID: CallbackNode
 
 let isRendering: boolean = false
 let isWorking: boolean = false
@@ -90,9 +90,11 @@ let lowestPriorityPendingInteractiveExpirationTime: ExpirationTime = NoWork
 let hasUnhandledError: boolean = false
 let unhandledError: any = null
 
+// render阶段的三个指针
 let nextRoot: FiberRoot = null
 let nextUnitOfWork: Fiber = null
 let nextRenderExpirationTime: ExpirationTime = NoWork
+
 let nextLatestAbsoluteTimeoutMs: number = -1
 let nextRenderDidError: boolean = false
 
@@ -231,7 +233,8 @@ function computeExpirationTimeForFiber(currentTime: ExpirationTime, fiber: Fiber
   return expirationTime
 }
 
-function resetChildExpirationTime(workInProgress: Fiber, renderTime: ExpirationTime) {
+// 更新当前节点的 childExpirationTime
+function updateChildExpirationTime(workInProgress: Fiber, renderTime: ExpirationTime) {
   if (renderTime !== Never && workInProgress.childExpirationTime === Never) { // 子节点hidden的，直接跳过
     return
   }
@@ -848,6 +851,10 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
 
   const expirationTime = root.nextExpirationTimeToWorkOn
 
+  // 上一个任务因为时间片用完了而中断了，这个时候 nextUnitOfWork 是有工作的，
+  // 这时候如果下一个 requestIdleCallback 进来了，中途没有新的任务进来，那么这些全局变量都没有变过
+  // root 的 nextExpirationTimeToWorkOn 肯定也没有变化，那么代表是继续上一次的任务
+  // 而如果有新的更新进来，则势必 nextExpirationTimeToWorkOn 或者 root 会变化，那么肯定需要重置变量
   if (expirationTime !== nextRenderExpirationTime || root !== nextRoot || nextUnitOfWork === null) {
     resetStack()
 
@@ -954,12 +961,13 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber {
 
     if ((workInProgress.effectTag & Incomplete) === NoEffect) {
       nextUnitOfWork = completeWork(current, workInProgress)
-      resetChildExpirationTime(workInProgress, nextRenderExpirationTime)
+      updateChildExpirationTime(workInProgress, nextRenderExpirationTime)
 
       if (nextUnitOfWork !== null) {
         return nextUnitOfWork
       }
 
+      // 将需要 commit 的 fiber 集成链表放在当前 fiber 的 firstEffect 上
       if (returnFiber !== null && (returnFiber.effectTag & Incomplete) === NoEffect) {
         if (returnFiber.firstEffect === null) {
           returnFiber.firstEffect = workInProgress.firstEffect
