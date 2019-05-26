@@ -2,6 +2,9 @@
 
 基于官方 React 16.8.6 的源码并使用 TypeScript 实现的 React
 
+## 源码解析系列
+1. [源码解析一 创建元素](./doc/create-element.md)
+
 ## 实现部分
 
 - [x] Fiber
@@ -87,9 +90,6 @@ const Test = memo(Component)
 
 ReactDOM.render(<Test />, document.getElementById('root'))
 ```
-
-## 源码解析系列
-1. [源码解析一 创建元素](./doc/create-element.md)
 
 ## 为什么写这个
 
