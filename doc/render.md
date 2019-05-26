@@ -103,7 +103,7 @@ function updateContainer(element: ReactNodeList, container: FiberRoot, callback?
 ```
 
 ### callback 的处理
-`ReactDOM.render()` 还接受一个函数作为第三个参数用于渲染成功后执行，看上面源码，首先我们会重新给它包一层，使它可以用 FiberRoot 作为参数。重点在 ReactRoot 的实现中，这里，我们先创建一个 ReactWork 对象，将每个 callback 注册到这个对象上，然后把触发函数传入 `updateContainer()`，将其塞入到 update 对象中，在调度结束后被调用
+`ReactDOM.render()` 还接受一个函数作为第三个参数用于渲染成功后执行，看上面源码，首先我们会重新给它包一层，使它可以接受 FiberRoot 作为参数。重点在 ReactRoot 的实现中，这里，我们先创建一个 ReactWork 对象，将每个 callback 注册到这个对象上，然后把触发函数传入 `updateContainer()`，将其塞入到 update 对象中，在调度结束后被调用
 
 ``` javascript
 class ReactWork {
