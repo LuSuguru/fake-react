@@ -4,7 +4,7 @@
 
 ## 实现部分
 
-- [x] virtual DOM
+- [x] Fiber
 - [x] DOM render
 - [x] Fiber Reconciler
 - [x] class component and setState
@@ -87,6 +87,9 @@ const Test = memo(Component)
 
 ReactDOM.render(<Test />, document.getElementById('root'))
 ```
+
+## 源码解析系列
+1. [源码解析一 创建元素](./doc/create-element.md)
 
 ## 为什么写这个
 
