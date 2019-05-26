@@ -51,10 +51,10 @@ const ReactDOM = {
 ## ReactRoot
 整个 render 的核心，就在于 ReactRoot，继续研究它的实现，在它的构造函数中，又生成了一个 FiberRoot。这里可能刚开始理解都会很困惑，为什么会有两个 Root？
 
-1. ReactRoot 是相对于整个 ReactDOM 而言，侧重更新和渲染，
+1. ReactRoot 是相对于整个 ReactDOM 而言，侧重更新和渲染
 2. FiberRoot，是相对于整个 fiber 架构来说，是整个 Fiber树 的根节点，主要起的是调度整个 Fiber树 的作用
 
-生成 FiberRoot 后，我们调用了 `updateContainer()`，这里才是真正开始渲染的入口，他做了3件事
+生成 FiberRoot 后，我们调用了 `updateContainer()`，这里才是真正开始渲染的入口，他做了3件事：
 1. 更新调度器的当前时间，并获得当前节点的过期时间 expirationTime
 2. 通过 ReactDOM.render() 传入的React Element 和 callback 生成一个 update 对象
 3. 传入过期时间和更新对象，调用 scheduleWork 启动一个调度任务
