@@ -56,7 +56,7 @@ const ReactDOM = {
 
 生成 FiberRoot 后，我们调用了 `updateContainer()`，这里才是真正开始渲染的入口，他做了3件事：
 1. 更新调度器的当前时间，并获得当前节点的过期时间 expirationTime
-2. 通过 ReactDOM.render() 传入的React Element 和 callback 生成一个 update 对象
+2. 通过 `ReactDOM.render()` 传入的React Element 和 callback 生成一个 update 对象
 3. 传入过期时间和更新对象，调用 scheduleWork 启动一个调度任务
 
 ``` javascript
@@ -103,7 +103,7 @@ function updateContainer(element: ReactNodeList, container: FiberRoot, callback?
 ```
 
 ### callback 的处理
-ReactDOM.render() 还接受一个函数作为第三个参数用于渲染成功后执行，看上面源码，首先我们会重新给它包一层，使它可以用 FiberRoot 作为参数。重点在 ReactRoot 的实现中，这里，我们先创建一个 ReactWork 对象，将每个 callback 注册到这个对象上，然后把触发函数传入 `updateContainer()`，将其塞入到 update 对象中，在调度结束后被调用
+`ReactDOM.render()` 还接受一个函数作为第三个参数用于渲染成功后执行，看上面源码，首先我们会重新给它包一层，使它可以用 FiberRoot 作为参数。重点在 ReactRoot 的实现中，这里，我们先创建一个 ReactWork 对象，将每个 callback 注册到这个对象上，然后把触发函数传入 `updateContainer()`，将其塞入到 update 对象中，在调度结束后被调用
 
 ``` javascript
 class ReactWork {
