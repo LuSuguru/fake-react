@@ -4,6 +4,7 @@
 
 ## 源码解析系列
 1. [源码解析一 创建元素](./doc/create-element.md)
+2. [源码解析二 ReactDOM.render() 从入口说起](./doc/render.md)
 
 ## 实现部分
 
