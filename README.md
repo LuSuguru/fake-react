@@ -2,9 +2,13 @@
 
 基于官方 React 16.8.6 的源码并使用 TypeScript 实现的 React
 
+## 源码解析系列
+1. [源码解析一 创建元素](./doc/create-element.md)
+2. [源码解析二 ReactDOM.render() 从入口说起](./doc/render.md)
+
 ## 实现部分
 
-- [x] virtual DOM
+- [x] Fiber
 - [x] DOM render
 - [x] Fiber Reconciler
 - [x] class component and setState

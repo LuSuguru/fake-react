@@ -8,6 +8,11 @@ export interface ReactElement {
   props: any
 }
 
+/**
+ * @param type 标签名
+ * @param config jsx 元素上的属性
+ * @param children 子元素
+ */
 function createElement(type: any, config: any = {}, ...children: any[]): ReactElement {
   const {
     key = null,

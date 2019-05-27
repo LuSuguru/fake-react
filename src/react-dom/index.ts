@@ -24,6 +24,7 @@ function renderSubtreeIntoContainer(children: any, container: any, callback?: Fu
     isMount = true
   }
 
+   // 重新封装callback
   if (isFunction(callback)) {
     const originalCallback = callback
 
