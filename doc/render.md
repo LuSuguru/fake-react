@@ -1,5 +1,5 @@
-# 源码解析四 ReactDOM.render() 从入口说起
-当调用`ReactDOM.render()`时，先去除容器的里一些DOM元素，保证它是一个空节点，然后生成了一个 ReactRoot 对象，这个对象里封装了渲染、卸载两个方法。源码如下：
+# 源码解析四`ReactDOM.render()`从入口说起
+当调用`ReactDOM.render()`时，先去除容器的里一些DOM元素，保证它是一个空节点，然后生成了一个`ReactRoot`对象，这个对象里封装了渲染、卸载两个方法。源码如下：
 
 ``` javascript
 function createRootFromContainer(container: any): ReactRoot {
@@ -49,15 +49,16 @@ const ReactDOM = {
 ```
 
 ## ReactRoot
-整个 render 的核心，就在于 ReactRoot，继续研究它的实现，在它的构造函数中，又生成了一个 FiberRoot。这里可能刚开始理解都会很困惑，为什么会有两个 Root？
+整个`render`的核心，就在于`ReactRoot`，继续研究它的实现，在它的构造函数中，又生成了一个`FiberRoot`。这里可能刚开始理解都会很困惑，为什么会有两个`Roo`？
 
-1. ReactRoot 是相对于整个 ReactDOM 而言，侧重更新和渲染
-2. FiberRoot 是相对于整个 fiber 架构来说，是整个 Fiber树的根节点，主要起的是调度整个 Fiber树的作用
+- `ReactRoot`是相对于整个`ReactDOM`而言，侧重更新和渲染
+- `FiberRoot`是相对于整个`fiber reconciler`来说，是整个`Fiber`树的根节点，主要起的是调度整个`Fiber`树的作用
 
-生成 FiberRoot 后，我们调用了 `updateContainer()`，这里才是真正开始渲染的入口，他做了3件事：
-1. 更新调度器的当前时间，并获得当前节点的过期时间 expirationTime
-2. 通过 `ReactDOM.render()` 传入的 React Element 和 callback 生成一个 update (更新单元)
-3. 传入优先级和更新对象，调用 scheduleWork 启动一个调度任务
+生成`FiberRoot`后，我们调用了`updateContainer()`，这里才是真正开始渲染的入口，
+无论是`ReactDOM.render`,还是`setState`，在或者`hook`，它们都做了3件事：
+1. 更新调度器的当前优先级，并获得当前`Fiber`优先级
+2. 生成一个更新单元`update`，并把它插到更新队列的尾端。这里是通过`ReactDOM.render()`传入的`React Element`和`callback`
+3. 通过`update`和`expirationTime`调用`scheduleWork`启动一个调度任务
 
 ``` javascript
 class ReactRoot {
@@ -103,7 +104,7 @@ function updateContainer(element: ReactNodeList, container: FiberRoot, callback?
 ```
 
 ### callback 的处理
-`ReactDOM.render()` 还接受一个函数作为第三个参数用于渲染成功后执行，看上面源码，首先我们会重新给它包一层，使它可以接受 FiberRoot 作为参数。重点在 ReactRoot 的实现中，这里，我们先创建一个 ReactWork 对象，将每个 callback 注册到这个对象上，然后把触发函数传入 `updateContainer()`，将其塞入到 update 对象中，在调度结束后被调用
+`ReactDOM.render()`还接受一个函数作为第三个参数用于渲染成功后执行，看上面源码，首先我们会重新给它包一层，使它可以接受`FiberRoot`作为参数。重点在`ReactRoot`的实现中，这里，我们先创建一个`ReactWork`对象，将每个`callback`注册到这个对象上，然后把触发函数传入`updateContainer()`，将其塞入到`update`中，在调度结束后被调用
 
 ``` javascript
 class ReactWork {

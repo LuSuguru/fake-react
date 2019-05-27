@@ -26,7 +26,7 @@ Fiber 出来之后，新的调和系统称为 fiber reconciler，为了识别，
 将整个树结构用链表来实现，每个节点都记录了跟它有关的关系信息，有了关系信息，就可以很轻易的通过某一个节点，复现整个树。自然满足了可拆分，可中断
 
 ## FiberRoot
-FiberRoot 是整个 Fiber树的根节点，所以 FiberRoot 上记录着整个 Fiber树的调度信息，在 fiber reconciler 中，是支持同时多次 ReactDOM.render()的，所以，此时会产生N个FiberRoot,它们之间也会形成一条环形链表：
+FiberRoot 是整个 Fiber树的根节点，所以 FiberRoot 上记录着整个 Fiber树的调度信息，在 fiber reconciler 中，是支持同时多次`ReactDOM.render()`的，所以，此时会产生N个FiberRoot，出于同样的原因，它们之间也会形成一条环形链表：
 
 ```            
                nextScheduledRoot            nextScheduledRoot            nextScheduledRoot
