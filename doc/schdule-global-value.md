@@ -1,9 +1,7 @@
 # 源码解析四`schedule`内的获取优先级
-无论是`ReactDOM.render()`还是setState，或者Hook，发起任务的方式都分为三步：
-1. 获取优先级
-2. 根据优先级，更新内容创建一个`update`，将`update`插入当前`Fiber`的任务队列中
-3. 调用`scheduleWork`调度一个任务
+由上篇得知，每次发起一个任务调度时，都会经过三步，其中的1，3两步，都与整个调度器有关。可见，`schedule`是`fiber reconciler`的核心部分，因此它的代码量很大，逻辑也很复杂。
 
-其中的1、2都与`schedule`有关，所以，`schedule`是整个`fiber reconciler`最为核心的部分。由于整个`schedule`模块特别地复杂和庞大，为了理清思路，先从整个`schedule`中的关键全局变量开始
+这里，我们先从`schedule`中的获取优先级开始
+
 
 
