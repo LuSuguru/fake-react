@@ -12,32 +12,32 @@ interface Batch {
 }
 
 class FiberRoot {
-  containerInfo: Element
-  pendingChildren: any = null
-  current: Fiber
+  containerInfo: Element  // 容器节点
+  current: Fiber // 当前根节点的 fiber
 
-  // 最老和最新的被挂起的任务
+  // 最老和最新的被挂起的任务的优先级
   earliestSuspendedTime: ExpirationTime = NoWork
   latestSuspendedTime: ExpirationTime = NoWork
 
-  // 最老和最新的不确定是否挂起的任务
+  // 最老和最新的不确定是否挂起的任务的优先级
   earliestPendingTime: ExpirationTime = NoWork
   latestPendingTime: ExpirationTime = NoWork
 
-  //
+  // 最新的通过一个promise被reslove并且可以重新尝试的优先级
   latestPingedTime: ExpirationTime = NoWork
-
-  pingCache: any = null
 
   didError: boolean = false
 
+  // 等待提交的优先级
   pendingCommitExpirationTime: ExpirationTime = NoWork
 
   // 完成render后的 fiber 树
   finishedWork: Fiber = null
 
+  // 挂起任务的timeout 标志位
   timeoutHandle: number = noTimeout
 
+  // 下一个 work 的优先级与当前优先级
   nextExpirationTimeToWorkOn: ExpirationTime = NoWork
   expirationTime: ExpirationTime = NoWork
 

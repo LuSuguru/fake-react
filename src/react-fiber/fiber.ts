@@ -37,40 +37,44 @@ import { isFunction, isObject, isString } from '../utils/getType'
 import { ExpirationTime, NoWork } from './expiration-time'
 
 class Fiber {
+  // 组件类型 如：function、class、hostComponent 等
   tag: WorkTag
+  // ReactElment 里的 key
   key: null | string
+  // ReactElement.type，也就是我们调用`createElement`的第一个参数
   elementType: any = null
+  // 异步组件resolved之后返回的内容，一般是`function`或者`class`
   type: any = null
+  // 自身特性，如：class就是当前 的组件对象，hostComponent 就是 dom 元素
   stateNode: any = null
 
-  return: Fiber = null
-  child: Fiber = null
-  sibling: Fiber = null
-  index: number = 0
+  return: Fiber = null // 父节点
+  child: Fiber = null // 子节点
+  sibling: Fiber = null // 右边的兄弟节点
+  index: number = 0 // 索引值
 
   ref: any = null
 
-  pendingProps: any
-  memoizedProps: any = null
+  pendingProps: any // 未处理的 props,可以理解为 new props
+  memoizedProps: any = null // 当前节点的 props,可以理解为 old props
 
-  updateQueue: UpdateQueue<any> = null
+  updateQueue: UpdateQueue<any> = null // 当前节点的任务队列
+  memoizedState: any = null // 当前节点的state
 
-  memoizedState: any = null
+  contextDependencies: ContextDependencyList = null // context 列表
 
-  contextDependencies: ContextDependencyList = null
+  mode: TypeOfMode // 工作类型， NoContext：同步渲染 ConcurrentMode：异步渲染
 
-  mode: TypeOfMode
-
-  effectTag: SideEffectTag = NoEffect
+  effectTag: SideEffectTag = NoEffect // 标记当前节点的一些效果
 
   nextEffect: Fiber = null
   firstEffect: Fiber = null
   lastEffect: Fiber = null
 
-  expirationTime: ExpirationTime = NoWork
-  childExpirationTime: ExpirationTime = NoWork
+  expirationTime: ExpirationTime = NoWork // 优先级
+  childExpirationTime: ExpirationTime = NoWork // 子优先级
 
-  alternate: Fiber = null
+  alternate: Fiber = null // 用于调度时的快照
 
   constructor(tag: WorkTag, pendingProps: any, key: string | null, mode: TypeOfMode) {
     this.tag = tag
