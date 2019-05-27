@@ -3,6 +3,7 @@ Fiber 出来之后，新的调和系统称为 fiber reconciler，为了识别，
 
 ## stack reconciler 和 fiber reconciler
 在 stack reconciler中，整个 VDOM树 如下图：
+
 <img src="./fiber-and-fiberRoot/vdom_tree.png" width="350" height="290"/>
 
 如果某个节点 setState，会从当前节点开始，一直递归到整个dom树的最底层。找到需要修改的信息，并传递给 renderer 进行渲染，这整个过程是一气呵成，连续不可中断的，如果需要渲染的组件比较庞大，js执行占据主线程时间较长，导致页面响应度变差，就会很明显造成卡顿现象，整个过程类似下图：
