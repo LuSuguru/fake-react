@@ -1,5 +1,5 @@
 # 源码解析三 Fiber and FiberRoot
-Fiber 出来之后，新的调和系统称为 fiber reconciler，为了识别，我们把老的调和系统称为 stack reconciler。 每一个 ReactElement，都会生成相应的工作单元（这里我们把每个工作单元称为 Fiber），根据这些节点的层级关系，会生成整个 Fiber树，我们的一切调和过程，都是围绕 Fiber树 展开的
+Fiber 出来之后，新的调和系统称为 fiber reconciler，为了识别，我们把老的调和系统称为 stack reconciler。 每一个 ReactElement，都会生成相应的工作单元（这里我们把每个工作单元称为 Fiber），根据这些节点的层级关系，会生成整个 Fiber树，我们的一切调和过程，都是围绕 Fiber树展开的
 
 ## stack reconciler 和 fiber reconciler
 在 stack reconciler中，整个 VDOM树 如下图：
@@ -19,14 +19,14 @@ Fiber 出来之后，新的调和系统称为 fiber reconciler，为了识别，
 
 <img src="./fiber-and-fiberRoot/fiber.png" width="490" height="260"/>
 
-以上的3点都要求整个调度的过程可拆分，可中断。新的 Fiber树 如下图
+以上的3点都要求整个调度的过程可拆分，可中断。新的 Fiber树如下图
 
 <img src="./fiber-and-fiberRoot/fiber_tree.png" width="650" height="500"/>
 
 将整个树结构用链表来实现，每个节点都记录了跟它有关的关系信息，有了关系信息，就可以很轻易的通过某一个节点，复现整个树。自然满足了可拆分，可中断
 
 ## FiberRoot
-根据[上节所说](./doc/render.md)，FiberRoot 是整个 Fiber树 的根节点，所以 FiberRoot 上记录着整个 Fiber树 的调度信息
+FiberRoot 是整个 Fiber树的根节点，所以 FiberRoot 上记录着整个 Fiber树的调度信息
 
 ``` javaScript
 class FiberRoot {
@@ -74,7 +74,7 @@ class FiberRoot {
 ```
 
 ## Fiber
-Fiber 是一个工作单元，由于一切的调度更新渲染都是围绕着它展开，在 fiber reconciler 下，操作是可以分成很多小部分，并且可以被中断的，所以同步操作DOM可能会导致 Fiber树 与实际DOM的不同步。对于每个节点，不光需要存储了对应元素节点的基本信息，还要保存一些用于任务调度的信息，以及跟周围节点的关系信息
+Fiber 是一个工作单元，由于一切的调度更新渲染都是围绕着它展开，在 fiber reconciler 下，操作是可以分成很多小部分，并且可以被中断的，所以同步操作DOM可能会导致 Fiber树与实际DOM的不同步。对于每个节点，不光需要存储了对应元素节点的基本信息，还要保存一些用于任务调度的信息，以及跟周围节点的关系信息
 
 ``` javaScript
 class Fiber {
