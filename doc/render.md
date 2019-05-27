@@ -1,5 +1,5 @@
 # 源码解析四 ReactDOM.render() 从入口说起
-当调用 ReactDOM.render() 时，先去除容器的里一些DOM元素，保证它是一个空节点，然后生成了一个 ReactRoot 对象，这个对象里封装了渲染、卸载两个方法。源码如下：
+当调用`ReactDOM.render()`时，先去除容器的里一些DOM元素，保证它是一个空节点，然后生成了一个 ReactRoot 对象，这个对象里封装了渲染、卸载两个方法。源码如下：
 
 ``` javascript
 function createRootFromContainer(container: any): ReactRoot {
@@ -56,7 +56,7 @@ const ReactDOM = {
 
 生成 FiberRoot 后，我们调用了 `updateContainer()`，这里才是真正开始渲染的入口，他做了3件事：
 1. 更新调度器的当前时间，并获得当前节点的过期时间 expirationTime
-2. 通过 `ReactDOM.render()` 传入的 React Element 和 callback 生成一个 update 对象
+2. 通过 `ReactDOM.render()` 传入的 React Element 和 callback 生成一个 update (更新单元)
 3. 传入优先级和更新对象，调用 scheduleWork 启动一个调度任务
 
 ``` javascript
