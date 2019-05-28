@@ -121,7 +121,44 @@ function findHighestPriorityRoot() {
 ```
 
 ### `computeExpirationTimeForFiber()`
-获取到当前的优先级后，就可以计算出当前 fiber 的`expirationTime`，
+获取到当前的优先级后，就可以计算出当前 fiber 的`expirationTime`，根据同步或者异步返回优先级
+
+``` javaScript
+function computeExpirationTimeForFiber(currentTime: ExpirationTime, fiber: Fiber): ExpirationTime {
+  let expirationTime: ExpirationTime = NoWork
+
+  if (expirationContext !== NoWork) {
+    expirationTime = expirationContext
+  } else if (isWorking) {
+    expirationTime = isCommitting ? Sync : nextRenderExpirationTime
+  } else {
+    // 判断是否开启异步模式
+    if (fiber.mode === ConcurrentMode) {
+      // 是否是 Interactive 优先级
+      if (isBatchingInteractiveUpdates) {
+        expirationTime = computeInteractiveExpiration(currentTime)
+      } else {
+        expirationTime = computeAsyncExpiration(currentTime)
+      }
+
+      if (nextRoot !== null && expirationTime === nextRenderExpirationTime) {
+        expirationTime -= 1
+      }
+    } else {
+      expirationTime = Sync
+    }
+  }
+
+  if (isBatchingInteractiveUpdates) {
+    if (lowestPriorityPendingInteractiveExpirationTime === NoWork
+      || expirationTime < lowestPriorityPendingInteractiveExpirationTime) {
+      lowestPriorityPendingInteractiveExpirationTime = expirationTime
+    }
+  }
+
+  return expirationTime
+}
+```
 
 
 
