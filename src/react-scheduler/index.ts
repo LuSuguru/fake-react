@@ -213,7 +213,9 @@ function computeExpirationTimeForFiber(currentTime: ExpirationTime, fiber: Fiber
   } else if (isWorking) {
     expirationTime = isCommitting ? Sync : nextRenderExpirationTime
   } else {
+    // 判断是否开启异步模式
     if (fiber.mode === ConcurrentMode) {
+      // 是否是 Interactive 优先级
       if (isBatchingInteractiveUpdates) {
         expirationTime = computeInteractiveExpiration(currentTime)
       } else {
