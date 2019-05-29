@@ -1,10 +1,9 @@
-# 源码解析五 `schedule`内的获取优先级
+# 源码解析五  `schedule`内的获取优先级
 由上篇得知，每次发起一个任务调度时，都会经过三步，其中的1，3两步，
 
 <img src="./schedule-global-value/step.png" width="335" height="408"/>
 
 都与整个调度器有关。可见，`schedule`是`fiber reconciler`的核心部分，因此它的代码量很大，逻辑也很复杂。
-
 这里，我们先从`schedule`中的获取优先级开始，贴下代码：
 
 ``` javaScript

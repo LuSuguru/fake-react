@@ -8,6 +8,9 @@
 - [源码解析三  创建元素](./doc/create-element.md)
 - [源码解析四  `ReactDOM.render()`从入口说起](./doc/render.md)
 - [源码解析五  `schedule`内的获取优先级](./doc/schdule-global-value.md)
+- [源码解析六  `schedule`的整体流程]()
+- [源码解析七  `schedule`调度前准备](./doc/schedule-work.md)
+- [源码解析八  `schedule`进行调度]
 
 ## 实现部分
 

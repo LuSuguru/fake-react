@@ -345,10 +345,10 @@ function requestCurrentTime(): ExpirationTime {
 function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): FiberRoot {
   let alternate: Fiber = fiber.alternate
 
+  // 更新自身及副本的优先级
   if (fiber.expirationTime < expirationTime) {
     fiber.expirationTime = expirationTime
   }
-
   if (alternate !== null && alternate.expirationTime < expirationTime) {
     alternate.expirationTime = expirationTime
   }
