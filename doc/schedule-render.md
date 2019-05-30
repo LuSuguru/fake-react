@@ -100,7 +100,8 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
 
 如果时间片不够中断了，又没有新的任务进来，下个时间切片的时候还是同样的任务，这时就可以通过这三个指针，快速定位到上次的工作点，立即开始。反之，如果被新的任务打断了，那么就必须从根节点重新遍历了
 
-### `workLoop()和performUnitOfWork()`
+### `workLoop()`和`performUnitOfWork()`
+
 ``` javaScript
 function workLoop(isYieldy: boolean) {
   if (isYieldy) {
@@ -133,9 +134,9 @@ function performUnitOfWork(workInProgress: Fiber): Fiber {
 ```
 
 在`workLoop`中，会调用`performUnitOfWork()`，通过`beginWork`和`completeUnitOfWork`两个函数，保证每个节点都会进入`beginWork()`和`completeWork()`
+每次生成新的`workInProgress`都会返回到`workLoop`，更新`nextUnitOfWork`的指向，如果`nextUnitOfWork === null`，说明整棵`workInProgress`树都已经生成，可以进入`commit`阶段，异步时会追加一个`shouldYield`的判断，如果时间不够用，则停止整个树的遍历，结束掉render阶段
 
 <img src="./schedule/schedule-render2.png" width="1400" height="450">
 
-每次生成新的`workInProgress`都会返回到`workLoop`，更新`nextUnitOfWork`的指向，如果`nextUnitOfWork === null`，说明整棵`workInProgress`树都已经生成，可以进入`commit`阶段，异步时会追加一个`shouldYield`的判断，如果时间不够用，则停止整个树的遍历，结束掉render阶段
 
 
