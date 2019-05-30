@@ -1,6 +1,6 @@
 # 源码解析八  `schedule`执行调度
 在`requestWork`的结尾，如果是异步模式，会调用`performSyncWork`,同步的话会调用`scheduleCallbackWithExpirationTime`，这个函数牵涉到浏览器的异步模块，所以会和异步的一些时间切片及浏览器交互的原理后面单独开一节说，这里先跳过
-它们最终都会调用`perfromWork`，直接看`performWork`，这是整个执行阶段的入口，同步异步的区别也只是传入参数的不同。关键在于两个大循环的判断。
+它们最终都会调用`perfromWork`。直接看`performWork`，这是整个执行阶段的入口，同步异步的区别也只是传入参数的不同。关键在于两个大循环的判断。
 先看看它们相同的部分，如果有下一个需要调度的任务且优先级大于超时优先级，就往下执行
 ```javaScript
   nextFlushedRoot !== null 
