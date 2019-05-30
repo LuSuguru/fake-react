@@ -96,7 +96,7 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
 ```
 在这个方法里，会通过`createWorkInProgress()`克隆一个新节点，然后让`nextUnitOfWork`指向这个节点，另外还有两个指针`nextRoot`和`nextRenderExpirationTime`，保存着当前render阶段的几个重要信息。
 
-<img src="./schedule/schedulw-render1.png" width="572" height="487">
+<img src="./schedule/schedule-render1.png" width="572" height="487">
 
 如果时间片不够中断了，又没有新的任务进来，下个时间切片的时候还是同样的任务，这时就可以通过这三个指针，快速定位到上次的工作点，立即开始。反之，如果被新的任务打断了，那么就必须从根节点重新遍历了
 
