@@ -87,7 +87,7 @@ function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
 ```
 
 ### `performWorkOnRoot()`
-整个任务的执行分为两个阶段，`render`和`commit`，
+整个任务的执行分为两个阶段，`render`和`commit`，
 - `render`阶段是可以根据时间片，优先级控制是否执行还是暂停
 - `commit`阶段是同步不可中断的
 - `render`结束后会把处理后的`Fiber树`放到`FiberRoot`的`finishedWork`里，`commit`时使用
