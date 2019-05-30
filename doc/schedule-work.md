@@ -87,4 +87,22 @@ function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
 ```
 
 ### `performWorkOnRoot()`
-整个任务的执行分为两个阶段，`render`和`commit`，其中，`render`是可以根据时间片，优先级控制是否执行还是暂停，`render`只要停止了，都会把完成工作的内容
+整个任务的执行分为两个阶段，`render`和`commit`，
+- `render`阶段是可以根据时间片，优先级控制是否执行还是暂停
+- `commit`阶段是同步不可中断的
+- `render`结束后会把处理后的`Fiber树`放到`FiberRoot`的`finishedWork`里，`commit`时使用
+
+`performWorkOnRoot`这个函数的作用就是控制这两个阶段的进行，关键点也在于同步异步的处理上，异步时要多一步判断时间片是否够用，若不够了则跳过，下一帧在处理
+```javaScript
+if (finishedWork !== null) {
+  if (isYieldy) {
+    if (!shouldYield()) {
+      completeRoot(root, finishedWork, expirationTime)
+    } else {
+      root.finishedWork = finishedWork
+    }
+  } else {
+    completeRoot(root, finishedWork, expirationTime)
+  }
+}
+```
