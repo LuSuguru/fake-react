@@ -808,6 +808,7 @@ function commitBeforeMutationLifecycles(effectTag: SideEffectTag) {
 }
 
 function renderRoot(root: FiberRoot, isYieldy: boolean) {
+  // useEffect的调用
   flushPassiveEffects()
 
   isWorking = true
@@ -819,8 +820,7 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
   const expirationTime = root.nextExpirationTimeToWorkOn
 
   // 上一个任务因为时间片用完了而中断了，这个时候 nextUnitOfWork 是有工作的，
-  // 这时候如果下一个 requestIdleCallback 进来了，中途没有新的任务进来，那么这些全局变量都没有变过
-  // root 的 nextExpirationTimeToWorkOn 肯定也没有变化，那么代表是继续上一次的任务
+  // 到了下一个时间切片，中途没有新的任务进来，那么这些全局变量都没有变过
   // 而如果有新的更新进来，则势必 nextExpirationTimeToWorkOn 或者 root 会变化，那么肯定需要重置变量
   if (expirationTime !== nextRenderExpirationTime || root !== nextRoot || nextUnitOfWork === null) {
     resetStack()
@@ -882,11 +882,7 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
   nextRoot = null
 
   if (nextRenderDidError) {
-    // 待实现，错误处理
-  }
-
-  if (isYieldy && nextLatestAbsoluteTimeoutMs !== -1) {
-    // 待实现
+    // 错误处理
   }
 
   root.pendingCommitExpirationTime = expirationTime
@@ -910,10 +906,12 @@ function performUnitOfWork(workInProgress: Fiber): Fiber {
 
   let next: Fiber = null
 
+  // 返回它的子节点
   next = beginWork(current, workInProgress, nextRenderExpirationTime)
   workInProgress.memoizedProps = workInProgress.pendingProps
 
   if (next === null) {
+    // 返回它的兄弟节点
     next = completeUnitOfWork(workInProgress)
   }
 

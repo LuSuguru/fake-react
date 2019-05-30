@@ -49,9 +49,9 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
 如图，当`Child1`发起一个优先级较低的异步更新，`Child2`发起一个优先级最高的同步更新，再向上遍历时，因为这个更新是它们的子孙节点造成的，所以遍历的上层节点都会更新它的`childExpirationTime`。
 在这个例子中，`Parent`和`FiberRoot`的`childExpirationTime`都会更新为`Sync`，当我们真正执行更新向下遍历时，会比较子节点的`expirationTime`与当前节点的`childExpirationTime`，这里`Child1`的`expirationTime`小于`Parent`的`childExpirationTime`，所以跳过它，直接到`Child2`，比较之后发现2需要更新，所以先执行2：
 
-<img src="./schedule-work/childExpirationTime.png" width="750" height="475"/>
+<img src="./schedule/childExpirationTime.png" width="750" height="475"/>
 
-再看这个方法就很简单了，更新发起任务的`fiber`的优先级，然后往上遍历，每个上级的节点都更新其`childExpirationTime`，最后返回`FiberRoot`，源码如下，
+再看这个函数就很简单了，更新发起任务的`fiber`的优先级，然后往上遍历，每个上级的节点都更新其`childExpirationTime`，最后返回`FiberRoot`，源码如下，
 ``` javaScript
 function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): FiberRoot {
   let alternate: Fiber = fiber.alternate
