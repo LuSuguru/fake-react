@@ -133,7 +133,9 @@ function performUnitOfWork(workInProgress: Fiber): Fiber {
 ```
 
 在`workLoop`中，会调用`performUnitOfWork()`，通过`beginWork`和`completeUnitOfWork`两个函数，保证每个节点都会进入`beginWork()`和`completeWork()`
-<img src="./schedule/schedule-render2.png" width="1400" height="650">
+
+<img src="./schedule/schedule-render2.png" width="1400" height="450">
+
 每次生成新的`workInProgress`都会返回到`workLoop`，更新`nextUnitOfWork`的指向，如果`nextUnitOfWork === null`，说明整棵`workInProgress`树都已经生成，可以进入`commit`阶段，异步时会追加一个`shouldYield`的判断，如果时间不够用，则停止整个树的遍历，结束掉render阶段
 
 
