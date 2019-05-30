@@ -1,153 +1,90 @@
-# 源码解析七  `schedule`调度前准备
-
-在`schedule`里维护着一条`FiberRoot`的双向链表，FibreRoot就相当于调度时的基本工作单元，所以在准备阶段：
-- 先初始化`schedule`一些关键性的全局变量
-- 通过当前节点拿到这次更新的`FiberRoot`，更新它的优先级，并塞进双向链表中，
-- 发起一个正确的调度请求：
-
-先上源码：
-
-``` javaScript
-// render 阶段的三个指针
-let nextRoot: FiberRoot = null
-let nextUnitOfWork: Fiber = null
-let nextRenderExpirationTime: ExpirationTime = NoWork
-
-function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
-  const root: FiberRoot = scheduleWorkToRoot(fiber, expirationTime)
-
-  // render 阶段的一些全局变量 init
-  if (!isWorking && nextRenderExpirationTime !== NoWork && expirationTime > nextRenderExpirationTime) {
-    resetStack()
-  }
-
- // 更新它的优先级
-  markPendingPriorityLevel(root, expirationTime)
-
-  if (!isWorking || isCommitting || nextRoot !== root) {
-    const rootExpirationTime = root.expirationTime
-    requestWork(root, rootExpirationTime)
-  }
-
-  if (nestedUpdateCount > NESTED_UPDATE_LIMIT) {
-    nestedUpdateCount = 0
-  }
-}
+# 源码解析八  `schedule`执行调度
+在`requestWork`的结尾，如果是异步模式，会调用`performSyncWork`,同步的话会调用`scheduleCallbackWithExpirationTime`，这个函数牵涉到浏览器的异步模块，所以会和异步的一些时间切片及浏览器交互的原理后面单独开一节说，这里先跳过
+它们最终都会调用`perfromWork`，直接看`performWork`，这是整个执行阶段的入口，同步异步的区别也只是传入参数的不同。关键在于两个大循环的判断。
+先看看它们相同的部分，如果有下一个需要调度的任务且优先级大于超时优先级，就往下执行
+```javaScript
+  nextFlushedRoot !== null 
+  && nextFlushedExpirationTime !== NoWork
+  && minExpirationTime <= nextFlushedExpirationTime
 ```
-
-### `scheduleWorkToRoot(fiber, expirationTime)`
-再看这个方法之前，先解释下`fiber`里两个优先级`expirationTime`和`childExpirationTime`的区别：
-
-- `expirationTime`：当前`fiber`自身的优先级，影响它自身更新
-- `childExpirationTime`：当前`fiber`子节点的优先级，影响它子节点的更新
-
-由于`childExpirationTime`涉及到当前节点跟它的子节点，所以特性也分为两种
-- 若同一个子节点连续更新多次，取当前最高优先级那次的值
-- 若N个不同子节点更新，也取优先级最高那次的值
-
-举个例子：
-如图，当`Child1`发起一个优先级较低的异步更新，`Child2`发起一个优先级最高的同步更新，再向上遍历时，因为这个更新是它们的子孙节点造成的，所以每一个节点都会更新它的`childExpirationTime`。
-在这个例子中，`Parent`和`FiberRoot`的`childExpirationTime`都会更新为`Sync`，当我们真正执行更新向下遍历时，会比较子节点的`expirationTime`与当前节点的`childExpirationTime`，这里`Child1`的`expirationTime`小于`Parent`的`childExpirationTime`，所以跳过它，直接到`Child2`，比较之后发现2需要更新，所以先执行2：
-
-<img src="./schedule-work/childExpirationTime.png" width="750" height="475"/>
-
-再看这个方法就很简单了，更新发起任务的`fiber`的优先级，然后往上遍历，每个上级的节点都更新其`childExpirationTime`，最后返回`FiberRoot`，源码如下，
-``` javaScript
-function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): FiberRoot {
-  let alternate: Fiber = fiber.alternate
-
-  // 更新自身及副本的优先级
-  if (fiber.expirationTime < expirationTime) {
-    fiber.expirationTime = expirationTime
-  }
-  if (alternate !== null && alternate.expirationTime < expirationTime) {
-    alternate.expirationTime = expirationTime
-  }
-
-  let node: Fiber = fiber.return
-  let root: FiberRoot = null
-
-  if (node === null && fiber.tag === HostRoot) {
-    root = fiber.stateNode
-  } else {
-    while (node !== null) {
-      ({ alternate } = node)
-
-      if (node.childExpirationTime < expirationTime) {
-        node.childExpirationTime = expirationTime
-      }
-
-      if (alternate !== null && alternate.childExpirationTime < expirationTime) {
-        alternate.childExpirationTime = expirationTime
-      }
-
-      if (node.return === null && node.tag === HostRoot) {
-        root = node.stateNode
-        break
-      }
-
-      node = node.return
-    }
-  }
-  return root
-}
+异步，还多了两个判断
+`shouldYield()`也是异步模块里的方法，用来判断时间切片是否到期，如果到期了返回`true`，未到期返回`false`
+再看`currentRendererTime <= nextFlushedExpirationTime`，前面说过，优先级和到期时间是可以相互转化的，优先级越高的到期时间越小，这里我们用到期时间理解，下一个任务的到期时间已经小于当前时间。此时这个任务已经超时，需要立即执行
+```javaScript
+  && (currentRendererTime <= nextFlushedExpirationTime || !shouldYield()
 ```
-
-### `requestWork()`
-如果现在不在`render阶段`，则会调用`requestWork`,将`fiberRoot`插入到双向链表中，，然后根据这个任务的优先级，进入`work`阶段，源码如下
+大循环的里面，都是调用了`performWorkOnRoot`，将当前的任务作为参数传进去，关键在于第三个参数，在同步的时候传了`false`，说明此时是个同步任务，再看异步时，`currentRendererTime > nextFlushedExpirationTime`，超时情况下进来，这个值是`false`，当做同步任务处理
 
 ```javaScript
-function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
-  addRootToSchedule(root, expirationTime)
-  if (isRendering) {
-    return
-  }
-
- // 事件的 flag，setState异步性的原因
-  if (isBatchingUpdates) {
-    if (isUnbatchingUpdates) {
-      nextFlushedRoot = root
-      nextFlushedExpirationTime = Sync
-      performWorkOnRoot(root, Sync, false)
-    }
-    return
-  }
-
-  if (expirationTime === Sync) {
-    performSyncWork() // 同步
-  } else {
-    scheduleCallbackWithExpirationTime(expirationTime) // 异步
-  }
+function performSyncWork() {
+  performWork(Sync, false)
 }
 
-// 将当前 FiberRoot 加到 scheduleRoot 链表中
-// 如果已在链表中，更新 expirationTime
-function addRootToSchedule(root: FiberRoot, expirationTime: ExpirationTime) {
-  if (root.nextScheduledRoot === null) {
-    root.expirationTime = expirationTime
+function performAsyncWork(didTimeout: boolean) {
+  if (didTimeout) {
+    // 当前已到期，更新优先级大于当前时间的 FiberRoot
+    if (firstScheduledRoot !== null) {
+      recomputeCurrentRendererTime(false)
 
-    if (lastScheduledRoot === null) {
-      firstScheduledRoot = lastScheduledRoot = root
-      root.nextScheduledRoot = root
-    } else {
-      lastScheduledRoot.nextScheduledRoot = root
-      lastScheduledRoot = root
-      root.nextScheduledRoot = firstScheduledRoot
-    }
-  } else {
-    const remainingExpirationTime = root.expirationTime
-    if (expirationTime > remainingExpirationTime) {
-      root.expirationTime = expirationTime
+      let root: FiberRoot = firstScheduledRoot
+      do {
+        didExpireAtExpirationTime(root, currentRendererTime)
+        root = root.nextScheduledRoot
+      } while (root !== firstScheduledRoot)
     }
   }
+  performWork(NoWork, true)
+}
+/**
+ * @param minExpirationTime 超时优先级，在一些优先级较高的事件中会传入，
+ * @param isYieldy 是否异步
+ */
+function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
+  // 拿到当前优先级最高的 FiberRoot，赋值 nextFlushedRoot 和 nextFlushedRoot
+  findHighestPriorityRoot()
+
+  if (isYieldy) { 
+    // 重新获取当前优先级
+    recomputeCurrentRendererTime(true)
+
+    while (
+      nextFlushedRoot !== null
+      && nextFlushedExpirationTime !== NoWork
+      && minExpirationTime <= nextFlushedExpirationTime
+      && (currentRendererTime <= nextFlushedExpirationTime || !shouldYield())
+    ) {
+      performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, currentRendererTime > nextFlushedExpirationTime)
+
+      // 查找下一个需要调度的任务
+      findHighestPriorityRoot()
+      recomputeCurrentRendererTime(true)
+    }
+  } else { 
+    while (
+      nextFlushedRoot !== null
+      && nextFlushedExpirationTime
+      && minExpirationTime <= nextFlushedExpirationTime
+    ) {
+      performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, false)
+      // 查找下一个需要调度的任务
+      findHighestPriorityRoot()
+    }
+  }
+
+  // 清除异步的一些标
+  if (isYieldy) {
+    callbackExpirationTime = NoWork
+    callbackID = null
+  }
+
+  // 如果还有任务没执行，直接异步开始执行
+  if (nextFlushedExpirationTime !== NoWork) {
+    scheduleCallbackWithExpirationTime(nextFlushedExpirationTime)
+  }
+
+  finishRendering()
 }
 ```
 
-
-
-
-
-
-
-
-
+### `performWorkOnRoot()`
+整个任务的执行分为两个阶段，`render`和`commit`，其中，`render`是可以根据时间片，优先级控制是否执行还是暂停，`render`只要停止了，都会把完成工作的内容

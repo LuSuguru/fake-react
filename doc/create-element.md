@@ -1,5 +1,5 @@
 # 源码解析三  创建元素
-在`React`中，创建元素使用`jsx`，而`jsx`是`createElement()`的语法糖，这个方法非常的简单，无非就是对传入的属性做一下处理，然后返回一个`ReactElement`
+在`React`中，创建元素使用`jsx`，而`jsx`是`createElement()`的语法糖，这个函数非常的简单，无非就是对传入的属性做一下处理，然后返回一个`ReactElement`
 
 ``` javascript
 /**

@@ -42,7 +42,7 @@ function requestCurrentTime(): ExpirationTime {
 
 ### currentRenderTime 和 currentSchedulerTime
 在`schedule`里与`ExpirationTime`相关的全局变量有两个，其中，`currentRendererTime`是当前优先级，通过系统Api`performance.now()`获得。
-竟然有了当前优先级，为何还需要一个`currentSchedulerTime`, 在`requestCurrentTime()`方法的开头，当`schedule`开始工作后，会把`isRendering`设为`true`，结束时在回到`false`，所以，`currentSchedulerTime`作用是确保整个调度过程中的当前优先级都是相同的。
+竟然有了当前优先级，为何还需要一个`currentSchedulerTime`, 在`requestCurrentTime()`函数的开头，当`schedule`开始工作后，会把`isRendering`设为`true`，结束时在回到`false`，所以，`currentSchedulerTime`作用是确保整个调度过程中的当前优先级都是相同的。
 
 ```javaScript
   if (isRendering) {

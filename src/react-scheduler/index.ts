@@ -480,27 +480,30 @@ function performAsyncWork(didTimeout: boolean) {
   performWork(NoWork, true)
 }
 
+/**
+ * @param minExpirationTime 超时优先级
+ * @param isYieldy 是否异步
+ */
 function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
   findHighestPriorityRoot()
 
-  if (isYieldy) { // 异步
+  if (isYieldy) {
     recomputeCurrentRendererTime(true)
 
     while (
       nextFlushedRoot !== null
       && nextFlushedExpirationTime !== NoWork
       && minExpirationTime <= nextFlushedExpirationTime
-      && currentRendererTime <= nextFlushedExpirationTime
-      && !shouldYield()
+      && (currentRendererTime <= nextFlushedExpirationTime || !shouldYield())
     ) {
       performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, currentRendererTime > nextFlushedExpirationTime)
       findHighestPriorityRoot()
       recomputeCurrentRendererTime(true)
     }
-  } else { // 同步
+  } else {
     while (
       nextFlushedRoot !== null
-      && nextFlushedExpirationTime
+      && nextFlushedExpirationTime !== NoWork
       && minExpirationTime <= nextFlushedExpirationTime
     ) {
       performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, false)

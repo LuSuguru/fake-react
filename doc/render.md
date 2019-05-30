@@ -1,5 +1,5 @@
 # 源码解析四  `ReactDOM.render()`从入口说起
-当调用`ReactDOM.render()`时，先去除容器的里一些DOM元素，保证它是一个空节点，然后生成了一个`ReactRoot`对象，这个对象里封装了渲染、卸载两个方法。源码如下：
+当调用`ReactDOM.render()`时，先去除容器的里一些DOM元素，保证它是一个空节点，然后生成了一个`ReactRoot`对象，这个对象里封装了渲染、卸载两个函数。源码如下：
 
 ``` javascript
 function createRootFromContainer(container: any): ReactRoot {
