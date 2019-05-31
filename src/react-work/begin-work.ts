@@ -395,17 +395,18 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
   const updateExpirationTime = workInProgress.expirationTime
 
   // 判断是否需要更新，不需要的话直接跳过
-  // 1. 新旧 props 是否相等
-  // 2. 优先级是否较低
   if (current !== null) {
     const oldProps = current.memoizedProps
     const newProps = workInProgress.pendingProps
 
+    // 新旧 props 是否相等
     if (oldProps !== newProps) {
       didReceiveUpdate = true
+      // 优先级是否较低
     } else if (updateExpirationTime < renderExpirationTime) {
       didReceiveUpdate = false
 
+      // 插入上下文
       switch (workInProgress.tag) {
         case HostRoot:
           pushHostContainer(workInProgress, workInProgress.stateNode.containerInfo)

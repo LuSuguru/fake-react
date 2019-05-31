@@ -14,18 +14,23 @@ export function getHasForceUpdate() {
 }
 
 export class UpdateQueue<State> {
-  baseState: State // 记录上一次更新后低优先级的first state,用于调用的基值
+  // 记录上一次更新后低优先级的first state,用于调用的基值
+  baseState: State
 
-  firstUpdate: Update<State> = null  // 更新对象链表
+  // 更新对象链表
+  firstUpdate: Update<State> = null
   lastUpdate: Update<State> = null
 
-  firstCapturedUpdate: Update<State> = null // 捕获错误的更新对象链表
+  // 捕获错误的更新对象链表
+  firstCapturedUpdate: Update<State> = null
   lastCapturedUpdate: Update<State> = null
 
-  firstEffect: Update<State> = null // 有callback的更新对象链表，用于commit callback
+  // 有callback的更新对象链表，用于commit callback
+  firstEffect: Update<State> = null
   lastEffect: Update<State> = null
 
-  firstCapturedEffect: Update<State> = null // 同上，捕获错误版
+  // 同上，捕获错误版
+  firstCapturedEffect: Update<State> = null
   lastCapturedEffect: Update<State> = null
 
   constructor(baseState: State) {
@@ -113,18 +118,24 @@ export function processUpdateQueue<State>(workInProgress: Fiber, queue: UpdateQu
 
   while (update !== null) {
     const updateExpirationTime = update.expirationTime
+
+    // update 的优先级较低
     if (updateExpirationTime < renderExpirationTime) {
+      // 更新新的 update 链表起点
       if (newFirstUpdate === null) {
         newFirstUpdate = update
         newBaseState = resultState
       }
 
+      // 更新优先级
       if (newExpirationTime < updateExpirationTime) {
         newExpirationTime = updateExpirationTime
       }
     } else {
+      // 获取 state
       resultState = getStateFromUpdate(workInProgress, update, resultState, props, instance)
 
+      // callback的处理
       const { callback } = update
       if (callback !== null) {
         workInProgress.effectTag |= Callback

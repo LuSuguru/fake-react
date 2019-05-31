@@ -12,6 +12,8 @@
 - [源码解析七  `schedule`调度前准备](./doc/schedule-prepare.md)
 - [源码解析八  `schedule`执行调度](./doc/schedule-work.md)
 - [源码解析九  `render`阶段](./doc/schedule-render.md)
+- [源码解析十  `beginWork`](./doc/begin-work.md)
+- [源码解析十一 `updateClassComponent`](./doc/update-class-component.md)
 
 ## 实现部分
 

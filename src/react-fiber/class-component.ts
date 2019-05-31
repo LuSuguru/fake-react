@@ -112,6 +112,7 @@ function constructClassInstance(workInProgress: Fiber, ctor: any, props: any): a
   let context: any = null
   const { contextType } = ctor
 
+  // context操作
   if (isObject(contextType)) {
     context = readContext(contextType)
   }
@@ -129,23 +130,27 @@ function mountClassInstance(workInProgress: Fiber, ctor: any, newProps: any, ren
   instance.state = memoizedState
   instance.refs = {}
 
+  // context 操作
   const { contextType } = ctor
   if (isObject(contextType)) {
     instance.context = readContext(contextType)
   }
 
+  // 更新 state
   let updateQueue: UpdateQueue<any> = workInProgress.updateQueue
   if (updateQueue !== null) {
     processUpdateQueue(workInProgress, updateQueue, newProps, instance, renderExpirationTime)
     instance.state = workInProgress.memoizedState
   }
 
+  // 调用 getDerivedStateFromProps 生命周期
   const { getDerivedStateFromProps } = ctor
   if (isFunction(getDerivedStateFromProps)) {
     applyDerivedStateFromProps(workInProgress, getDerivedStateFromProps, newProps)
     instance.state = workInProgress.memoizedState
   }
 
+  // 调用 componentWillMount 生命周期
   const haveNewLifecycle = isFunction(ctor.getDerivedStateFromProps) && isFunction(instance.getSnapshotBeforeUpdate)
   const haveComponentWillMount = isFunction(instance.UNSAFE_componentWillMount) && isFunction(instance.componentWillMount)
   if (!haveNewLifecycle && haveComponentWillMount) {
@@ -158,6 +163,7 @@ function mountClassInstance(workInProgress: Fiber, ctor: any, newProps: any, ren
     }
   }
 
+  // 打上标记
   if (isFunction(instance.componentDidMount)) {
     workInProgress.effectTag |= UpdateTag
   }
@@ -243,6 +249,7 @@ function updateClassInstance(current: Fiber, workInProgress: Fiber, ctor: any, n
   const oldProps = workInProgress.memoizedProps
   instance.props = workInProgress.type === workInProgress.elementType ? oldProps : resolveDefaultProps(workInProgress.type, oldProps)
 
+  // context处理
   const oldContext = instance.context
   const { contextType } = ctor
   let nextContext: any = null
@@ -252,6 +259,7 @@ function updateClassInstance(current: Fiber, workInProgress: Fiber, ctor: any, n
 
   const { getDerivedStateFromProps } = ctor
 
+  // componentWillReceiveProps 调用
   const haveNewLifecycles = isFunction(getDerivedStateFromProps) || isFunction(instance.getSnapshotBeforeUpdate)
   const havecomponentWillReceiveProps = isFunction(instance.UNSAFE_componentWillReceiveProps) || isFunction(instance.componentWillReceiveProps)
   if (!haveNewLifecycles && havecomponentWillReceiveProps) {
@@ -262,6 +270,7 @@ function updateClassInstance(current: Fiber, workInProgress: Fiber, ctor: any, n
 
   changeHasForceUpdate(false)
 
+  // 更新 state
   const oldState = workInProgress.memoizedState
   let newState: any = (instance.state = oldState)
 
@@ -271,6 +280,7 @@ function updateClassInstance(current: Fiber, workInProgress: Fiber, ctor: any, n
     newState = workInProgress.memoizedState
   }
 
+  // 初始判断，是否需要更新
   if (oldProps === newProps && oldState === newState && !getHasForceUpdate()) {
     if (isFunction(instance.componentDidUpdate)) {
       if (oldProps !== current.memoizedProps || oldState !== current.memoizedState) {
@@ -286,11 +296,13 @@ function updateClassInstance(current: Fiber, workInProgress: Fiber, ctor: any, n
     return false
   }
 
+  // getDerivedStateFromProps 调用
   if (isFunction(getDerivedStateFromProps)) {
     applyDerivedStateFromProps(workInProgress, getDerivedStateFromProps, newProps)
     newState = workInProgress.memoizedState
   }
 
+  // 是否需要更新
   const shouldUpdate = getHasForceUpdate() || checkShouldComponentUpdate(instance, ctor, oldProps, newProps, oldState, newState, nextContext)
 
   if (shouldUpdate) {
