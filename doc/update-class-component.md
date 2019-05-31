@@ -1,6 +1,6 @@
 # 源码解析十一 `updateClassComponent`
 `updateFunctionComponent`牵涉到`hook`，我们后面放在`hook`的时候说。这里重点讲下`updateClassComponent`
-首先先拿到最新的props,然后调用`updateFunctionComponent`
+首先拿到最新的props,然后调用`updateFunctionComponent`
 
 ```javaScript
    case ClassComponent: {
@@ -120,8 +120,7 @@ const classComponentUpdater: ReactUpdateQueue = {
 ```
 
 ### `enqueueUpdate()`
-整个初始化过程非常的简单，关键在于`instance.updater = classComponentUpdater`，还记的前面`Component`基类里的`setState`方法吗？就是调用了`updater.enqueueSetState`，`enqueueSetState`里的内容也跟前面我们总结的发起任务请求三步骤相同
-这里我们解析下`enqueueUpdate`这个函数，以及更新队列的一些源码：
+整个初始化过程非常的简单，关键在于`instance.updater = classComponentUpdater`，还记的前面`Component`基类里的`setState`方法吗？就是调用了`updater.enqueueSetState`，`enqueueSetState`里的内容也跟前面我们总结的发起任务请求三步骤相同，这里我们解析下`enqueueUpdate`这个函数，以及更新队列的一些源码：
 
 先看下更新队列的结构以及单个更新对象的结构，在`updateQueue`中，维护着三条有关`update`的单向链表，每个`update`里有着单次更新的全部信息，拿`update`举例：
 
