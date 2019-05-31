@@ -1,5 +1,5 @@
 # 源码解析十一 `updateClassComponent`
-`updateFunctionComponent`牵涉到`hook`，我们后面放在`hook`的时候说，下面重点讲下`updateClassComponent`
+`updateFunctionComponent`牵涉到`hook`，我们后面放在`hook`的时候说。这里重点讲下`updateClassComponent`
 首先先拿到最新的props,然后调用`updateFunctionComponent`
 
 ```javaScript
