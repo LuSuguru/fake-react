@@ -14,6 +14,7 @@
 - [源码解析九  `render`阶段](./doc/schedule-render.md)
 - [源码解析十  `beginWork`](./doc/begin-work.md)
 - [源码解析十一 `updateClassComponent`](./doc/update-class-component.md)
+- [源码解析十二 `childFiber`](./doc/child-fiber.md)
 
 ## 实现部分
 

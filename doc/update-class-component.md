@@ -603,7 +603,7 @@ export function shallowEqual(objA: any, objB: any): boolean {
 ```
 
 ### `finishClassComponent`
-回到`updateClassComponent`，在经历上面初始化或者更新以后，现在实例上的state,props都已经是最新的了，生命周期也调了，是否需要更新的标也有了，OK，万事具备，只差`render`，这时调用`finishClassComponent`，不需要更新的话，直接走`bailoutOnAlreadyFinishedWork`，这个方法前面在`beginWork`里已说过。再往下，调用了实例的`render`，生成新的子节点属性，然后通过这些新的子节点属性生成新的子`Fiber`
+回到`updateClassComponent`，在经历上面初始化或者更新以后，现在实例上的state,props都已经是最新的了，生命周期也调了，是否需要更新的标也有了，OK，万事具备，只差`render`，这时调用`finishClassComponent`，不需要更新的话，直接返回`bailoutOnAlreadyFinishedWork`，这个方法前面在`beginWork`里已说过。再往下，调用了实例的`render`，生成新的子节点属性，然后通过这些新的子节点属性生成新的子`Fiber`
 
 ```javaScript
 function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: any, shouldUpdate: boolean, renderExpirationTime: ExpirationTime): Fiber {
@@ -648,7 +648,7 @@ function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: 
 - `componentWillReceiveProps`
 - `componentWillUpdate`
 
-前面提到过，在`render`阶段是可以被打断的，当执行完高优先级任务后，再回到这个任务，会从入口`FiberRoot`重新开始，这时第一阶段的生命周期会被执行多次，如果这些函数有副作用的，可能会引发无法预知的效果。
+前面提到过，在`render`阶段是可以被打断的，当执行完高优先级任务后，再回到这个任务，会从根节点重新开始，这时第一阶段的生命周期会被执行多次。如果这些函数有副作用的，可能会引发一些错误。
 所以为了避免这样的情况，官方不提倡使用`componentWillMount`，`componentWillReceiveProps`，`componentWillUpdate`，并且增加了一个新的静态钩子函数`static getDerivedStateFromProps`，方便做一些改变state的操作，由于是`static`，拿不到`this`，从而避免了一些可能发生的错误
 
 
