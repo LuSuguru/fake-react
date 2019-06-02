@@ -76,7 +76,7 @@ function bailoutOnAlreadyFinishedWork(current: Fiber, workInProgress: Fiber, ren
 除了优先级较低直接跳过，其他情况，都会对当前节点进行调和。所以会把`expirationTime`清空
 
 ### 第二部分
-这部分非常简单，就是根据不同的节点类型，调用不同的调和函数，每个调和函数都是先更新自身，然后再更新其子节点，并且返回其子节点
+这部分非常简单，就是根据不同的节点类型，调用不同的调和函数，每个调和函数都是先更新自身，再生成对应的子节点，并且返回其子节点
 
 ```javaScript
   switch (workInProgress.tag) {

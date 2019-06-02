@@ -124,7 +124,7 @@ function findHighestPriorityRoot() {
 ```
 
 ### `computeExpirationTimeForFiber()`
-获取到当前的优先级后，就可以计算出当前 fiber 的`expirationTime`，根据同步或者异步返回优先级
+获取到当前的优先级后，就可以计算出当前`Fiber`的`expirationTime`，根据同步或者异步返回优先级
 
 ``` javaScript
 function computeExpirationTimeForFiber(currentTime: ExpirationTime, fiber: Fiber): ExpirationTime {

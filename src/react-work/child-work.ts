@@ -475,4 +475,9 @@ function cloneChildFiber(workInProgress: Fiber) {
   newChild.sibling = null
 }
 
-export { mountChildFibers, reconcileChildFibers, reconcileChildren, cloneChildFiber }
+export {
+  mountChildFibers,
+  reconcileChildFibers,
+  reconcileChildren,
+  cloneChildFiber,
+}
