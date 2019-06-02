@@ -30,24 +30,27 @@ function mapRemainingChildren(currentFirstChild: Fiber): Map<string | number, Fi
 }
 
 function ChildReconciler(shouldTrackSideEffects: boolean) {
+  // 单个删除
   function deleteChild(returnFiber: Fiber, childToDelete: Fiber) {
     if (!shouldTrackSideEffects) {
       return
     }
 
+    // 清除 effect fiber
     const last = returnFiber.lastEffect
-
     if (last !== null) {
       last.nextEffect = childToDelete
       returnFiber.lastEffect = childToDelete
     } else {
       returnFiber.firstEffect = returnFiber.lastEffect = childToDelete
     }
-
     childToDelete.nextEffect = null
+
+    // 挂上删除的标识
     childToDelete.effectTag = Deletion
   }
 
+  // 批量删除
   function deleteRemainingChildren(returnFiber: Fiber, currentFirstChild: Fiber) {
     if (!shouldTrackSideEffects) {
       return null
@@ -83,7 +86,6 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
       return lastPlacedIndex
     }
   }
-
 
   function placeSingleChild(newFiber: Fiber): Fiber {
     if (shouldTrackSideEffects && newFiber.alternate === null) {
@@ -447,6 +449,12 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
 const mountChildFibers = ChildReconciler(false)
 const reconcileChildFibers = ChildReconciler(true)
 
+/**
+ * @param current 当前 Fiber
+ * @param workInProgress  workInProgress
+ * @param nextChildren  新的 element
+ * @param renderExpirationTime 当前优先级
+ */
 function reconcileChildren(current: Fiber, workInProgress: Fiber, nextChildren: any, renderExpirationTime: ExpirationTime) {
   if (current === null) {
     workInProgress.child = mountChildFibers(workInProgress, null, nextChildren, renderExpirationTime)

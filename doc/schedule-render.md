@@ -1,5 +1,5 @@
 # 源码解析九  `render`阶段
-整个`render`阶段，就是通过当前的`Fiber树`遍历生成一棵`workInProgress树`的过程，然后再将这整棵新树挂在`FiberRoot`的`finishWork`上
+整个`render`阶段，就是通过当前的`Fiber树`（以下统称`current`树）遍历生成一棵`workInProgress树`的过程，然后再将这整棵新树挂在`FiberRoot`的`finishWork`上
 在遍历的过程中，会对每个节点进行调和，更新它自身的属性以及子节点，并打上更新标记
 
 ### `renderRoot()`
