@@ -320,7 +320,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
   }
 
   function reconcileChildrenArray(returnFiber: Fiber, currentFirstChild: Fiber, newChildren: any[], expirationTime: ExpirationTime): Fiber {
-    let resultingFirstChild: Fiber = null // 要返回的链表头
+    let resultingFirstChild: Fiber = null // 要返回的子 Fiber 链表头
     let previousNewFiber: Fiber = null // 链表的指针
 
     let oldFiber: Fiber = currentFirstChild
@@ -357,6 +357,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
         previousNewFiber.sibling = newFiber
       }
       previousNewFiber = newFiber
+
       oldFiber = nextOldFiber
     }
 

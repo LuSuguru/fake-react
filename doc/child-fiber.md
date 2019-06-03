@@ -8,7 +8,7 @@
 整棵`workInProgress`树，都是从`current`树复制过来的，所以在没有调和子节点前，当前工作的`workInProgress`的`child`指向`current`，如图：
 <img src="./schedule/schedule-render1.png" width="572" height="487">
 
-通过新的`element`以及`current`，生成子`workInprogress`的过程，就是`reconciler childFiber`。注意，这里只是调和生成子节点的过程，更新节点的内容还得等`nextUnitOfWork`指向它，然后调用`beginWork`和`completeUnitOfWork`更新
+因为`element`上的属性`Fiber`上都有，所以，我们可以拿新的`element`跟当前对应的`current Fiber`进行比较，通过新的`element`以及`current`，生成子`workInprogress`，`reconciler childFiber`做的就是这些。注意，这里只是调和生成子节点的过程，更新节点的内容还得等`nextUnitOfWork`指向它，然后调用`beginWork`和`completeUnitOfWork`更新
 
 ### `reconcileChildren`
 `begeinwork`，每种类型的调和函数在更新自身的属性时，也会更新其`element`，如：
@@ -191,6 +191,14 @@ placeSingleChild(reconcileSingleElement(returnFiber, currentFirstChild, newChild
 - 删除多余节点
 
 ```javaScript
+function useFiber(fiber: Fiber, pendingProps: any): Fiber {
+  const clone = createWorkInProgress(fiber, pendingProps)
+
+  clone.index = 0
+  clone.sibling = null
+  return clone
+}
+
   function placeSingleChild(newFiber: Fiber): Fiber {
     // 更新且是新增节点，打上标
     if (shouldTrackSideEffects && newFiber.alternate === null) {
@@ -254,7 +262,175 @@ placeSingleChild(reconcileSingleElement(returnFiber, currentFirstChild, newChild
 ```
 
 ### 数组
-数组的处理则相对复杂了很多
+数组的处理则相对复杂了很多，整个`reconcileChildrenArray`里有好几个大循环，我们一个一个解析
+
+```javaScript
+  function reconcileChildrenArray(returnFiber: Fiber, currentFirstChild: Fiber, newChildren: any[], expirationTime: ExpirationTime): Fiber {
+    let resultingFirstChild: Fiber = null // 要返回的子 Fiber 链表头
+    let previousNewFiber: Fiber = null // 链表的指针
+
+    let oldFiber: Fiber = currentFirstChild
+    let lastPlacedIndex: number = 0
+
+    let newIdx: number = 0
+    let nextOldFiber: Fiber = null
+
+    for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
+      if (oldFiber.index > newIdx) {
+        nextOldFiber = oldFiber
+        oldFiber = null
+      } else {
+        nextOldFiber = oldFiber.sibling
+      }
+
+      // 比较节点
+      const newFiber = updateSlot(returnFiber, oldFiber, newChildren[newIdx], expirationTime)
+
+      if (newFiber === null) { // 新旧key不相同，直接退出循环
+        if (oldFiber === null) {
+          oldFiber = nextOldFiber
+        }
+        break
+      }
+
+      if (shouldTrackSideEffects && (oldFiber && newFiber.alternate === null)) {
+        deleteChild(returnFiber, oldFiber)
+      }
+
+      lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
+
+      if (previousNewFiber === null) {
+        resultingFirstChild = newFiber
+      } else {
+        previousNewFiber.sibling = newFiber
+      }
+      previousNewFiber = newFiber
+
+      oldFiber = nextOldFiber
+    }
+```
+
+第一个循环相当于一个预处理，每个`Fiber`都有一个`index`，类似于数组的索引值。
+
+看循环里面，首先是个判断，确保每一个新节点都有相应`index`的老节点可以进行比较（新节点是`element`，老节点是`Fiber`）。随后调用`updateSlot`比较新老节点，如果`key`相同，返回新的`Fiber`，不相同的话，直接返回null，退出第一个循环。此时就找到了第一个与新节点key不相等的旧节点，挂在oldFiber上
+
+看下`updateSlot`：
+
+```javaScript
+  function updateSlot(returnFiber: Fiber, oldFiber: Fiber, newChild: any, expirationTime: ExpirationTime) {
+    const key = oldFiber !== null ? oldFiber.key : null
+
+    if (isText(newChild)) {
+      if (key !== null) {
+        return null
+      }
+
+      return updateTextNode(returnFiber, oldFiber, '' + newChild, expirationTime)
+    }
+
+    if (isObject(newChild)) {
+      switch (newChild.$$typeof) {
+        case REACT_ELEMENT_TYPE:
+          if (newChild.key === key) {
+            if (newChild.type === REACT_FRAGMENT_TYPE) {
+              return updateFragment(returnFiber, oldFiber, newChild.props.children, expirationTime, key)
+            }
+
+            return updateElement(returnFiber, oldFiber, newChild, expirationTime)
+          } else {
+            return null
+          }
+        case REACT_PORTAL_TYPE:
+          if (newChild.key === key) {
+            return updatePortal(returnFiber, oldFiber, newChild, expirationTime)
+          } else {
+            return null
+          }
+      }
+    }
+
+    if (isArray(newChild)) {
+      if (key !== null) {
+        return null
+      }
+
+      return updateFragment(returnFiber, oldFiber, newChild, expirationTime, null)
+    }
+
+    return null
+  }
+```
+
+对于每一种类型，首先比较`key`是否相等，不相等直接返回`null`，相等的话，在调用`update`函数，每个`update`的逻辑都差不多，这里拿`updateElement`举个例子，这里很简单，如果类型相同，复用老的`Fiber`，不相同的话，则用新的`element`创建一个`Fiber`：
+
+```javaScript
+  function updateElement(returnFiber: Fiber, current: Fiber, element: ReactElement, expirationTime: ExpirationTime): Fiber {
+    let fiber: Fiber = null
+    if (current === null || current.elementType !== element.type) {
+      fiber = createFiberFromElement(element, returnFiber.mode, expirationTime)
+    } else {
+      fiber = useFiber(current, element.props)
+    }
+
+    fiber.ref = element.ref
+    fiber.return = returnFiber
+    return fiber
+  }
+```
+
+结束完第一个循环后，如果`newIdx === newChildren.length`，说明新的数组也已遍历完，老节点链表里还有没比较过的，全部删掉
+
+```javaScript
+    // 新的数组已全部遍历完，删除余下的旧元素，返回
+    if (newIdx === newChildren.length) { 
+      deleteRemainingChildren(returnFiber, oldFiber)
+      return resultingFirstChild
+    }
+
+```
+
+继续往下，如果`oldFiber === null`，说明老的链表已经全部遍历完，若新的数组还有没比较的，那么这些都是新增的，处理下
+
+```javaScript
+    if (oldFiber === null) { // 旧的遍历完，新的还有，说明后续的都是新增
+      for (; newIdx < newChildren.length; newIdx++) {
+        const newFiber = createChild(returnFiber, newChildren[newIdx], expirationTime)
+        if (!newFiber) {
+          continue
+        }
+
+        lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
+
+        if (previousNewFiber === null) {
+          resultingFirstChild = newFiber
+        } else {
+          previousNewFiber.sibling = newFiber
+        }
+        previousNewFiber = newFiber
+      }
+      return resultingFirstChild
+    }
+```
+
+最后，如果新老都还有，有可能是顺序换了，或者新增，或者删减。这种情况下，先把剩下的老节点链表转为`map`，若有`key`则取`key`，无`key`则取`index`
+```javaScript
+const existingChildren = mapRemainingChildren(oldFiber)
+
+function mapRemainingChildren(currentFirstChild: Fiber): Map<string | number, Fiber> {
+  const existingChildren: Map<string | number, Fiber> = new Map()
+
+  let existingChild: Fiber = currentFirstChild
+  while (existingChild !== null) {
+    if (existingChild.key !== null) {
+      existingChildren.set(existingChild.key, existingChild)
+    } else {
+      existingChildren.set(existingChild.index, existingChild)
+    }
+    existingChild = existingChild.sibling
+  }
+  return existingChildren
+}    
+```
 
 
 
