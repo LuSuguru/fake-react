@@ -173,28 +173,28 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
   }
 
   function updateFromMap(returnFiber: Fiber, existingChildren: Map<string | number, Fiber>, newChild: any, newIdx: number, expirationTime: ExpirationTime) {
+    let matchedFiber = existingChildren.get(newChild.key === null ? newIdx : newChild.key) || null
+
     if (isText(newChild)) {
-      const matchedFiber = existingChildren.get(newIdx) || null
+      matchedFiber = existingChildren.get(newIdx) || null
       return updateTextNode(returnFiber, matchedFiber, '' + newChild, expirationTime)
     }
 
     if (isObject(newChild)) {
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE: {
-          const matchedFiber = existingChildren.get(newChild.key === null ? newIdx : newChild.key) || null
           if (newChild.type === REACT_FRAGMENT_TYPE) {
             return updateFragment(returnFiber, matchedFiber, newChild.props.children, expirationTime, newChild.key)
           }
           return updateElement(returnFiber, matchedFiber, newChild, expirationTime)
         }
         case REACT_PORTAL_TYPE: {
-          const matchedFiber = existingChildren.get(newChild.key === null ? newIdx : newChild.key) || null
           return updatePortal(returnFiber, matchedFiber, newChild, expirationTime)
         }
       }
 
       if (isArray(newChild)) {
-        const matchedFiber = existingChildren.get(newIdx) || null
+        matchedFiber = existingChildren.get(newIdx) || null
         return updateFragment(returnFiber, matchedFiber, newChild, expirationTime, null)
       }
     }
@@ -392,6 +392,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
 
       if (newFiber) {
         if (shouldTrackSideEffects) {
+          // 将比较过的节点从集合中去掉
           if (newFiber.alternate !== null) {
             existingChildren.delete(newFiber.key === null ? newIdx : newFiber.key)
           }

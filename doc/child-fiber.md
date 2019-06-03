@@ -144,7 +144,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
 - 文本
 - 数组
 
-不管是哪种类型，都会删除无用的节点，所以，先看删除节点的方法：
+不管是哪种类型，都会删除无用的节点，所以，先看删除节点的函数：
 ```javaScript
   // 单个删除
   function deleteChild(returnFiber: Fiber, childToDelete: Fiber) {
@@ -187,10 +187,11 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
 placeSingleChild(reconcileSingleElement(returnFiber, currentFirstChild, newChild, expirationTime))
 ```
 单个节点的处理比较简单
-- 拿新旧节点作比较，如果key跟type都相等，就直接复用之前的`fiber`。反正，就创建一个新的`fiber`，effectTag挂上'placement'，说明是个新增节点，(`fragment`判断新旧是否都是`fragment`，`portal`判断`containerInfo`)
+- 拿新旧节点作比较，如果key跟type都相等，就直接复用之前的`fiber`。反正，就创建一个新的`fiber`，effectTag挂上'placement'，说明是个放置的节点，(`fragment`判断新旧是否都是`fragment`，`portal`判断`containerInfo`)
 - 删除多余节点
 
 ```javaScript
+// 复用老 Fiber
 function useFiber(fiber: Fiber, pendingProps: any): Fiber {
   const clone = createWorkInProgress(fiber, pendingProps)
 
@@ -267,7 +268,7 @@ function useFiber(fiber: Fiber, pendingProps: any): Fiber {
 ```javaScript
   function reconcileChildrenArray(returnFiber: Fiber, currentFirstChild: Fiber, newChildren: any[], expirationTime: ExpirationTime): Fiber {
     let resultingFirstChild: Fiber = null // 要返回的子 Fiber 链表头
-    let previousNewFiber: Fiber = null // 链表的指针
+    let previousNewFiber: Fiber = null // 当前的链表尾部
 
     let oldFiber: Fiber = currentFirstChild
     let lastPlacedIndex: number = 0
@@ -293,6 +294,7 @@ function useFiber(fiber: Fiber, pendingProps: any): Fiber {
         break
       }
 
+      // 删除多余的老节点
       if (shouldTrackSideEffects && (oldFiber && newFiber.alternate === null)) {
         deleteChild(returnFiber, oldFiber)
       }
@@ -431,6 +433,124 @@ function mapRemainingChildren(currentFirstChild: Fiber): Map<string | number, Fi
   return existingChildren
 }    
 ```
+
+获取老节点的`map`后，遍历余下的新节点数组，使用`updateFromMap`对比新老节点，并返回新的`Fiber`，若有`key`，则通过`key`从`map`中拿到需要对比的节点，反之，则使用`index`，这与转换`map`时的逻辑相同，由于文本和数组是没有Key的，所以这两种情况下直接用`index`取：
+
+```javaScript
+  function updateFromMap(returnFiber: Fiber, existingChildren: Map<string | number, Fiber>, newChild: any, newIdx: number, expirationTime: ExpirationTime) {
+    let matchedFiber = existingChildren.get(newChild.key === null ? newIdx : newChild.key) || null
+
+    if (isText(newChild)) {
+      matchedFiber = existingChildren.get(newIdx) || null
+      return updateTextNode(returnFiber, matchedFiber, '' + newChild, expirationTime)
+    }
+
+    if (isObject(newChild)) {
+      switch (newChild.$$typeof) {
+        case REACT_ELEMENT_TYPE: {
+          if (newChild.type === REACT_FRAGMENT_TYPE) {
+            return updateFragment(returnFiber, matchedFiber, newChild.props.children, expirationTime, newChild.key)
+          }
+          return updateElement(returnFiber, matchedFiber, newChild, expirationTime)
+        }
+        case REACT_PORTAL_TYPE: {
+          return updatePortal(returnFiber, matchedFiber, newChild, expirationTime)
+        }
+      }
+
+      if (isArray(newChild)) {
+        matchedFiber = existingChildren.get(newIdx) || null
+        return updateFragment(returnFiber, matchedFiber, newChild, expirationTime, null)
+      }
+    }
+    return null
+  }
+```
+
+再回到上面：
+
+```javaScript
+    for (; newIdx < newChildren.length; newIdx++) {
+      const newFiber = updateFromMap(returnFiber, existingChildren, newChildren[newIdx], newIdx, expirationTime)
+
+      if (newFiber) {
+        if (shouldTrackSideEffects) {
+          // 将比较过的节点从集合中去掉
+          if (newFiber.alternate !== null) {
+            existingChildren.delete(newFiber.key === null ? newIdx : newFiber.key)
+          }
+        }
+
+        lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
+
+        if (previousNewFiber === null) {
+          resultingFirstChild = newFiber
+        } else {
+          previousNewFiber.sibling = newFiber
+        }
+        previousNewFiber = newFiber
+      }
+    }
+
+    if (shouldTrackSideEffects) {
+      // 余下集合里的节点说明都是多余，直接删除
+      existingChildren.forEach((child: Fiber) => deleteChild(returnFiber, child))
+    }
+    return resultingFirstChild
+  }
+```
+
+拿到新的`Fiber`以后，都会有`lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)`，在这个函数里，有我们熟悉的`lastIndex`优化，`lastPlaceIndex`保留着当前访问过的老节点中最右的索引值，如果某个新节点有对应的老节点，先拿到老节点的`index`，如果`index`大于`lastPlaeIndex`，说明这个老节点在老的链表中就在当前访问过的最右节点之后，所以，可以直接复用，无需插入，举个例子，如下图：
+
+<img src="./schedule/element-diff.png" width="254" height="133"/>
+
+- 第一次进`placeChild`，此时的`lastPlacedIndex`是0，newFiber = B，能获取到老节点，说明是更新，老节点的索引值为1，大于0，所以B节点无需移动，直接拉下来复用，更新`lastPlaceIndex`为1
+- 第二次进`placeChild`，此时的`lastPlacedIndex`是1，newFiber = A，能获取到老节点，老节点的索引值为0，小于1，所以是个需要更新的节点，打上`Placement`
+- 第三次进`placeChild`，此时的`lastPlacedIndex`还是1，newFiber = D，能获取到老节点，老节点的索引值为3，大于1，所以D节点在之前访问过的任意老节点后面，所以直接拉下来复用，并且更新`lastPlaceIndex`为3
+- 第四次进`placeChild`，此时的`lastPlacedIndex`是3，newFiber = C，能获取到老节点，老节点的索引值为2，小于1，所以是个需要更新的节点，打上`Placement`
+
+```javaScript
+  function placeChild(newFiber: Fiber, lastPlacedIndex: number, newIdx: number): number {
+    newFiber.index = newIdx
+
+    if (!shouldTrackSideEffects) {
+      return lastPlacedIndex
+    }
+
+    const current = newFiber.alternate
+    // 更新
+    if (current !== null) {
+      const oldIndex = current.index
+      if (oldIndex < lastPlacedIndex) {
+        newFiber.effectTag = Placement // 需要插入
+        return lastPlacedIndex
+      } else {
+        return oldIndex
+      }
+    // 移动
+    } else {
+      newFiber.effectTag = Placement
+      return lastPlacedIndex
+    }
+  }
+```
+
+打上标记后，对于新的`Fiber`节点，由于是同一层级，所以还要连成链表，整个数组的方法里有两个变量，记录着新链表的表头和当前的链表尾，所以我们要做的就是没有链表先创建，有链表就直接接进去：
+
+```javaScript
+    let resultingFirstChild: Fiber = null // 要返回的子 Fiber 链表头
+    let previousNewFiber: Fiber = null // 当前的链表尾部
+
+    if (previousNewFiber === null) {
+      resultingFirstChild = newFiber
+    } else {
+      previousNewFiber.sibling = newFiber
+    }
+    previousNewFiber = newFiber
+```
+
+以上就是整个数组部分的`reconciler childFiber`，可见，`key`在整个数组的调和中里发挥着巨大的作用。它是节点的唯一标识，可以快速定位到原来节点，方便判断是更新还是添加，如果没有`key`，可能会多很多多余的删除和新建，开销巨大
+
 
 
 
