@@ -14,7 +14,7 @@
 - [源码解析九  `render`阶段](./doc/schedule-render.md)
 - [源码解析十  `beginWork`](./doc/begin-work.md)
 - [源码解析十一 `updateClassComponent`](./doc/update-class-component.md)
-- [源码解析十二 `childFiber`](./doc/child-fiber.md)
+- [源码解析十二 `reconciler childFiber`](./doc/child-fiber.md)
 
 ## 实现部分
 
@@ -24,7 +24,6 @@
 - [x] class component and setState
 - [x] 事件机制
 - [x] function component and hook
-- [x] diff 
 - [x] 一些常用的api，如memo,fragment等
 - [x] context 未测试
 
