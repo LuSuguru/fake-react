@@ -6,6 +6,7 @@
 整个`schedule`系统围绕的核心就是`Fiber`及其他们的关系和调度，所以在拿到`ReactElment`后，都会将其转化为`Fiber`。为了更好的示意，这节的所说的`element`都是指代`ReactElement`，节点都是指`Fiber`节点
 
 整棵`workInProgress`树，都是从`current`树复制过来的，所以在没有调和子节点前，当前工作的`workInProgress`的`child`指向`current`，如图：
+
 <img src="./schedule/schedule-render1.png" width="572" height="487">
 
 因为`element`上的属性`Fiber`上都有，所以，我们可以拿新的`element`跟当前对应的`current Fiber`进行比较，通过新的`element`以及`current`，生成子`workInprogress`，`reconciler childFiber`做的就是这些。注意，这里只是调和生成子节点的过程，更新节点的内容还得等`nextUnitOfWork`指向它，然后调用`beginWork`和`completeUnitOfWork`更新
