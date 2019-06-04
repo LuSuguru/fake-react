@@ -153,7 +153,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
       return
     }
 
-    // 清除 effect fiber
+    // 清除 effect fiber，挂载在当前节点的 effect 链表上
     const last = returnFiber.lastEffect
     if (last !== null) {
       last.nextEffect = childToDelete

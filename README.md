@@ -15,6 +15,7 @@
 - [源码解析十  `beginWork`](./doc/begin-work.md)
 - [源码解析十一 `updateClassComponent`](./doc/update-class-component.md)
 - [源码解析十二 `reconciler childFiber`](./doc/child-fiber.md)
+- [源码解析十三 `completeUnitOfWork`](./doc/completeUnitOfwork.md)
 
 ## 实现部分
 
