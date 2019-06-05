@@ -16,6 +16,7 @@
 - [源码解析十一 `updateClassComponent`](./doc/update-class-component.md)
 - [源码解析十二 `reconciler childFiber`](./doc/child-fiber.md)
 - [源码解析十三 `completeUnitOfWork`](./doc/completeUnitOfwork.md)
+- [源码解析十四 `completeWork`](./doc/completeWork.md)
 
 ## 实现部分
 
