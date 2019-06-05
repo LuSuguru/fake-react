@@ -212,7 +212,9 @@ function updateHostComponent(current: Fiber, workInProgress: Fiber | any, type: 
 }
 ```
 
-如果是渲染的话，则先根据当前的上下文创建`DOM`实例，调`appendAllChildren`遍历其下所有`DOM`节点，插入到当前的`DOM`节点下，紧接着在`finalizeInitialChildren`中给当前节点挂上`props`，判断是否需要自动获得焦点，需要的话，`effectTag`挂上`Update`
+如果是渲染的话
+- 根据当前的上下文创建`DOM`实例，调`appendAllChildren`遍历其下所有`DOM`节点，插入到当前的`DOM`节点下
+- 在`finalizeInitialChildren`中给当前节点挂上`props`，判断是否需要自动获得焦点，需要的话，`effectTag`挂上`Update`
 
 ```javaScript
 function appendAllChildren(parent: any, workInProgress: Fiber) {
