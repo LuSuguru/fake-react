@@ -103,6 +103,7 @@ function completeWork(current: Fiber, workInProgress: Fiber) {
 
         appendAllChildren(instance, workInProgress)
 
+        // 是否需要获得焦点
         if (finalizeInitialChildren(instance, type, newProps, rootContainerInstance)) {
           workInProgress.effectTag |= Update
         }
