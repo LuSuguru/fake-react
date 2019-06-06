@@ -185,6 +185,7 @@ function commitDetachRef(current: Fiber) {
 }
 
 function commitPlacement(finishedWork: Fiber) {
+  // 拿到上级最近的 dom 元素作为父节点
   const parentFiber = getHostParentFiber(finishedWork)
 
   let parent: any = null
@@ -286,14 +287,6 @@ function commitWork(_current: Fiber, finishedWork: Fiber) {
       setTextInstance(textInstance, newText)
       return
     }
-    case SuspenseComponent: {
-      // 待实现
-    }
-    case HostRoot:
-    case Profiler:
-    case IncompleteClassComponent: {
-      return
-    }
   }
 }
 
@@ -303,6 +296,7 @@ function commitUnmount(current: Fiber) {
     case ForwardRef:
     case MemoComponent:
     case SimpleMemoComponent: {
+      // useEffect
       const updateQueue: FunctionComponentUpdateQueue = current.updateQueue as any
       if (updateQueue !== null) {
         const { lastEffect } = updateQueue
@@ -323,6 +317,7 @@ function commitUnmount(current: Fiber) {
     }
     case ClassComponent: {
       safelyDetachRef(current)
+      // 调用生命周期
       safelyCallComponentWillUnmount(current)
       return
     }
@@ -462,6 +457,7 @@ function commitLifeCycles(current: Fiber, finishedWork: Fiber) {
       }
 
       const { updateQueue } = finishedWork
+      // 调用 callback
       commitUpdateQueue(updateQueue, instance)
       return
     }

@@ -660,8 +660,10 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
 
   const earliestRemainingTimeBeforeCommit = finishedWork.expirationTime > finishedWork.childExpirationTime ? finishedWork.expirationTime : finishedWork.childExpirationTime
 
+  // 更新 FiberRoot 优先级
   markCommittedPriorityLevels(root, earliestRemainingTimeBeforeCommit)
 
+  // 找到遍历 effect 链表的入口
   let firstEffect: Fiber = null
   if (finishedWork.effectTag > PerformedWork) {
     if (finishedWork.lastEffect !== null) {
@@ -682,7 +684,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
   commitTask(commitAllHostEffects, firstEffect)
   resetAfterCommit(root.containerInfo)
 
-  // 第二阶段，更新生命周期，ref
+  // 第二阶段，调用生命周期，ref
   root.current = finishedWork
   commitTask(commitAllLifeCycles.bind(null, root), firstEffect)
 
@@ -696,6 +698,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
   isCommitting = false
   isWorking = false
 
+  // 更新优先级
   const earliestRemainingTimeAfterCommit = finishedWork.expirationTime > finishedWork.childExpirationTime ? finishedWork.expirationTime : finishedWork.childExpirationTime
 
   if (earliestRemainingTimeAfterCommit === NoWork) {
@@ -768,6 +771,7 @@ function commitAllHostEffects(effectTag: SideEffectTag) {
     commitResetTextContent(nextEffect)
   }
 
+  // ref 引用的还是老的实例，所以有 ref 的先删除老的
   if (effectTag & Ref) {
     const current = nextEffect.alternate
     if (current !== null) {
