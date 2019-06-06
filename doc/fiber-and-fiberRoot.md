@@ -80,7 +80,7 @@ class FiberRoot {
 }
 ```
 
-## Fiber
+### Fiber
 `Fiber`是一个工作单元，由于一切的调度更新渲染都是围绕着它展开，在`fiber reconciler`下，操作是可以分成很多小部分，并且可以被中断的，所以同步操作`DOM`可能会导致`Fiber`树与实际`DOM`的不同步。对于每个节点，不光需要存储了对应元素节点的基本信息，还要保存一些用于任务调度的信息，以及跟周围节点的关系信息
 
 ``` javaScript
@@ -130,5 +130,51 @@ class Fiber {
     this.key = key
     this.mode = mode
   }
+}
+```
+
+### `workInProgress`
+`WorkInProgress` 是`Fiber`进行调度时的一个副本，与`Fiber`通过`alternate`相互连接，调度完成后用整个`WorkInProgress`树替代当前的`Fiber`树
+
+```javaScript
+function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
+  let workInProgress: Fiber = current.alternate
+
+  if (workInProgress === null) {
+    const { tag, key, mode } = current
+    workInProgress = new Fiber(tag, pendingProps, key, mode)
+
+    workInProgress.elementType = current.elementType
+    workInProgress.type = current.type
+    workInProgress.stateNode = current.stateNode
+
+    workInProgress.alternate = current
+    current.alternate = workInProgress
+  } else {
+    // 如果有 alternate 了，把几个调度需要的属性初始化
+    workInProgress.pendingProps = pendingProps
+
+    workInProgress.effectTag = NoEffect
+    workInProgress.nextEffect = null
+    workInProgress.firstEffect = null
+    workInProgress.lastEffect = null
+  }
+
+  workInProgress.childExpirationTime = current.childExpirationTime
+  workInProgress.expirationTime = current.expirationTime
+
+  workInProgress.child = current.child
+  workInProgress.sibling = current.sibling
+
+  workInProgress.index = current.index
+  workInProgress.ref = current.ref
+
+  workInProgress.memoizedProps = current.memoizedProps
+  workInProgress.memoizedState = current.memoizedState
+  workInProgress.updateQueue = current.updateQueue
+
+  workInProgress.contextDependencies = current.contextDependencies
+
+  return workInProgress
 }
 ```
