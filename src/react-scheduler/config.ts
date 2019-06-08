@@ -42,8 +42,9 @@ channel.port1.onmessage = (_event) => {
 
   let didTimeout: boolean = false
 
-  // 帧过期
+  // 是否空闲
   if (frameDeadline - currentTime <= 0) {
+    // 当前任务是否超时
     if (prevTimeoutTime !== -1 && prevTimeoutTime <= currentTime) {
       // 超时
       didTimeout = true
@@ -80,6 +81,7 @@ function animationTick(rafTime: number) {
   // 自发地调整使activeFrameTime约为当前设备的帧时间，便于计算帧过期时间
   let nextFrameTime = rafTime - frameDeadline + activeFrameTime
   if (nextFrameTime < activeFrameTime && previousFrameTime < activeFrameTime) {
+    // 最小不能小于8ms，也频率就是120hz
     if (nextFrameTime < 8) {
       nextFrameTime = 8
     }
