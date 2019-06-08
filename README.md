@@ -18,6 +18,7 @@
 - [源码解析十三 `completeUnitOfWork`](./doc/completeUnitOfWork.md)
 - [源码解析十四 `completeWork`](./doc/completeWork.md)
 - [源码解析十五 `commitRoot`](./doc/commitWork.md)
+- [源码解析十六 `requestIdleCallback`的`polyfill`](./doc/requestIdleCallback.md)
 
 ## 实现部分
 
