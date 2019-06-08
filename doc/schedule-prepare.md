@@ -1,8 +1,8 @@
 # 源码解析七  `schedule`调度前准备
 
-在`schedule`里维护着一条`FiberRoot`的双向链表，`FibreRoot`就相当于调度时的基本工作单元，所以在准备阶段：
+在`schedule`里维护着一条`FiberRoot`的环形链表，`FibreRoot`就相当于调度时的基本工作单元，所以在准备阶段：
 - 先初始化`schedule`一些关键性的全局变量
-- 通过当前节点拿到这次更新的`FiberRoot`，更新它的优先级，并塞进双向链表中
+- 通过当前节点拿到这次更新的`FiberRoot`，更新它的优先级，并塞进环形链表中
 - 发起一个正确的任务调度请求：
 
 先上源码：
@@ -94,7 +94,7 @@ function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): Fiber
 ```
 
 ### `requestWork()`
-如果现在不在`render阶段`，则会调用`requestWork`,将`fiberRoot`插入到双向链表中，，然后根据这个任务的优先级，进入`work`阶段，源码如下
+如果现在不在`render阶段`，则会调用`requestWork`,将`fiberRoot`插入到环形链表中，，然后根据这个任务的优先级，进入`work`阶段，源码如下
 
 ```javaScript
 function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {

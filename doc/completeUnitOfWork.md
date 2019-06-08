@@ -124,7 +124,7 @@ function updateChildExpirationTime(workInProgress: Fiber, renderTime: Expiration
 
 ```            
             nextEffect        nextEffect        nextEffect
-firstEffect ----------> Fiber ----------> Fiber ----------> lastFiberRoot
+firstEffect ----------> Fiber ----------> Fiber ----------> lastEffect
 ```
 
 ```javaScript

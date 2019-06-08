@@ -26,9 +26,7 @@ import {
   HostPortal,
   HostRoot,
   HostText,
-  IncompleteClassComponent,
   MemoComponent,
-  Profiler,
   SimpleMemoComponent,
   SuspenseComponent,
 } from '../react-type/tag-type'

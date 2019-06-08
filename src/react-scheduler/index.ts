@@ -48,8 +48,8 @@ import {
 import { completeWork } from '../react-work/complete-work'
 import { throwException, unwindInterruptedWork, unwindWork } from '../react-work/unwind-work'
 import { clearTimeout, noTimeout, now } from '../utils/browser'
+import { CallbackNode, cancelDeferredCallback, scheduleDeferredCallback, shouldYield } from './defer-scheduler'
 import { didExpireAtExpirationTime, markCommittedPriorityLevels, markPendingPriorityLevel } from './pending-priority'
-import { CallbackNode, cancelDeferredCallback, scheduleDeferredCallback, shouldYield } from './scheduler'
 
 const NESTED_UPDATE_LIMIT: number = 50
 let nestedUpdateCount: number = 0
