@@ -466,7 +466,7 @@ function scheduleCallbackWithExpirationTime(expirationTime: ExpirationTime) {
 
 function performAsyncWork(didTimeout: boolean) {
   if (didTimeout) {
-    // 当前已到期，更新优先级大于当前时间的 FiberRoot
+    // 当前已到期，更新优先级小于当前优先级的 FiberRoot
     if (firstScheduledRoot !== null) {
       recomputeCurrentRendererTime(false)
 
@@ -511,6 +511,7 @@ function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
     }
   }
 
+  // 清除异步标识
   if (isYieldy) {
     callbackExpirationTime = NoWork
     callbackID = null

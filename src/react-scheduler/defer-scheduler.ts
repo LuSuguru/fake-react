@@ -56,7 +56,7 @@ function ensureHostCallbackIsScheduled() {
 function flushFirstCallback() {
   const flushedNode: CallbackNode = firstCallbackNode
 
-  // 在执行前从链表中删除该node
+  // 从链表中取出 callbackNode
   let next: CallbackNode = firstCallbackNode.next
   if (firstCallbackNode === next) {
     firstCallbackNode = null
@@ -145,11 +145,14 @@ function flushWork(didTimeout: boolean) {
     isExecutingCallback = false
     currentDidTimeout = previousDidTimeout
 
+    // 如果还有任务，继续触发
     if (firstCallbackNode !== null) {
       ensureHostCallbackIsScheduled()
     } else {
       isHostCallbackScheduled = false
     }
+
+    // 处理需要立即执行的任务
     flushImmediateWork()
   }
 }

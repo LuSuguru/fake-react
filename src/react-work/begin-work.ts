@@ -49,7 +49,7 @@ function bailoutOnAlreadyFinishedWork(current: Fiber, workInProgress: Fiber, ren
 
   const { childExpirationTime } = workInProgress
 
-  // 判断子树是否需要更新，不需要直接进入complete阶段
+  // 判断子树是否需要更新，不需要直接进入complete阶段，直接跳过
   if (childExpirationTime < renderExpirationTime) {
     return null
   } else {
