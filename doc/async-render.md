@@ -265,7 +265,7 @@ function flushImmediateWork() {
   }
 ```
 
-再看`scheduleCallbackWithExpirationTime`，首先，如果有了一个异步任务，根据其过期时间，判断是否应该取消，随后，将过期时间转化为毫秒形式，传给`scheduleDeferredCallback`，`performAsyncWork`会被封装成`callbackNode`，被`deferSchedule`在空闲时间内调用，看下`performAsyncWork`，如果当前已过期，调用`didExpireAtExpirationTime`，更新优先级大于当前优先级的`FiberRoot`的`nextExpirationTimeToWorkOn`，`nextExpirationTimeToWorkOn`是整个`render`阶段比较优先级的参考值，更新它的话可以保证整个`render`阶段里过期的任务都能准确更新掉
+再看`scheduleCallbackWithExpirationTime`，首先，如果有了一个异步任务，根据其过期时间，判断是否应该取消，随后，将过期时间转化为毫秒形式，传给`scheduleDeferredCallback`，`performAsyncWork`会被封装成`callbackNode`，被`deferSchedule`在空闲时间内调用，看下`performAsyncWork`，如果当前已过期，调用`didExpireAtExpirationTime`，更新优先级大于当前优先级的`FiberRoot`的`nextExpirationTimeToWorkOn`，`nextExpirationTimeToWorkOn`是整个`render`阶段比较优先级的参考值，更新它的话可以保证整个`render`阶段里过期的任务都能准确更新掉。
 
 ```javaScript
 let callbackExpirationTime: ExpirationTime = NoWork // 异步记录时间
