@@ -20,6 +20,8 @@
 - [源码解析十五 `commitRoot`](./doc/commitWork.md)
 - [源码解析十六 `requestIdleCallback`的`polyfill`](./doc/requestIdleCallback.md)
 - [源码解析十七 异步渲染](./doc/async-render.md)
+- [源码解析十八 事件系统](./doc/event-init.md)
+- [源码解析十九 事件插件注入](./doc/event-plugin.md)
 
 ## 实现部分
 

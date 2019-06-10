@@ -10,7 +10,6 @@ import { batchedUpdates, flushInteractiveUpdates, interactiveUpdates } from '../
 import { restoreControlledState } from './dom/dom-component'
 
 EventPluginHubInjection.injectEventPluginOrder([
-  'ResponderEventPlugin',
   'SimpleEventPlugin',
   'EnterLeaveEventPlugin',
   'ChangeEventPlugin',
