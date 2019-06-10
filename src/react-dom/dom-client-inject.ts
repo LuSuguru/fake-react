@@ -18,6 +18,14 @@ EventPluginHubInjection.injectEventPluginOrder([
   'BeforeInputEventPlugin',
 ])
 
+EventPluginHubInjection.injectEventPluginsByName({
+  SimpleEventPlugin,
+  EnterLeaveEventPlugin,
+  ChangeEventPlugin,
+  SelectEventPlugin,
+  BeforeInputEventPlugin,
+})
+
 setBatchingImplementation(
   batchedUpdates,
   interactiveUpdates,
@@ -26,10 +34,4 @@ setBatchingImplementation(
 
 setRestoreImplementation(restoreControlledState)
 
-EventPluginHubInjection.injectEventPluginsByName({
-  SimpleEventPlugin,
-  EnterLeaveEventPlugin,
-  ChangeEventPlugin,
-  SelectEventPlugin,
-  BeforeInputEventPlugin,
-})
+

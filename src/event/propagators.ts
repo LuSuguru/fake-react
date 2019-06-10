@@ -15,10 +15,8 @@ function accumulateDirectionalDispatches(inst: Fiber, phase: Phases, event: Synt
   const listener = listenAtPhase(inst, event, phase)
 
   if (listener) {
-    if (listener) {
-      event._dispatchListeners = accumulateInto(event._dispatchListeners, listener)
-      event._dispatchInstances = accumulateInto(event._dispatchInstances, inst)
-    }
+    event._dispatchListeners = accumulateInto(event._dispatchListeners, listener)
+    event._dispatchInstances = accumulateInto(event._dispatchInstances, inst)
   }
 }
 
@@ -47,7 +45,6 @@ function accumulateTwoPhaseDispatches(events: SyntheticEvent) {
 function accumulateEnterLeaveDispatches(leave: SyntheticEvent, enter: SyntheticEvent, from: Fiber, to: Fiber) {
   traverseEnterLeave(from, to, accumulateDispatches, leave, enter)
 }
-
 
 export {
   accumulateTwoPhaseDispatches,

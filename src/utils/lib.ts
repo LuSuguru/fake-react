@@ -1,8 +1,3 @@
-
-function is(x, y) {
-  return x === y && (x !== 0 || 1 / x === 1 / y) || x !== x && y !== y // eslint-disable-line no-self-compare
-}
-
 export function shallowEqual(objA: any, objB: any): boolean {
   if (Object.is(objA, objB)) {
     return true

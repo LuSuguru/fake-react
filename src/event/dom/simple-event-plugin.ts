@@ -98,7 +98,7 @@ const nonInteractiveEventTypeNames: EventTuple[] = [
 ]
 
 const eventTypes: EventTypes = {}
-const topLevelEventsToDispatchConfig: { [key: string]: DispatchConfig } = {}
+const topLevelEventsToDispatchConfig: EventTypes = {}
 
 function addEventTypeNameToConfig([topEvent, event]: EventTuple, isInteractive: boolean) {
   const capitalizedEvent = event[0].toUpperCase() + event.slice(1)
