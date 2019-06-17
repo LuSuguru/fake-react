@@ -80,7 +80,7 @@ function updateWorkInProgressHook(): Hook {
     if (workInProgressHook === null) {
       workInProgressHook = firstWorkInProgressHook = newHook // 第一次
     } else {
-      workInProgressHook = workInProgressHook.next = newHook// 插入链表中
+      workInProgressHook = workInProgressHook.next = newHook // 插入链表中
     }
     nextCurrentHook = currentHook.next
   }
