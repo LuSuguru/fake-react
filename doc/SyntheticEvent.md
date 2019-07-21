@@ -63,5 +63,49 @@ class SyntheticFocusEvent extends SyntheticEvent {
 }
 ```
 
-### 事件池
+### 对象池
+
+在创建`event`对象时，`react`采用了对象池的概念，每个 `event`在继承完后,都会通过`addPool()`给其加上对象池
+
+```javaScript
+export function addPool(Event: any): StaticSyntheticEvent {
+  Event.eventPool = [] // 对象池存储数组
+
+  Event.getPooled = function(dispatchConfig: DispatchConfig, targetInst: Fiber, nativeEvent: Event, nativeEventTarget: EventTarget) {
+    ...
+  }
+
+  Event.release = function(event: SyntheticEvent) {
+    ...
+  }
+
+  return Event
+}
+
+export default addPool(SyntheticFocusEvent)
+```
+
+在创建`event`对象时，会调用`release()`将其塞入对象池数组中
+
+```javaScript
+  Event.release = function(event: SyntheticEvent) {
+    event.destructor()
+
+    if (this.eventPool.length < EVENT_POOL_SIZE) {
+      this.eventPool.push(event)
+    }
+  }
+```
+
+在读取`event`对象时，会调用`getPooled()`，若对象池中还有对象，可以直接取出来复用，减少了垃圾生成和新对象内存的分配，大大提高了性能
+
+```javaScript
+  Event.release = function(event: SyntheticEvent) {
+    event.destructor()
+
+    if (this.eventPool.length < EVENT_POOL_SIZE) {
+      this.eventPool.push(event)
+    }
+  }
+```
 
