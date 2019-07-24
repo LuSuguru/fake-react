@@ -63,9 +63,7 @@ export function getParentInstance(inst: Fiber) {
   return getParent(inst)
 }
 
-/**
- * Simulates the traversal of a two-phase, capture/bubble event dispatch.
- */
+
 export function traverseTwoPhase(inst: Fiber, fn: Function, arg: SyntheticEvent) {
   const path = []
   while (inst) {
