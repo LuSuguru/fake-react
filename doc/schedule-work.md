@@ -10,7 +10,7 @@
 ```
 
 异步，还多了两个判断
-`shouldYield()`也是异步模块里的方法，用来判断时间切片是否到期，如果到期了返回`true`，未到期返回`false`
+`shouldYield()`也是异步模块里的函数，用来判断时间切片是否到期，如果到期了返回`true`，未到期返回`false`
 再看`currentRendererTime <= nextFlushedExpirationTime`，前面说过，优先级和到期时间是可以相互转化的，优先级越高的到期时间越小，这里我们用到期时间理解，下一个任务的到期时间已经小于当前时间。此时这个任务已经超时，需要立即执行
 
 ```javaScript

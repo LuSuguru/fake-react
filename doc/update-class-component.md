@@ -120,7 +120,7 @@ const classComponentUpdater: ReactUpdateQueue = {
 ```
 
 ### `enqueueUpdate()`
-整个初始化过程非常的简单，关键在于`instance.updater = classComponentUpdater`，还记的前面`Component`基类里的`setState`方法吗？就是调用了`updater.enqueueSetState`，`enqueueSetState`里的内容也跟前面我们总结的发起任务请求三步骤相同，这里我们解析下`enqueueUpdate`这个函数，以及更新队列的一些源码：
+整个初始化过程非常的简单，关键在于`instance.updater = classComponentUpdater`，还记的前面`Component`基类里的`setState`函数吗？就是调用了`updater.enqueueSetState`，`enqueueSetState`里的内容也跟前面我们总结的发起任务请求三步骤相同，这里我们解析下`enqueueUpdate`这个函数，以及更新队列的一些源码：
 
 先看下更新队列的结构以及单个更新对象的结构，在`updateQueue`中，维护着三条有关`update`的单向链表，每个`update`里有着单次更新的全部信息，拿`update`举例：
 
@@ -603,7 +603,7 @@ export function shallowEqual(objA: any, objB: any): boolean {
 ```
 
 ### `finishClassComponent`
-回到`updateClassComponent`，在经历上面初始化或者更新以后，现在实例上的state,props都已经是最新的了，生命周期也调了，是否需要更新的标也有了，OK，万事具备，只差`render`，这时调用`finishClassComponent`，不需要更新的话，直接返回`bailoutOnAlreadyFinishedWork`，这个方法前面在`beginWork`里已说过。再往下，调用了实例的`render`，生成新的子节点属性，然后通过这些新的子节点属性生成新的子`Fiber`
+回到`updateClassComponent`，在经历上面初始化或者更新以后，现在实例上的state,props都已经是最新的了，生命周期也调了，是否需要更新的标也有了，OK，万事具备，只差`render`，这时调用`finishClassComponent`，不需要更新的话，直接返回`bailoutOnAlreadyFinishedWork`，这个函数前面在`beginWork`里已说过。再往下，调用了实例的`render`，生成新的子节点属性，然后通过这些新的子节点属性生成新的子`Fiber`
 
 ```javaScript
 function finishClassComponent(current: Fiber, workInProgress: Fiber, Component: any, shouldUpdate: boolean, renderExpirationTime: ExpirationTime): Fiber {

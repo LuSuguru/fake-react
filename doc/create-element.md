@@ -48,7 +48,7 @@ function createElement(type: any, config: any = {}, ...children: any[]): ReactEl
 2. `function e.g.`function HelloWorld { }`
 3. 原生标签，`html`元素 `e.g. `div、span`
 
-所以，`createElment()`的type 也会有三种，下面重点看下继承式的一些原理，从源码中可以看出，在`Component`上，包含了 `setState`和`forceUpdate`方法，而`PureComponent`，无非就是在`Component`的基础上加了个`isPureReactComponent` 标记位
+所以，`createElment()`的type 也会有三种，下面重点看下继承式的一些原理，从源码中可以看出，在`Component`上，包含了 `setState`和`forceUpdate`函数，而`PureComponent`，无非就是在`Component`的基础上加了个`isPureReactComponent` 标记位
 
 ``` javascript
 class Component {

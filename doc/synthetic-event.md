@@ -2,7 +2,7 @@
 前面提到过，`react`自己合成了事件对象，那么它是怎么做的呢？
 
 ### `SyntheticEvent`
-`SyntheticEvent`是整个`event`类的抽象基类，其余的具体`event`类都继承这个类实现。所以先看下基类的代码，它抽象了生成整个`event`所需属性的过程。在构造方法中遍历静态的`Interface`，拿到`nativeEvent`里这些属性真实的值，注入到实例上：
+`SyntheticEvent`是整个`event`类的抽象基类，其余的具体`event`类都继承这个类实现。所以先看下基类的代码，它抽象了生成整个`event`所需属性的过程。在构造函数中遍历静态的`Interface`，拿到`nativeEvent`里这些属性真实的值，注入到实例上：
 
 ```javaScript
 class SyntheticEvent {

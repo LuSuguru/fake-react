@@ -35,7 +35,7 @@ function push<T>(cursor: StackCursor<T>, value: T) {
 }
 ```
 
-随后，创建3个全局的`DOM`上下文关系，每个栈都有获取以及进出栈方法：
+随后，创建3个全局的`DOM`上下文关系，每个栈都有获取以及进出栈函数：
 ```javaScript
 declare class NoContext { }
 const NO_CONTEXT: NoContext = {}

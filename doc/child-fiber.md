@@ -39,7 +39,7 @@ function reconcileChildren(current: Fiber, workInProgress: Fiber, nextChildren: 
 }
 ```
 
-如果`current`没有，说明新的`element`需要渲染。反之，则是更新，`current.child`是要做比较的对象，可以称其为旧节点。这里的核心在于`ChildReconciler`，这是个采用闭包封装的模块，里面包含了各种类型的子节点的调和方法
+如果`current`没有，说明新的`element`需要渲染。反之，则是更新，`current.child`是要做比较的对象，可以称其为旧节点。这里的核心在于`ChildReconciler`，这是个采用闭包封装的模块，里面包含了各种类型的子节点的调和函数
 
 ```javaScript
 function ChildReconciler(shouldTrackSideEffects: boolean) {
@@ -536,7 +536,7 @@ function mapRemainingChildren(currentFirstChild: Fiber): Map<string | number, Fi
   }
 ```
 
-打上标记后，对于新的`Fiber`节点，由于是同一层级，所以还要连成链表，整个数组的方法里有两个变量，记录着新链表的表头和当前的链表尾，所以我们要做的就是没有链表先创建，有链表就直接接进去：
+打上标记后，对于新的`Fiber`节点，由于是同一层级，所以还要连成链表，整个数组的函数里有两个变量，记录着新链表的表头和当前的链表尾，所以我们要做的就是没有链表先创建，有链表就直接接进去：
 
 ```javaScript
     let resultingFirstChild: Fiber = null // 要返回的子 Fiber 链表头

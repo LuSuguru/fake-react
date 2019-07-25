@@ -34,7 +34,7 @@ export interface PluginModule<NativeEvent> {
 ```
 
 ### `plugin`注入
-在`ReactDOM`中引入了`dom-client-inject`,在该文件中完成了插件的注入，可以看到，整个插件注入有两步，这两个方法的代码就不贴了，无非就是把这些插件按照特定的规则存储到`EventPluginRegistry`中，便于`PluginHub`使用：
+在`ReactDOM`中引入了`dom-client-inject`,在该文件中完成了插件的注入，可以看到，整个插件注入有两步，这两个函数的代码就不贴了，无非就是把这些插件按照特定的规则存储到`EventPluginRegistry`中，便于`PluginHub`使用：
 
 ```javaScript
 // 保证插件的执行顺序

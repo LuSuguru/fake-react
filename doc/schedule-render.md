@@ -3,7 +3,7 @@
 在遍历的过程中，会对每个节点进行调和，更新它自身的属性以及子节点，并打上更新标记
 
 ### `renderRoot()`
-这个方法是整个`render`阶段的入口，先上源码：
+这个函数是整个`render`阶段的入口，先上源码：
 
 ```javaScript
 // render阶段的三个指针
@@ -94,7 +94,7 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
   root.finishedWork = root.current.alternate
 }
 ```
-在这个方法里，会通过`createWorkInProgress()`克隆一个新节点，然后让`nextUnitOfWork`指向这个节点，另外还有两个指针`nextRoot`和`nextRenderExpirationTime`，保存着当前render阶段的几个重要信息。
+在这个函数里，会通过`createWorkInProgress()`克隆一个新节点，然后让`nextUnitOfWork`指向这个节点，另外还有两个指针`nextRoot`和`nextRenderExpirationTime`，保存着当前render阶段的几个重要信息。
 
 <img src="./schedule/schedule-render1.png" width="572" height="487">
 

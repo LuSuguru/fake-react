@@ -152,7 +152,7 @@ function commitAllHostEffects(effectTag: SideEffectTag) {
 ```
 
 ### `commitPlacement`
-这个函数有点类似于前面`appendAllChildren`，首先调用`getHostSibling`找到当前要执行插入的节点的现有的第一个右侧节点，如果这个方法返回null，则会直接调用parent.appendChild
+这个函数有点类似于前面`appendAllChildren`，首先调用`getHostSibling`找到当前要执行插入的节点的现有的第一个右侧节点，如果这个函数返回null，则会直接调用parent.appendChild
 
 ```javaScript
 function getHostSibling(fiber: Fiber): any {
