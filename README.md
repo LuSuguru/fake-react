@@ -22,7 +22,9 @@
 - [源码解析十七 异步渲染](./doc/async-render.md)
 - [源码解析十八 事件系统](./doc/event-init.md)
 - [源码解析十九 事件插件注入](./doc/event-plugin.md)
-- [源码解析二十 事件对象`SyntheticEvent`及事件池](./doc/SyntheticEvent.md)
+- [源码解析二十 事件对象`SyntheticEvent`及事件池](./doc/synthetic-event.md)
+- [源码解析二十一 事件绑定](./doc/add-event-listener.md)
+- [源码解析二十二 事件触发](./doc/dispatch-event.md)
 
 ## 实现部分
 
