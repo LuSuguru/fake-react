@@ -122,7 +122,7 @@ const classComponentUpdater: ReactUpdateQueue = {
 ### `enqueueUpdate()`
 整个初始化过程非常的简单，关键在于`instance.updater = classComponentUpdater`，还记的前面`Component`基类里的`setState`函数吗？就是调用了`updater.enqueueSetState`，`enqueueSetState`里的内容也跟前面我们总结的发起任务请求三步骤相同，这里我们解析下`enqueueUpdate`这个函数，以及更新队列的一些源码：
 
-先看下更新队列的结构以及单个更新对象的结构，在`updateQueue`中，维护着三条有关`update`的单向链表，每个`update`里有着单次更新的全部信息，拿`update`举例：
+先看下更新队列的结构以及单个更新对象的结构，在`updateQueue`中，维护着三条有关`update`的任务队列，每个`update`里有着单次更新的全部信息，拿`update`举例：
 
 ```javaScript
              next           next           next
@@ -134,15 +134,15 @@ export class UpdateQueue<State> {
   // 记录上一次更新后低优先级的first state,用于调用的基值
   baseState: State
 
-  // 更新对象链表
+  // 更新对象队列
   firstUpdate: Update<State> = null
   lastUpdate: Update<State> = null
 
-  // 捕获错误的更新对象链表
+  // 捕获错误的更新对象队列
   firstCapturedUpdate: Update<State> = null
   lastCapturedUpdate: Update<State> = null
 
-  // 有callback的更新对象链表，用于commit callback
+  // 有callback的更新对象队列，用于commit callback
   firstEffect: Update<State> = null
   lastEffect: Update<State> = null
 
@@ -251,7 +251,7 @@ const updateQueue = workInProgress.updateQueue
 }
 ```
 
-`processUpdateQuque`会分别遍历`update`链表和`capturedUpdate`链表，将优先级高于当前传入优先级的`update`进行链式调用，将前一次获得的`state`传入，直到遍历完链表，获取到最新的`state`，如下图：
+`processUpdateQuque`会分别遍历`update`队列和`capturedUpdate`队列，将优先级高于当前传入优先级的`update`进行链式调用，每次调用时将前一次获得的`state`传入，直到遍历完队列，获取到最新的`state`，如下图：
 
 <img src="./schedule/processUpdateQueue.png" width="758" height="104">
 
@@ -314,7 +314,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber, queue: UpdateQu
 
     // update 的优先级较低
     if (updateExpirationTime < renderExpirationTime) {
-      // 更新新的 update 链表起点
+      // 更新新的 update 队列起点
       if (newFirstUpdate === null) {
         newFirstUpdate = update
         newBaseState = resultState
@@ -404,7 +404,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber, queue: UpdateQu
 ```
 
 ### `mountClassInstance()`和`updateClassInstance()`
-再看这两个函数，主要区别在于`updateClassInstance`里多了两个更新的判断
+回到这两个函数，主要区别在于`updateClassInstance`里多了两个更新的判断
 
 ```javaScript
 function mountClassInstance(workInProgress: Fiber, ctor: any, newProps: any, renderExpirationTime: ExpirationTime) {
