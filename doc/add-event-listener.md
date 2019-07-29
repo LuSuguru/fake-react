@@ -17,9 +17,9 @@
 
 ### `listenTo`
 
-️而在`ensureListeningTo`中，调用了`listenTo`函数.为了保证每个事件都只绑定一次，会在全局中配置一个`alreadyListeningTo`的对象，来存储已经绑定过的事件
+️而在`ensureListeningTo`中，调用了`listenTo`函数.为了保证每个事件都只绑定一次，会在全局中配置一个`alreadyListeningTo`的对象来做缓存，记录那些已经绑定过的事件
 
-在`listenTo`中，需要先做校验，确保每个事件只绑定一次。随后，根据`registrationNameDependencies`拿到相应的原生事件名用于绑定。对于不同的事件，调用`trapCapTureEvent`和`trapBubbledEvent`，从名字就可以看出，这两个函数一个用于事件捕获，一个用于事件冒泡
+在`listenTo`中，根据缓存值先做校验，确保每个事件只绑定一次。随后，根据`registrationNameDependencies`拿到相应的原生事件名用于绑定。对于不同的事件，调用`trapCapTureEvent`和`trapBubbledEvent`，从名字就可以看出，这两个函数一个用于事件捕获，一个用于事件冒泡
 
 ```javaScript
 
