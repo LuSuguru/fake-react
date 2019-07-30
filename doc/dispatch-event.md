@@ -111,6 +111,7 @@ function handleTopLevel(bookKeeping: BookKeeping) {
 ### 冒泡、捕获处理
 在获得`SyntheticEvent`的过程中，`plugin`的`extractEvents`都调用了`accumulateTwoPhaseDispatches`对冒泡、捕获做了处理，如图
 
+<img src="./event/handleEvent.png" width="733" height="531">
 
 ```javascript
 function accumulateTwoPhaseDispatches(events: SyntheticEvent) {
@@ -140,8 +141,7 @@ export function traverseTwoPhase(inst: Fiber, fn: Function, arg: SyntheticEvent)
 }
 ```
 
-
-在`traverseTwoPhase`中对当前`fiber`往上遍历直到`fiberRoot`，按照 捕获->冒泡 的顺序对某个`fiber`调用`accumulateDirectionalDispatches`
+在`traverseTwoPhase`中对当前`fiber`往上遍历直到`fiberRoot`，并存储到`path`中，之后按照 捕获->冒泡 的顺序对每个`path`的`fiber`调用`accumulateDirectionalDispatches`
 
 ```javascript
 function accumulateDirectionalDispatches(inst: Fiber, phase: Phases, event: SyntheticEvent) {
@@ -154,9 +154,72 @@ function accumulateDirectionalDispatches(inst: Fiber, phase: Phases, event: Synt
 }
 ```
 
-在这个函数中，根据传入的参数，拿到`fiber props`的事件处理函数，
+在这个函数中，根据传入的参数，拿到`fiber props`的事件处理函数和相应的`fiber`，并挂载到`event`的`_dispatchListeners`和`_dispatchInstances`上
 
+```javascript
+function getListener(inst: Fiber, registrationName: string): Function {
+  let listener: Function = null
 
+  const { stateNode } = inst
+  if (!stateNode) {
+    return null
+  }
+
+  const props = getFiberCurrentPropsFromNode(stateNode)
+  if (!props) {
+    return null
+  }
+
+  listener = props[registrationName]
+
+  // 是否停止冒泡
+  if (shouldPreventMouseEvent(registrationName, inst.type, props)) {
+    return null
+  }
+
+  return listener
+}
+
+function listenAtPhase(inst: Fiber, event: SyntheticEvent, phase: Phases) {
+  const registrationName = event.dispatchConfig.phasedRegistrationNames[phase]
+  return getListener(inst, registrationName)
+}
+```
+
+### 执行事件函数
+由于在生成`event`时已经把`props`里跟事件有关的信息注册到`event`的`_dispatchListeners`和`_dispatchInstances`上，所以，我们需要遍历`_dispatchListeners`，执行相应的事件函数`listener(event)`，由于这里是直接执行，所以在我们写的事件函数中，如果使用了`this`切没有强绑定上，在调用时会拿不到相应`this`，到这里，整个事件的触发过程就结束了，回到`batchedUpdates`的`finally`，把相应的标记位置回`false`，并且重新触发渲染
+
+```javascript
+function executeDispatchesInOrder(event: SyntheticEvent) {
+  const dispatchListeners = event._dispatchListeners
+  const dispatchInstances = event._dispatchInstances
+
+  if (Array.isArray(dispatchListeners)) {
+    for (let i = 0; i < dispatchListeners.length; i++) {
+      // 判断是否停止冒泡
+      if (event.isPropagationStopped()) {
+        break
+      }
+
+      executeDispatch(event, dispatchListeners[i], dispatchInstances[i])
+    }
+  } else if (dispatchListeners) {
+    executeDispatch(event, dispatchListeners, dispatchInstances as Fiber)
+  }
+  event._dispatchListeners = null
+  event._dispatchInstances = null
+}
+
+function executeDispatch(event: SyntheticEvent, listener: Function, inst: Fiber) {
+  event.currentTarget = getNodeFromInstance(inst)
+  listener(event)
+  event.currentTarget = null
+}
+
+export {
+  executeDispatchesInOrder,
+}
+```
 
 
 
