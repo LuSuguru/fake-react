@@ -52,7 +52,7 @@ class SyntheticEvent {
 }
 ```
 
-在看看具体的`event`子类实现，这里拿`focusEvent`举例，由于在`SyntheticEvent`中已经抽象出了了整个对象的属性注入工作，所以子类只要在父类`Interface`的基础上加上当前类需要的属性就好
+在看看具体的`event`子类实现，这里拿`focusEvent`举例，由于在`SyntheticEvent`中已经抽象出了整个对象的属性注入工作，所以子类只要在父类`Interface`的基础上加上当前类需要的属性就好
 
 ```javaScript
 class SyntheticFocusEvent extends SyntheticEvent {

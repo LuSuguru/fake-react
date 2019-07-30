@@ -27,7 +27,7 @@ function dispatchEvent(topLevelType: TopLevelType, nativeEvent: AnyNativeEvent) 
 }
 ```
 
-先通过`event`对象拿到`target`和相应的`fiber`实例，然后封装成一个`bookKeeping`对象，这里同样使用了对象池来优化创建的过程，在`getTopLevelCallbackBookKeeping`中根据对象池的大小取出或者新建对象，在事件完成后`releaseTopLevelCallbackBookKeeping`释放对象并放回到事件池中
+先通过`event`对象拿到`target`和相应的`fiber`实例，然后封装成一个`bookKeeping`对象，这里同样使用了对象池来优化创建的过程，在`getTopLevelCallbackBookKeeping`中根据对象池的大小取出或者新建对象，在事件完成后使用`releaseTopLevelCallbackBookKeeping`释放对象并放回到事件池中
 
 关键在于这里的`batchedUpdates`，这个函数位于`schedule`中，是`react`里实现异步`setState`的核心所在。在执行事件前，将`isBatchingUpdates`这个标志位设为了true。这个标志位在`requestWork`中有用到
 
@@ -55,7 +55,7 @@ function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
 }
 ```
 
-回头看`requestWork`，如果`isBatchingUptes`为`true`的话，就直接`return`掉，不往下继续执行。一直到整个事件函数都执行完后，在`finally`中重启整个任务，所以如果在同一个事件监听函数中多次`setState`，则只是将它们放到`updateQueue`的末尾，并不会去执行调度，整个异步机制也是为了避免频繁`setState`带来的性能损坏
+回顾`requestWork`，如果`isBatchingUptes`为`true`的话，就直接中断掉，不往下继续执行。所以渲染在事件函数没执行完之前都不会进行，一直到整个事件函数都结束掉，在`finally`中重启整个任务，所以如果在同一个事件监听函数中多次`setState`，则只是将它们放到`updateQueue`的末尾。`React`通过这个异步机制避免了频繁`setState`触发渲染造成的性能浪费
 
 ```javascript
 function batchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
@@ -74,7 +74,7 @@ function batchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
 ```
 
 ### handleTopLevel 
-由于事件函数中可能会操作`DOM`，导致与初始渲染时的节点缓存不一致，所以在进入核心逻辑之前，先构建一个关于`ancestor`数组，防止任何的嵌套组件导致的`bug`，构建完`ancestor`数组后，调用`runExtractedEventsInBatch`获取到合成事件对象`SyntheticEvent`
+由于事件函数中可能会操作`DOM`，导致与初始渲染时的节点缓存不一致，所以在进入核心逻辑之前，先构建一个关于`ancestor`数组，防止任何的嵌套组件导致的`bug`。构建完`ancestor`数组后，我们可以利用现有的信息去生成`event`
 
 ```javascript
 function handleTopLevel(bookKeeping: BookKeeping) {
@@ -106,7 +106,13 @@ function handleTopLevel(bookKeeping: BookKeeping) {
 ```
 
 ### 获取`SyntheticEvent`
-前面介绍`plugin`时提到，每个`plugin`都实现了自己的`extractEvents`函数，用于生成`SyntheticEvent`。所以，获取`SyntheticEvent`的过程就是遍历已经`inject`的`plugin`，调用它们各自的`extractEvents`拿到`SyntheticEvent`
+前面介绍`plugin`时提到过，每个`plugin`都有着统一的`extractEvents`函数，用于生成`SyntheticEvent`，它主要做了这几件事：
+
+整个获取`SyntheticEvent`的过程也就是遍历已经`inject`的`plugin`，调用它们各自的`extractEvents`拿到`SyntheticEvent`，那么，`extractEvents`是如何生成`event`的呢？具体的逻辑如下：
+- 通过传入的事件名，选择对应的具体的`SyntheticEvent`子类，如`touch`事件对应的`SyntheticEvent`是`SyntheticTouchEvent`
+- 通过事件池拿到`event`对象
+- 模拟冒泡、捕获的过程，按照顺序取出`props`的事件监听函数，绑定到`event`的属性上
+- 返回`event`
 
 ### 冒泡、捕获处理
 在获得`SyntheticEvent`的过程中，`plugin`的`extractEvents`都调用了`accumulateTwoPhaseDispatches`对冒泡、捕获做了处理，如图
