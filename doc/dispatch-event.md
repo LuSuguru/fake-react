@@ -73,4 +73,91 @@ function batchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
 }
 ```
 
-### 
+### handleTopLevel 
+由于事件函数中可能会操作`DOM`，导致与初始渲染时的节点缓存不一致，所以在进入核心逻辑之前，先构建一个关于`ancestor`数组，防止任何的嵌套组件导致的`bug`，构建完`ancestor`数组后，调用`runExtractedEventsInBatch`获取到合成事件对象`SyntheticEvent`
+
+```javascript
+function handleTopLevel(bookKeeping: BookKeeping) {
+  let targetInst: Fiber = bookKeeping.targetInst
+  let ancestor: Fiber = targetInst
+
+  do {
+    if (!ancestor) {
+      bookKeeping.ancestors.push(ancestor)
+      break
+    }
+
+    const root = findRootContainerNode(ancestor)
+
+    if (!root) {
+      break
+    }
+
+    bookKeeping.ancestors.push(ancestor)
+    ancestor = getClosestInstanceFromNode(root)
+  } while (ancestor)
+
+  bookKeeping.ancestors.forEach((target: Fiber) => {
+    targetInst = target
+
+    runExtractedEventsInBatch(bookKeeping.topLevelType, targetInst, bookKeeping.nativeEvent, getEventTarget(bookKeeping.nativeEvent))
+  })
+}
+```
+
+### 获取`SyntheticEvent`
+前面介绍`plugin`时提到，每个`plugin`都实现了自己的`extractEvents`函数，用于生成`SyntheticEvent`。所以，获取`SyntheticEvent`的过程就是遍历已经`inject`的`plugin`，调用它们各自的`extractEvents`拿到`SyntheticEvent`
+
+### 冒泡、捕获处理
+在获得`SyntheticEvent`的过程中，`plugin`的`extractEvents`都调用了`accumulateTwoPhaseDispatches`对冒泡、捕获做了处理，如图
+
+
+```javascript
+function accumulateTwoPhaseDispatches(events: SyntheticEvent) {
+  function callback(event: SyntheticEvent) {
+    if (event && event.dispatchConfig.phasedRegistrationNames) {
+      traverseTwoPhase(event._targetInst, accumulateDirectionalDispatches, event) // 捕获和冒泡
+    }
+  }
+
+  forEachAccumulated(events, callback)
+}
+
+export function traverseTwoPhase(inst: Fiber, fn: Function, arg: SyntheticEvent) {
+  const path = []
+  while (inst) {
+    path.push(inst)
+    inst = getParent(inst)
+  }
+
+  let i: number
+  for (i = path.length; i-- > 0;) {
+    fn(path[i], 'captured', arg)
+  }
+  for (i = 0; i < path.length; i++) {
+    fn(path[i], 'bubbled', arg)
+  }
+}
+```
+
+
+在`traverseTwoPhase`中对当前`fiber`往上遍历直到`fiberRoot`，按照 捕获->冒泡 的顺序对某个`fiber`调用`accumulateDirectionalDispatches`
+
+```javascript
+function accumulateDirectionalDispatches(inst: Fiber, phase: Phases, event: SyntheticEvent) {
+  const listener = listenAtPhase(inst, event, phase)
+
+  if (listener) {
+    event._dispatchListeners = accumulateInto(event._dispatchListeners, listener)
+    event._dispatchInstances = accumulateInto(event._dispatchInstances, inst)
+  }
+}
+```
+
+在这个函数中，根据传入的参数，拿到`fiber props`的事件处理函数，
+
+
+
+
+
+

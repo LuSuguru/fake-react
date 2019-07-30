@@ -49,6 +49,8 @@ function getListener(inst: Fiber, registrationName: string): Function {
   }
 
   listener = props[registrationName]
+
+  // 是否停止冒泡
   if (shouldPreventMouseEvent(registrationName, inst.type, props)) {
     return null
   }
