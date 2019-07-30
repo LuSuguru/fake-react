@@ -106,7 +106,7 @@ function handleTopLevel(bookKeeping: BookKeeping) {
 ```
 
 ### 获取`SyntheticEvent`
-前面介绍`plugin`时提到过，每个`plugin`都有着统一的`extractEvents`函数，用于生成`SyntheticEvent`，它主要做了这几件事：
+前面介绍`plugin`时提到过，每个`plugin`都有着统一的`extractEvents`函数，用于生成`SyntheticEvent`
 
 整个获取`SyntheticEvent`的过程也就是遍历已经`inject`的`plugin`，调用它们各自的`extractEvents`拿到`SyntheticEvent`，那么，`extractEvents`是如何生成`event`的呢？具体的逻辑如下：
 - 通过传入的事件名，选择对应的具体的`SyntheticEvent`子类，如`touch`事件对应的`SyntheticEvent`是`SyntheticTouchEvent`
