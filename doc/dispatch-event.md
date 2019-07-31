@@ -192,7 +192,7 @@ function listenAtPhase(inst: Fiber, event: SyntheticEvent, phase: Phases) {
 ```
 
 ### 执行事件函数
-由于在生成`event`时已经把`props`里跟事件有关的信息注册到`event`的`_dispatchListeners`和`_dispatchInstances`上，所以，我们需要遍历`_dispatchListeners`，执行相应的事件函数`listener(event)`，由于这里是直接执行，所以在我们写的事件函数中，如果使用了`this`切没有强绑定上，在调用时会拿不到相应`this`，到这里，整个事件的触发过程就结束了，回到`batchedUpdates`的`finally`，把相应的标记位置回`false`，并且重新触发渲染
+由于在生成`event`时已经把`props`里跟事件有关的信息注册到`event`的`_dispatchListeners`和`_dispatchInstances`上，所以，我们需要遍历`_dispatchListeners`，执行相应的事件函数`listener(event)`，由于这里是直接执行，所以在我们写的事件函数中，如果使用了`this`且没有强绑定，在调用时会拿不到对应的`this`
 
 ```javascript
 function executeDispatchesInOrder(event: SyntheticEvent) {
@@ -225,6 +225,8 @@ export {
   executeDispatchesInOrder,
 }
 ```
+
+到这里，整个事件的触发过程就结束了，回到`batchedUpdates`的`finally`，把相应的标记位置回`false`，开始渲染
 
 
 
