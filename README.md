@@ -25,6 +25,7 @@
 - [源码解析二十 事件对象`SyntheticEvent`及事件池](./doc/synthetic-event.md)
 - [源码解析二十一 事件绑定](./doc/add-event-listener.md)
 - [源码解析二十二 事件触发](./doc/dispatch-event.md)
+- [源码解析二十三 Hook](./doc/hook.md)
 
 ## 实现部分
 
