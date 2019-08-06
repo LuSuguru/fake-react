@@ -31,7 +31,7 @@ let numberOfReRenders: number = 0
 let renderExpirationTime: ExpirationTime = NoWork
 let currentlyRenderingFiber: Fiber = null
 
-let currentHook: Hook = null
+let currentHook: Hook = null // 当前的hook
 let nextCurrentHook: Hook = null
 
 let firstWorkInProgressHook: Hook = null
