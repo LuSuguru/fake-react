@@ -25,7 +25,8 @@
 - [源码解析二十 事件对象`SyntheticEvent`及事件池](./doc/synthetic-event.md)
 - [源码解析二十一 事件绑定](./doc/add-event-listener.md)
 - [源码解析二十二 事件触发](./doc/dispatch-event.md)
-- [源码解析二十三 hook的结构与本质](./doc/hook.md)
+- [源码解析二十三 `hook`的结构与本质](./doc/hook.md)
+- [源码解析二十四 `hook`的具体实现](./doc/fiber-hook.md)
 
 ## 实现部分
 
