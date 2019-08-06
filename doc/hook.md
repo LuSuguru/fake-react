@@ -39,8 +39,12 @@ interface Hook {
 }
 ```
 
-由于`react`的更新需要拿到之前的`state`进行对比，从而可以选择性的进行优化（如 `shouldComponentUpdate`）。显然，老的`state`也需要从`fiber`中获取，这又回到了我们上面提到的问题，导致`fiber`与`hook`强绑定在一起。而现在，由于`hook`就是一个独立的状态单元，所以，可以从`hook`获取到之前的`状态信息`。但是，这又会引发一个问题，如何保证我们现在拿`oldState`的`hook`与之前创建的`hook`是同一个呢？
+由于在之前的模式中，每个`fiber`只有一个`memoizedState`和`updateQueue`，所以拿到`state`是非常容易的。而现在，由于`hook`本身就是一个独立的状态单元，一次`function Component`的执行可能伴随多个`hook`，也就会有N套`state`和`updateQueue`，此时，如何确保每次更新时状态的精准性？确保每次更新时获取到的`state`都是正确的
 
-因此，`react`采用了一种全新的思路，将`hook`设计成链表型的队列，在`function Component`初始化时，生成调用到的相应`hook`，并将其插入到`hook`队列末尾，调用结束后，将整个队列塞到`fiber`的`memoizedState`上。在`update`时，会重新执行`function`，此时我们直接从`memoizedState`取出之前的队列，在调用到`hook`时，从队列头中取出相应的`hook`，对其上的状态进行对比以及处理更新。只要每次在调用`function`时其内部`hook`的执行顺序是相同的，那么我们的新老对比就是完全可行的，所以这也`hook`能否正确使用最重要的一环，为此，`react`官方明确指出了`hook`的规则
+为此，`react`采用了一种全新的思路，将`hook`设计成链表型的队列，并维护一个全局的`currentHook`指针
+
+- 在`function Component`的`mount`阶段，调用到`hook`时生成相应的`Hook`单元，并将其插入到`Hook`队列末尾，调用结束后，将整个队列塞到`fiber`的`memoizedState`上
+
+- 在`update`时，会重新执行`function`，此时我们直接从`memoizedState`取出之前的队列，在调用到`hook`时，将`currentHook`指向当前队列头，对其上的状态进行对比以及处理更新，执行完毕后，再将`currentHook`指向队列中下一个`hook`。只要保证无论`mount`还是`update`时，它们的执行顺序是相同的，那么每次获取到的`state`就是精准的，所以这也`hook`能否正确使用最重要的一环，为此，`react`官方明确指出了`hook`的规则
 
 <img src="../doc/hook/rule.png" width="739" height="218">
