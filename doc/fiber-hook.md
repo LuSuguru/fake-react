@@ -64,4 +64,13 @@ const HooksDispatcherOnUpdate: Dispatcher = {
 所以，即时我们每次都是调用`useState`，但是它在`mount`和`update`时是完全不同的逻辑
 
 ### `hooks`中的全局变量
-`hooks`中的全局变量确定我们在执行一个`function Component`时的上下文环境，
+`hooks`中的全局变量确定我们在执行一个`function Component`时的上下文环境
+
+```javascript
+let currentHook: Hook = null // 当前的 hook 指针
+let nextCurrentHook: Hook = null // 下一个 hook
+
+let firstWorkInProgressHook: Hook = null 
+let workInProgressHook: Hook = null
+let nextWorkInProgressHook: Hook = null
+```
