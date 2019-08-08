@@ -70,7 +70,9 @@ const HooksDispatcherOnUpdate: Dispatcher = {
 let currentHook: Hook = null // 当前的 hook 指针
 let nextCurrentHook: Hook = null // 下一个 hook
 
-let firstWorkInProgressHook: Hook = null 
-let workInProgressHook: Hook = null
-let nextWorkInProgressHook: Hook = null
+let firstWorkInProgressHook: Hook = null // workInProgress hook 队列头
+let workInProgressHook: Hook = null  // 当前的 workInProgress hook 
+let nextWorkInProgressHook: Hook = null // 下一个 workInProgress hook
 ```
+
+### ``
