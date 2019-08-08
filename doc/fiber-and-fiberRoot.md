@@ -2,7 +2,7 @@
 `Fiber`出来之后，新的调和系统称为`fiber reconciler`，为了识别，我们把老的调和系统称为`stack reconciler`。 每一个`ReactElement`，都会生成相应的工作单元（这里我们把每个工作单元称为`Fiber`），根据这些节点的层级关系，会生成整个`Fiber`树，我们的一切调和过程，都是围绕`Fiber`树展开的
 
 ## `stack reconciler` 和 `fiber reconciler`
-在`stack reconciler中，整个 `VDOM` 树 如下图：
+在`stack reconciler中，整个VDOM树 如下图：
 
 <img src="./fiber-and-fiberRoot/vdom_tree.png" width="350" height="290"/>
 
