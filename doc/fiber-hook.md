@@ -67,6 +67,9 @@ const HooksDispatcherOnUpdate: Dispatcher = {
 `hooks`中的全局变量确定我们在执行一个`function Component`时的上下文环境
 
 ```javascript
+let renderExpirationTime: ExpirationTime = NoWork // 当前 fiber 的优先级
+let currentlyRenderingFiber: Fiber = null // 当前的 fiber
+
 let currentHook: Hook = null // 当前的 hook 指针
 let nextCurrentHook: Hook = null // 下一个 hook
 
@@ -75,4 +78,57 @@ let workInProgressHook: Hook = null  // 当前的 workInProgress hook
 let nextWorkInProgressHook: Hook = null // 下一个 workInProgress hook
 ```
 
-### ``
+### `renderWithHooks`
+在`beginWork`中，`function component`调的是`renderWithHooks`，所以下面我们就解析下这个函数
+
+- 首先对一些全局变量进行赋值，确保是最新的上下文环境。注意这里，从当前`fiber`的`memoizedState`上拿到`hook`队列。
+
+- 然后调用`function Component`自身的`function`，获取子`fiber`
+
+- 由于在调用组件自身函数的时候，可能会对`hook`里的值进行更新，所以之后，会把整个`hook`队列以及`updateQueue`重新挂载在`fiber`的`memoizedState`和`updateQueue`上
+
+- 最后是清空全局变量的值
+
+以下是具体的函数，下节将重点说说各个`hook`的实现
+
+```javascript
+function renderWithHooks(current: Fiber, workInProgress: Fiber, Component: Function, props: any, refOrContext: any, nextRenderExpirationTime: ExpirationTime): any {
+  // 把当前的变量加入全局，更新上下文
+  renderExpirationTime = nextRenderExpirationTime
+  currentlyRenderingFiber = workInProgress
+  nextCurrentHook = current !== null ? current.memoizedState : null
+
+  ReactCurrentDispatcher.current = nextCurrentHook === null ? HooksDispatcherOnMount : HooksDispatcherOnUpdate
+
+  let children: any = Component(props, refOrContext)
+
+  ...
+
+  
+  ReactCurrentDispatcher.current = HooksDispatcherOnEmpty
+
+  //  重新对 fiber 里关键的变量进行赋值
+  currentlyRenderingFiber.memoizedState = firstWorkInProgressHook
+  currentlyRenderingFiber.expirationTime = remainingExpirationTime
+  currentlyRenderingFiber.updateQueue = componentUpdateQueue as any
+  currentlyRenderingFiber.effectTag |= sideEffectTag
+
+  // 全局变量置空
+  renderExpirationTime = NoWork
+  currentlyRenderingFiber = null
+
+  currentHook = null
+  nextCurrentHook = null
+
+  firstWorkInProgressHook = null
+  workInProgressHook = null
+  nextWorkInProgressHook = null
+
+  remainingExpirationTime = NoWork
+  componentUpdateQueue = null
+  sideEffectTag = 0
+
+  return children
+}
+```
+
