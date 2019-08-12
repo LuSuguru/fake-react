@@ -29,7 +29,7 @@ function useReducer<S, I, A>(reducer: (s: S, a: A) => S, initialArg: I, init?: (
 }
 ```
 
-在真正的`hook`实现，我们根据是`update`和`mount`对`ReactCurrentDispatcher`进行对应的赋值
+在真正的`hook`实现中，我们根据是`update`和`mount`对`ReactCurrentDispatcher`进行对应的赋值
 
 ```javascript
 const HooksDispatcherOnMount: Dispatcher = {
@@ -63,8 +63,8 @@ const HooksDispatcherOnUpdate: Dispatcher = {
 
 所以，即时我们每次都是调用`useState`，但是它在`mount`和`update`时是完全不同的逻辑
 
-### `hooks`中的全局变量
-`hooks`中的全局变量确定我们在执行一个`function Component`时的上下文环境
+### `hook`中的全局变量
+在整个`hook`模块中，`hook`中的全局变量确定我们在执行一个`function Component`时的上下文环境
 
 ```javascript
 let renderExpirationTime: ExpirationTime = NoWork // 当前 fiber 的优先级
@@ -79,7 +79,7 @@ let nextWorkInProgressHook: Hook = null // 下一个 workInProgress hook
 ```
 
 ### `renderWithHooks`
-在`beginWork`中，`function component`调的是`renderWithHooks`，所以下面我们就解析下这个函数
+在`beginWork`中，`function component`调的是`renderWithHooks`，所以下面我们就解析这个函数
 
 - 首先对一些全局变量进行赋值，确保是最新的上下文环境。注意这里，从当前`fiber`的`memoizedState`上拿到`hook`队列。
 
@@ -101,10 +101,7 @@ function renderWithHooks(current: Fiber, workInProgress: Fiber, Component: Funct
   ReactCurrentDispatcher.current = nextCurrentHook === null ? HooksDispatcherOnMount : HooksDispatcherOnUpdate
 
   let children: any = Component(props, refOrContext)
-
   ...
-
-  
   ReactCurrentDispatcher.current = HooksDispatcherOnEmpty
 
   //  重新对 fiber 里关键的变量进行赋值
