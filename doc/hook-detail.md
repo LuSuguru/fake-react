@@ -81,8 +81,94 @@ const State = {
   }
 ```
 
+##### `dispatchAction`
+`useState`和`useReducer`的第二个返回值都是`dispatchAction`的一个带参版，这个函数接受一个`action`，我们将其封装成一个`Update`对象
+```javascript
+    const currentTime = requestCurrentTime()
+    const expirationTime = computeExpirationTimeForFiber(currentTime, fiber)
+    const update: Update<S, A> = {
+      expirationTime,
+      action,
+      eagerReducer: null,
+      eagerState: null,
+      next: null,
+    }
+```
+
+之后，我们将其放到任务队列的队尾，这里的`updateQueue`不同于`Class Component`，采用的是环形链表
+
+```javaScript
+    const { last } = queue
+    if (last === null) {
+      update.next = update // 第一个update,创建环形链表
+    } else {
+      const first = last.next
+      if (first !== null) {
+        update.next = first
+      }
+      last.next = update
+    }
+    queue.last = update
+```
+
+`react`在这个函数的最后，做了一层优化。如在`setTimeout`等一些异步情况下触发了一个`dispatch`，由于在下一个事件循环，当前的`fiber`或许不在工作中，此时可以提前计算出`State`，减轻`update`时的负担
+
+```javascript
+  // 当前工作队列为空，在进入render阶段前提前计算下一个state，update时可以根据eagerReducer直接返回eagerState
+    if (fiber.expirationTime === NoWork && (alternate === null || alternate.expirationTime === NoWork)) {
+      const { eagerReducer } = queue
+
+      if (eagerReducer !== null) {
+        const currentState: S = queue.eagerState
+        const eagerState = eagerReducer(currentState, action)
+
+        // 存储提前计算的结果，如果在更新阶段reducer没有发生变化，可以直接使用eager state，不需要重新调用eager reducer在调用一遍
+        update.eagerReducer = eagerReducer
+        update.eagerState = eagerState
+
+        if (Object.is(eagerState, currentState)) {
+          return
+        }
+      }
+    }
+```
+
 ##### `updateReducer`
-在渲染阶段我们会生成一条`Hook`队列，放在`Fiber`的`memoizedState`上，当更新时，我们会依次取出当前队列头部的`Hook`，由于我们在编码时已经约束了`hook`的调用条件，所以取出时的顺序与我们当时插入时的顺序一定是一样的，
+在`mount`阶段我们会生成一条`Hook`队列。放在`Fiber`的`memoizedState`上，当更新时，我们会依次取出当前队列头部的`Hook`，由于我们在编码时已经约束了`hook`的调用条件，所以取出时的顺序与我们`mount`插入时的顺序一定是一样的，调用`updateWorkInProgressHook`获取到当前的`Hook`对象
+
+```javascript
+function updateWorkInProgressHook(): Hook {
+  if (nextWorkInProgressHook) {
+    workInProgressHook = nextWorkInProgressHook
+    nextWorkInProgressHook = workInProgressHook.next
+
+    currentHook = nextCurrentHook
+    nextCurrentHook = currentHook !== null ? currentHook.next : null
+  } else {
+    currentHook = nextCurrentHook
+
+    const newHook: Hook = {
+      memoizedState: currentHook.memoizedState,
+      baseState: currentHook.baseState,
+      queue: currentHook.queue,
+      baseUpdate: currentHook.baseUpdate,
+      next: null,
+    }
+
+    if (workInProgressHook === null) {
+      workInProgressHook = firstWorkInProgressHook = newHook // 第一次
+    } else {
+      workInProgressHook = workInProgressHook.next = newHook // 插入链表中
+    }
+    nextCurrentHook = currentHook.next
+  }
+  return workInProgressHook
+}
+```
+
+同样按照`fiber`的思路，`update`时统一使用`workInProgressHook`，如果没有`workInProgressHook`，会参照`currentHook`赋值一份`Hook`
+
+整个`updateReducer`的部分很简单，类似于`class component`，遍历``找到优先级大于当前更新优先级的`update`，依次调用它们，直到
 
 
 
