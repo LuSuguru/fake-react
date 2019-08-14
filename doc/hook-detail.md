@@ -263,7 +263,117 @@ function updateWorkInProgressHook(): Hook {
 
 ### 两个优化型`hook` `useCallback`与`useMemo`
 
-由于`Function`
+`pureComponent`和`memo`都采取的是浅比较，如果`props`的引用不同，都会触发重新渲染，所以`react`的基本优化法则，就是在传递`Props`引用类型时要提前定义，防止无关渲染
+
+然而在`FunctionComponent`中，由于每次更新都会重新执行，所以在`FunctionComponent`中声明的一些函数，引用类型值每次渲染都会不同，带来很多无关渲染，增大性能损耗，所以，官方出了两个用来做优化的`hook`，`useCallback`与`useMemo`
+
+##### `useCallback`
+它的实现非常简单，经由`hook`存储一份值，在`update`时拿出之前的值，进行比较，相等返回老的，不相等则返回新的
+
+```javascript
+const Callback = {
+  mountCallback<T>(callback: T, deps?: any[]): T {
+    const hook = mountWorkInProgressHook()
+    const nextDeps = deps === undefined ? null : deps
+    hook.memoizedState = [callback, nextDeps]
+    return callback
+  },
+
+  updateCallback<T>(callback: T, deps?: any[]): T {
+    const hook = updateWorkInProgressHook()
+    const nextDeps = deps === undefined ? null : deps
+    const prevState = hook.memoizedState
+
+    if (prevState !== null) {
+      if (nextDeps !== null) {
+        const prevDeps: any[] | null = prevState[1]
+        if (areHookInputsEqual(nextDeps, prevDeps)) {
+          return prevState[0]
+        }
+      }
+    }
+
+    hook.memoizedState = [callback, nextDeps]
+    return callback
+  },
+}
+```
+
+`mount`时将需要优化的`callback`和`nextDeps`放到`hook`的`memoizedState`，
+在`update`时，将当前的`deps`与之前的`prevDeps`作比较，如果相等，返回缓存的值，反之，则使用新的`callback`
+
+```javascript
+function areHookInputsEqual(nextDeps: any[], prevDeps: any[] | null): boolean {
+  if (prevDeps === null) {
+    return false
+  }
+
+  for (let i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
+    if (Object.is(nextDeps[i], prevDeps[i])) {
+      continue
+    }
+    return false
+  }
+  return true
+}
+```
+
+`areHookInputsEqual`这个函数依次遍历数组的每一项，进行浅比较
+
+##### `useMemo`
+`useMemo`与`useCallback`的实现大致相同，唯一的区别是`useCallback`会对第一个参数进行整个缓存，而`useMemo`会执行第一个参数，对其生成的值进行缓存
+
+```javascript
+const Memo = {
+  mountMemo<T>(nextCreate: () => T, deps?: any[] | null): T {
+    const hook = mountWorkInProgressHook()
+    const nextDeps = deps === undefined ? null : deps
+    const nextValue = nextCreate()
+    hook.memoizedState = [nextValue, nextDeps]
+
+    return nextValue
+  },
+
+  updateMemo<T>(nextCreate: () => T, deps?: any[] | null): T {
+    const hook = updateWorkInProgressHook()
+    const nextDeps = deps === undefined ? null : deps
+    const prevState = hook.memoizedState
+    if (prevState !== null) {
+      if (nextDeps !== null) {
+        const prevDeps: any[] | null = prevState[1]
+        if (areHookInputsEqual(nextDeps, prevDeps)) {
+          return prevState[0]
+        }
+      }
+    }
+
+    const nextValue = nextCreate()
+    hook.memoizedState = [nextValue, nextDeps]
+    return nextValue
+  },
+}
+```
+
+### `useRef`
+`useRef`相当于`FunctionComponent`里的一块引用区域，无论如何渲染更新，它的值都保持最新，它的实现可能是`useXXX`里面最简单的一个，保存一个引用，存到`hook`中
+
+```javascript
+const Ref = {
+  mountRef<T>(initialValue: T): { current: T } {
+    const hook = mountWorkInProgressHook()
+    const ref = { current: initialValue }
+
+    hook.memoizedState = ref
+    return ref
+  },
+
+  updateRef<T>(_initialValue: T): { current: T } {
+    const hook = updateWorkInProgressHook()
+    return hook.memoizedState
+  },
+}
+```
+
 
 
 
