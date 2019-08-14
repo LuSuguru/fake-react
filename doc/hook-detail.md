@@ -82,7 +82,15 @@ const State = {
 ```
 
 ##### `dispatchAction`
-`useState`和`useReducer`的第二个返回值都是`dispatchAction`的一个带参版，这个函数接受一个`action`，我们将其封装成一个`Update`对象
+
+```javascript
+function dispatchAction<S, A>(fiber: Fiber, queue: UpdateQueue<S, A>, action: A) {
+  const { alternate } = fiber
+  ...
+}
+```
+`useState`和`useReducer`的第二个返回值都是`dispatchAction`的一个带参版，前两个参数已经在`mountReducer`中挂载上。这个函数接受一个`action`，我们将其封装成一个`Update`对象
+
 ```javascript
     const currentTime = requestCurrentTime()
     const expirationTime = computeExpirationTimeForFiber(currentTime, fiber)
@@ -95,7 +103,7 @@ const State = {
     }
 ```
 
-之后，我们将其放到任务队列的队尾，这里的`updateQueue`不同于`Class Component`，采用的是环形链表
+之后，我们将其放到任务队列的队尾，这里的`updateQueue`不同于`ClassComponent`，采用的是环形链表
 
 ```javaScript
     const { last } = queue
@@ -168,7 +176,95 @@ function updateWorkInProgressHook(): Hook {
 
 同样按照`fiber`的思路，`update`时统一使用`workInProgressHook`，如果没有`workInProgressHook`，会参照`currentHook`赋值一份`Hook`
 
-整个`updateReducer`的部分很简单，类似于`class component`，遍历``找到优先级大于当前更新优先级的`update`，依次调用它们，直到
+```javascript
+  updateReducer<S, A>(reducer: (s: S, a: A) => S): [S, Dispatch<A>] {
+    const hook = updateWorkInProgressHook()
+    const { queue } = hook
+    ...
+  }
+```
+
+获取到`hook`后，整个`updateReducer`的部分就很简单，类似于`ClassComponent`
+
+由于整个任务队列是个环形链表，所以先把环形链表解开
+
+```javascript
+    let first: Update<S, A> = null
+    if (baseUpdate !== null) {
+      if (last !== null) { // 从一次停顿的地方开始，为了防止无限循环，需把环形链表解开
+        last.next = null
+      }
+      first = baseUpdate.next
+    } else {
+      first = last !== null ? last.next : null
+    }
+```
+
+随后，从队列头开始遍历，找到优先级大于当前更新优先级的`update`，依次调用它们，直到队列尾，这个有个关键，前面提到，我们在`dispatchAction`做了一层优化，提前进行了`state`的计算，所以，这里通过`eagerReducer`是否与传入的`reducer`相等来判断是否需要获取计算结果
+
+```javascript
+   if (first !== null) {
+      let newState: S = baseState
+      let prevUpdate: Update<S, A> = baseUpdate
+      let update: Update<S, A> = first
+
+      let newBaseState: S = null
+      let newBaseUpdate: Update<S, A> = null
+      let didSkip: boolean = false
+
+      do {
+        const updateExpirationTime: ExpirationTime = update.expirationTime
+        if (updateExpirationTime < renderExpirationTime) {
+          if (!didSkip) { // 优先级低需要跳过，如果是第一个跳过的Update,需要记录下来
+            didSkip = true
+            newBaseState = newState
+            newBaseUpdate = prevUpdate
+          }
+
+          if (updateExpirationTime > remainingExpirationTime) {
+            remainingExpirationTime = updateExpirationTime
+          }
+        } else {
+          if (update.eagerReducer === reducer) { // 直接使用提前计算的结果
+            newState = update.eagerState
+          } else {
+            const { action } = update
+            newState = reducer(newState, action)
+          }
+        }
+
+        prevUpdate = update
+        update = update.next
+      } while (update !== null && update !== first)
+
+      if (!didSkip) {
+        newBaseState = newState
+        newBaseUpdate = prevUpdate
+      }
+
+      if (!Object.is(newState, hook.memoizedState)) {
+        markWorkInProgressReceivedUpdate()
+      }
+
+      hook.memoizedState = newState
+      hook.baseUpdate = newBaseUpdate
+      hook.baseState = newBaseState
+
+      queue.eagerReducer = reducer
+      queue.eagerState = newState
+    }
+
+    const { dispatch } = queue
+    return [hook.memoizedState, dispatch]
+  
+```
+
+最后，返回计算出的`state`和`dispatch`
+
+### 两个优化型`hook` `useCallback`与`useMemo`
+
+由于`Function`
+
 
 
 

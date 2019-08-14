@@ -64,7 +64,7 @@ const HooksDispatcherOnUpdate: Dispatcher = {
 所以，即时我们每次都是调用`useState`，但是它在`mount`和`update`时是完全不同的逻辑
 
 ### `hook`中的全局变量
-在整个`hook`模块中，`hook`中的全局变量确定我们在执行一个`function Component`时的上下文环境
+在整个`hook`模块中，`hook`中的全局变量确定我们在执行一个`FunctionComponent`时的上下文环境
 
 ```javascript
 let renderExpirationTime: ExpirationTime = NoWork // 当前 fiber 的优先级
@@ -79,11 +79,11 @@ let nextWorkInProgressHook: Hook = null // 下一个 workInProgress hook
 ```
 
 ### `renderWithHooks`
-在`beginWork`中，`function component`调的是`renderWithHooks`，所以下面我们就解析这个函数
+在`beginWork`中，`FunctionComponent`调的是`renderWithHooks`，所以下面我们就解析这个函数
 
 - 首先对一些全局变量进行赋值，确保是最新的上下文环境。注意这里，从当前`fiber`的`memoizedState`上拿到`hook`队列。
 
-- 然后调用`function Component`自身的`function`，获取子`fiber`
+- 然后调用`FunctionComponent`自身的`function`，获取子`fiber`
 
 - 由于在调用组件自身函数的时候，可能会对`hook`里的值进行更新，所以之后，会把整个`hook`队列以及`updateQueue`重新挂载在`fiber`的`memoizedState`和`updateQueue`上
 
