@@ -378,7 +378,6 @@ const Effect = {
     hook.memoizedState = Effect.pushEffect(hookEffectTag, create, destroy, nextDeps)
   },
 
-
   mountEffect(create: () => (() => void), deps?: any[]) {
     return Effect.mountEffectImpl(UpdateTag | Passive, UnmountPassive | MountPassive, create, deps)
   },
