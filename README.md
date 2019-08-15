@@ -28,6 +28,7 @@
 - [源码解析二十三 `hook`的结构与本质](./doc/hook.md)
 - [源码解析二十四 `hook`的具体实现](./doc/fiber-hook.md)
 - [源码解析二十五 各个`hook`的实现](./doc/hook-detail.md)
+- [源码解析二十六 `useEffect`与`useLayoutEffect`](./doc/use-effect.md)
 
 ## 实现部分
 
