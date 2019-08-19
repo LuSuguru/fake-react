@@ -13,7 +13,6 @@ export interface ReactContext<T> {
   Provider: ReactProviderType<T>,
   _calculateChangedBits: (a: T, b: T) => number,
   _currentValue: T,
-  _threadCount: number,
 }
 
 export interface ReactProviderType<T> {
@@ -29,7 +28,7 @@ export interface ContextDependencyList {
 interface ContextDependency<T> {
   context: ReactContext<T>,
   observedBits: number,
-  next: ContextDependency<any>,
+  next: ContextDependency<T>,
 }
 
 let currentlyRenderingFiber: Fiber = null

@@ -65,8 +65,6 @@ function createContext<T>(defaultValue: T, calculateChangedBits?: (a: T, b: T) =
 
     _currentValue: defaultValue,
 
-    _threadCount: 0,
-
     Provider: null,
     Consumer: null,
   }
