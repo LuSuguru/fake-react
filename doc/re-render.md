@@ -40,7 +40,7 @@ function dispatchAction<S, A>(fiber: Fiber, queue: UpdateQueue<S, A>, action: A)
 }
 ```
 
-在`renderWithHooks`中，很简单，判断`didScheduleRenderPhaseUpdate`是否触发`re-render`，如果需要`re-render`的话会把相应的全局变量重置，并再执行一次`component()`
+在`renderWithHooks`中，判断`didScheduleRenderPhaseUpdate`是否需要触发`re-render`，如果需要`re-render`的话会把相应的全局变量重置，并再执行一次`component()`
 
 ```javaScript
 function renderWithHooks(current: Fiber, workInProgress: Fiber, Component: Function, props: any, refOrContext: any, nextRenderExpirationTime: ExpirationTime): any {
