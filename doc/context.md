@@ -322,7 +322,7 @@ function updateContextConsumer(current: Fiber, workInProgress: Fiber, renderExpi
 const value = useContext(MyContext)
 ```
 
-在`FunctionComponent`中，我们可以通过`useContext`来获取`context`，它的实现更加简单， 仅仅是将`readContext`重命名了一下
+在`FunctionComponent`中，我们可以通过`useContext`来获取`context`， 它仅仅是将`readContext`重命名了一下
 
 ```javascript
   useContext: readContext
