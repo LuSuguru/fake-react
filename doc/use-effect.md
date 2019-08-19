@@ -6,7 +6,7 @@
 - 在`mount`时调用`mountWorkInProgressHook`生成`hook`，将需要的信息存入`hook`中
 - 在`update`时调用`updateWorkInProgressHook`取出`hook`，对`deps`进行比较，如果变化了，更新`hook`的内容
 
-这两个函数都会给`sideEffectTag`打上`Update`的tag`，`sideEffectTag`最终会赋值给`fiber`的`effectTag`上，这里打上了`Update`的`Tag`，相当于告诉了`schedule`这个`Fiber`有更新操作
+这两个函数都会给`sideEffectTag`打上`Update`的`tag`，`sideEffectTag`最终会赋值给`fiber`的`effectTag`上，这里打上了`Update`的`Tag`，相当于告诉了`schedule`这个`Fiber`有更新操作
 
 除了给`Fiber`打上`tag`外，这里还会给`effect`打上自己的`tag`，这个`tag`真正决定了当前`effect`的调用时机，`useEffect`与`useLayoutEffect`唯一的区别也就是这个标志位的不同
 
