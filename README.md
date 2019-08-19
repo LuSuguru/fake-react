@@ -41,7 +41,7 @@
 - [x] 事件机制
 - [x] function component and hook
 - [x] 一些常用的api，如memo,fragment等
-- [x] context 未测试
+- [x] context
 
 ## 使用
 
@@ -127,7 +127,5 @@ ReactDOM.render(<Test />, document.getElementById('root'))
 
 开这个项目的初衷也是为了记录自己的源码阅读过程，现在基本实现了 React 16.8的90%功能（部分未测），便于自己学习研究和掌握其原理
 
-## 接下来要做
 
-输出自己的看源码过程中的心得和理解，然后，继续变强
 
