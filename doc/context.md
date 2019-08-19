@@ -1,9 +1,9 @@
 # 源码解析二十八 `context`
-`context`是`react`中一个非常方便的特性，它可以跨域任意组件，进行数据的传递及触发渲染，`react-redux`，`mobx-react`都使用了`context`，那么它是如何实现的呢，接下来我们就来解析下
+`context`是`react`中一个非常方便的特性，它可以跨越任意组件，进行数据的传递及触发渲染，`react-redux`，`mobx-react`都使用了`context`
 
 我们可以通过`createContext`来创建一个`context`，整个`context`的数据结构非常简单
 
-```javascript
+```typescript
 export interface ReactContext<T> {
   $$typeof: string,
   Consumer: ReactContext<T>,
@@ -71,7 +71,7 @@ function pushProvider(providerFiber: Fiber, nextValue: any) {
 }
 ```
 
-`createContext`接受第二个参数，这个参数类似于`memo`中的第二个参数以及`shouldComponentUpdate`，是用来给我们作优化用的，在`updateContextProvider`中，会调用`context`模块的`calculateChangedBits`，这个函数会拿到我们注册`context`时传入的函数并调用它
+`createContext`接受第二个参数，这个参数类似于`memo`中的第二个参数以及`shouldComponentUpdate`，是用来给我们作优化用的，`pushProvider`后，会调用`context`模块的`calculateChangedBits`，这个函数会拿到我们注册`context`时传入的函数并调用它
 
 ```javascript
 function calculateChangedBits<T>(context: ReactContext<T>, newValue: T, oldValue: T) {
@@ -117,7 +117,7 @@ function updateContextProvider(current: Fiber, workInProgress: Fiber, renderExpi
 }
 ```
 
-最终执行的是`propagateContextChange`，它会从当前`fiber`开始，遍历它的子树，如果节点有`contextDependencies`，则遍历`context`队列，如果存在与当前`context`相同的`context`，则更新当前`fiber`的`expirationTime`，以及它上级节点的`childExpirationTime`，使其成为一个待更新节点
+最终执行的是`propagateContextChange`，它会从当前`fiber`开始，遍历它的子树，如果节点有`contextDependencies`，则遍历`context`队列，若存在与当前`context`相同的`context`，则更新当前`fiber`的`expirationTime`，以及它上级节点的`childExpirationTime`，使其成为一个待更新节点
 
 ```javascript
 function propagateContextChange(workInProgress: Fiber, context: ReactContext<any>, changedBits: number, renderExpirationTime: ExpirationTime) {
@@ -224,9 +224,9 @@ function prepareToReadContext(workInProgress: Fiber, renderExpirationTime: Expir
 }
 ```
 
-在使用`context`时，都需要通过`readContext`获得新的`context`
+在使用`context`时，需要通过`readContext`获得新的`context`
 
-由于我们已经在`prepareToReadContext`更新了全局变量，所以，这里我们直接生成一个`ContextDependenct`对象，并放到当前`fiber`的`contextDependencies`队列末尾，并且返回当前`context`新的`value`，整个实现非常的简单
+由于我们已经在`prepareToReadContext`更新了全局变量，所以，这里我们直接生成一个`ContextDependency`对象，并放到当前`fiber`的`contextDependencies`队列末尾，并且返回当前`context`新的`value`，整个实现非常的简单
 
 ```javascript
 function readContext<T>(context: ReactContext<T>, observedBits: void | number | boolean): any {
@@ -279,7 +279,7 @@ class MyClass extends React.Component {
 }
 ```
 
-它的实现非常的简单，如果有满足条件的`contextType`，则调用`readContext`生成`context`并挂载在实例上
+若有满足条件的`contextType`，则调用`readContext`生成`context`并挂载在实例上
 
 ```javascript
 // context 操作
@@ -297,7 +297,7 @@ if (isObject(contextType)) {
 </MyContext.Consumer>
 ```
 
-它的实现也非常简单，如果是个`consumer`组件，则调用`updateContextConsumer`，同样是通过`rendContext`获得新的`context`，并直接执行`render()`
+若是个`consumer`组件，则调用`updateContextConsumer`，同样是通过`rendContext`获得新的`context`，并直接执行`render()`
 
 ```javascript
 function updateContextConsumer(current: Fiber, workInProgress: Fiber, renderExpirationTime: ExpirationTime): Fiber {
