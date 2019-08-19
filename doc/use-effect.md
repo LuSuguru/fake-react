@@ -6,7 +6,7 @@
 - 在`mount`时调用`mountWorkInProgressHook`生成`hook`，将需要的信息存入`hook`中
 - 在`update`时调用`updateWorkInProgressHook`取出`hook`，对`deps`进行比较，如果变化了，更新`hook`的内容
 
-这两个函数都会给`sideEffectTag`打上`Update`的`tag`，`sideEffectTag`最终会赋值给`fiber`的`effectTag`上，这里打上了`Update`的`Tag`，相当于告诉了`schedule`这个`Fiber`有更新操作
+这两个函数都会给`sideEffectTag`打上`Update`的`tag`，`sideEffectTag`最终会赋值给`fiber`的`effectTag`。这里打上了`Update`的`Tag`，相当于告诉了`schedule`这个`Fiber`有更新操作
 
 除了给`Fiber`打上`tag`外，这里还会给`effect`打上自己的`tag`，这个`tag`真正决定了当前`effect`的调用时机，`useEffect`与`useLayoutEffect`唯一的区别也就是这个标志位的不同
 
@@ -57,7 +57,7 @@
   }
 ```
 
-这一部分跟前面大体相同，就不细说了。关键在于`pushEffect`，在`hook`的模块中，还维护了一个`componentUpdateQueue`全局变量，它相当于副作用的一个任务队列，每次调用`pushEffect`时，会生成一个`Effect`对象，然后插入到`componenctUpdateQueue`的队尾，这个队列最终会放到`Fiber`的`updateQueue`中，这时，`effect`在`hook`中的逻辑就走完了
+这一部分跟前面大体相同，就不细说了。关键在于`pushEffect`，在`hook`的模块中，还维护了一个`componentUpdateQueue`全局变量，它相当于副作用的一个任务队列，每次调用`pushEffect`时，会生成一个`Effect`对象，然后插入到`componenctUpdateQueue`的队尾，这个队列最终会放到`Fiber`的`updateQueue`中
 
 ```javascript
 interface Effect {
@@ -90,12 +90,13 @@ pushEffect(tag: HookEffectTag, create: () => (() => void), destroy: (() => void)
 ```
 
 ### `effect`的执行时机 
-在触发`effect`时，我们会给`Fiber`打上`Update`的标记，这个标记会在`commit`阶段被处理，执行相应的`commit`逻辑。所以，我们的`effect`会在`commit`阶段被执行，那么，`React`又是如何区分不同`effect`的调用时机呢，这时，`effect`上的`Tag`就发挥了作用
+在触发`effect`时，我们会给`Fiber`打上`Update`的标记，这个标记会在`commit`阶段被处理，执行相应的`commit`逻辑。所以，我们的`effect`会在`commit`阶段被执行，那么，`React`又是如何区分不同`effect`的调用时机呢，我们前面提到的`effect`上的`Tag`就发挥了作用
 
-在`commit`阶段，会对`FunctionComponent`中的`updateQueue`进行处理，它主要分为三步：
+在`commit`阶段，会对`FunctionComponent`中的`updateQueue`进行处理，处理的函数是`commitHookEffectList`，在这个函数中：
 - 取出`fiber`中的`updateQueue`，即副作用队列
 - 遍历副作用队列，对每一个`effect`，若等于传入的`unMountTag`，则调用`destroy`，若等于传入的`mountTag`，则调用`create`
-- 在不同的`commit`函数中。调用`commitHookEffectList`并传入不同的`Tag`，就可以区分不同的`effect`与调用时机
+
+在不同的`commit`函数中。调用`commitHookEffectList`并传入不同的`Tag`，就可以区分不同的`effect`与调用时机
 
 ```javascript
 // hook side effect 的处理
@@ -128,10 +129,10 @@ function commitHookEffectList(unMountTag: HookEffectTag, mountTag: HookEffectTag
 
 在回头看整个`commit`模块，在`commitWork`与`commitLifeCycle`中，都有`commitHookEffectList`的调用
 
-在`commitWork`中，主要是跟`UnmountMutation`，`MountMutation`相关
-在`commitLifeCycles`中，主要跟`UnMountLayout`与`MountLayout`相关
+- 在`commitWork`中，主要是跟`UnmountMutation`，`MountMutation`相关
+- 在`commitLifeCycles`中，主要跟`UnMountLayout`与`MountLayout`相关
 
-而我们的`layoutEffect`，就打上了`UnmountMutation`与`MountLayout`的标记，所以，`layoutEffect`的执行时机就很清晰了，在`commitWork`中执行`destroy`，在`commitLifeCycles`中执行`create`
+而我们的`layoutEffect`，就包含`UnmountMutation`与`MountLayout`的标记，所以，`layoutEffect`的执行时机就很清晰了，在`commitWork`中执行`destroy`，在`commitLifeCycles`中执行`create`
 
 ```javascript
 function commitWork(_current: Fiber, finishedWork: Fiber) {
@@ -211,7 +212,7 @@ function commitPassiveHookEffects(finishedWork: Fiber) {
 }
 ```
 
-`commitPassiveHookEffects`的`逻辑`与其他`commit`都差不多，但是它的执行时机比较特殊，它不在当前`commit`阶段触发，而是放在下一个事件循环，通过我们封装的`scheduleDeferredCallback`。所以，`useEffect`的执行整个是异步的，不影响当前`DOM`渲染
+`commitPassiveHookEffects`的逻辑与其他`commit`都差不多，但是它的执行时机比较特殊，它不在当前`commit`阶段触发，而是放在下一个事件循环。通过我们封装的`scheduleDeferredCallback`。所以，`useEffect`的执行整个是异步的，不影响当前`DOM`渲染
 
 ```javascript
 // useEffect 放到下一个 event loop 调用
