@@ -134,7 +134,7 @@ function commitHookEffectList(unMountTag: HookEffectTag, mountTag: HookEffectTag
 
       if ((effect.tag & mountTag) !== NoHookEffect) {
         const { create } = effect
-        effect.create = create() as any
+        effect.destroy = create() as any
       }
       effect = effect.next
     } while (effect !== firstEffect)

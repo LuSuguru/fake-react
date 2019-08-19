@@ -90,9 +90,12 @@ pushEffect(tag: HookEffectTag, create: () => (() => void), destroy: (() => void)
 ```
 
 ### `effect`的执行时机 
-在`commit`阶段时，会对`FunctionComponent`中的`updateQueue`进行处理，它主要分为三步：
+在触发`effect`时，我们会给`Fiber`打上`Update`的标记，这个标记会在`commit`阶段被处理，执行相应的`commit`逻辑。所以，我们的`effect`会在`commit`阶段被执行，那么，`React`又是如何区分不同`effect`的调用时机呢，这时，`effect`上的`Tag`就发挥了作用
+
+在`commit`阶段，会对`FunctionComponent`中的`updateQueue`进行处理，它主要分为三步：
 - 取出`fiber`中的`updateQueue`，即副作用队列
 - 遍历副作用队列，对每一个`effect`，若等于传入的`unMountTag`，则调用`destroy`，若等于传入的`mountTag`，则调用`create`
+- 在不同的`commit`函数中。调用`commitHookEffectList`并传入不同的`Tag`，就可以区分不同的`effect`与调用时机
 
 ```javascript
 // hook side effect 的处理
@@ -115,7 +118,7 @@ function commitHookEffectList(unMountTag: HookEffectTag, mountTag: HookEffectTag
 
       if ((effect.tag & mountTag) !== NoHookEffect) {
         const { create } = effect
-        effect.create = create() as any
+        effect.destroy = create() as any
       }
       effect = effect.next
     } while (effect !== firstEffect)
@@ -125,7 +128,10 @@ function commitHookEffectList(unMountTag: HookEffectTag, mountTag: HookEffectTag
 
 在回头看整个`commit`模块，在`commitWork`与`commitLifeCycle`中，都有`commitHookEffectList`的调用
 
-在`commitWork`中，主要是跟`UnmountMutation`，`MountMutation`相关，在我们
+在`commitWork`中，主要是跟`UnmountMutation`，`MountMutation`相关
+在`commitLifeCycles`中，主要跟`UnMountLayout`与`MountLayout`相关
+
+而我们的`layoutEffect`，就打上了`UnmountMutation`与`MountLayout`的标记，所以，`layoutEffect`的执行时机就很清晰了，在`commitWork`中执行`destroy`，在`commitLifeCycles`中执行`create`
 
 ```javascript
 function commitWork(_current: Fiber, finishedWork: Fiber) {
@@ -152,4 +158,75 @@ function commitLifeCycles(current: Fiber, finishedWork: Fiber) {
   }
 }
 ```
+
+在回头看`effect`，它的两个标记位为`UnMountPassive`与`MountPassive`，在`commit`模块中，只有在`commitPassiveHookEffects`中触发了这两个`Tag`
+
+```javascript
+function commitPassiveEffects(root: FiberRoot, firstEffect: Fiber) {
+  rootWithPendingPassiveEffects = null
+  passiveEffectCallbackHandle = null
+  passiveEffectCallback = null
+
+  const previousIsRendering = isRendering
+  isRendering = true
+
+  let effect = firstEffect
+  do {
+    if (effect.effectTag & Passive) {
+      let didError: boolean = false
+      let error: Error
+
+      try {
+        commitPassiveHookEffects(effect)
+      } catch (e) {
+        didError = true
+        error = e
+        console.error(error)
+      }
+
+      if (didError) {
+        // captureCommitPhaseError(effect, error)
+      }
+    }
+
+    effect = effect.nextEffect
+  } while (effect !== null)
+
+  isRendering = previousIsRendering
+
+  // 由于在新的事件循环，如果有需要，重新触发`work`
+  const rootExpirationTime = root.expirationTime
+  if (rootExpirationTime !== NoWork) {
+    requestWork(root, rootExpirationTime)
+  }
+
+  if (!isBatchingUpdates && !isRendering) {
+    performSyncWork()
+  }
+}
+
+function commitPassiveHookEffects(finishedWork: Fiber) {
+  commitHookEffectList(UnmountPassive, NoHookEffect, finishedWork)
+  commitHookEffectList(NoHookEffect, MountPassive, finishedWork)
+}
+```
+
+`commitPassiveHookEffects`的`逻辑`与其他`commit`都差不多，但是它的执行时机比较特殊，它不在当前`commit`阶段触发，而是放在下一个事件循环，通过我们封装的`scheduleDeferredCallback`。所以，`useEffect`的执行整个是异步的，不影响当前`DOM`渲染
+
+```javascript
+// useEffect 放到下一个 event loop 调用
+if (firstEffect !== null && rootWithPendingPassiveEffects !== null) {
+  const callback = commitPassiveEffects.bind(null, root, firstEffect)
+  passiveEffectCallbackHandle = scheduleDeferredCallback(callback)
+  passiveEffectCallback = callback
+}
+```
+
+整个`effect`的执行就是这样子。充分利用了当前`fiber`的调度，打上标记位，在相应的时机执行，唯一需要注意的就是`useLayoutEffect`与`useEffect`的区别
+
+- `useLayoutEffect`是同步的，在当前的`commit`阶段执行
+- `useEffect`是异步的，在下一个事件循环执行
+
+
+
 
