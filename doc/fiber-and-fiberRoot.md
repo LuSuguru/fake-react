@@ -1,20 +1,24 @@
 # 源码解析一  `Fiber and FiberRoot`
-`Fiber`出来之后，新的调和系统称为`fiber reconciler`，为了识别，我们把老的调和系统称为`stack reconciler`。 每一个`ReactElement`，都会生成相应的工作单元（这里我们把每个工作单元称为`Fiber`），根据这些节点的层级关系，会生成整个`Fiber`树，我们的一切调和过程，都是围绕`Fiber`树展开的
+`Fiber`出来之后，新的调和系统称为`fiber reconciler`，为了识别，我们把老的调和系统称为`stack reconciler`。 每一个`ReactElement`，都会生成相应的工作单元（我们把每个工作单元称为`Fiber`），根据这些节点的层级关系，会生成整个`Fiber`树。
+
+我们的整个调和过程，都是围绕`Fiber`树展开的
 
 ## `stack reconciler` 和 `fiber reconciler`
 在`stack reconciler中，整个VDOM树 如下图：
 
 <img src="./fiber-and-fiberRoot/vdom_tree.png" width="350" height="290"/>
 
-如果某个节点`setState`，会从当前节点开始，一直递归到整个`dom`树的最底层。找到需要修改的信息，并传递给`renderer`进行渲染，这整个过程是一气呵成，连续不可中断的，如果需要渲染的组件比较庞大，js执行占据主线程时间较长，导致页面响应度变差，就会很明显造成卡顿现象，整个过程类似下图：
+如果某个节点`setState`，会从当前节点开始，一直递归到整个`dom`树的最底层，找到需要修改的信息，并传递给`renderer`进行渲染。
+
+这整个过程是一气呵成，连续不可中断的。如果需要渲染的组件树过于庞大，js执行占据主线程时间较长，导致页面响应度变差，就会很明显造成卡顿现象，整个过程类似下图：
 
 <img src="./fiber-and-fiberRoot/stack.png" width="640" height="390"/>
 
 为了解决这个问题，`React`重构了整个调和架构，称为新的`fiber reconciler`，它支持：
 1. 对每个任务划分优先级，根据优先级不同区别处理
-1. 能够把可中断的任务切片处理
-2. 能够调整优先级，重置并复用任务
-3. 能够在父元素与子元素之间交错处理，以支持`React`中的布局
+2. 能够把任务切片处理
+3. 能够调整优先级，重置并复用任务
+
 整个过程类似下图：
 
 <img src="./fiber-and-fiberRoot/fiber.png" width="490" height="260"/>
@@ -23,10 +27,10 @@
 
 <img src="./fiber-and-fiberRoot/fiber_tree.png" width="650" height="500"/>
 
-将整个树结构用链表来实现，每个节点都记录了跟它有关的关系信息，有了关系信息，就可以很轻易的通过某一个节点，复现整个树。自然满足了可拆分，可中断
+在新的架构中，`React`将整个树结构用链表来实现，每个节点都记录了跟它有关的关系信息，有了关系信息，就可以很轻易的通过某一个节点，复现整个树。自然满足了可拆分，可中断：
 
 ## FiberRoot
-`FiberRoot`是整个`Fiber`树的根节点，所以`FiberRoot`上记录着整个`Fiber`树的调度信息，在`fiber reconciler`中，是支持同时多次`ReactDOM.render()`的，所以，此时会产生N个`FiberRoot`，出于同样的原因，它们之间也会形成一条环形链表：
+`FiberRoot`是整个`Fiber`树的根节点，所以`FiberRoot`上记录着整个`Fiber`树的调度信息，在`fiber reconciler`中，是支持同时多次`ReactDOM.render()`的，所以，此时会产生`N`个`FiberRoot`，出于同样的原因，它们之间也会形成一条链表型的关于`FiberRoot`的任务队列：
 
 ```            
                nextScheduledRoot            nextScheduledRoot            nextScheduledRoot
@@ -109,7 +113,7 @@ class Fiber {
   updateQueue: UpdateQueue<any> = null // 当前节点的任务队列
   memoizedState: any = null // 当前节点的state
 
-  contextDependencies: ContextDependencyList = null // context 列表
+  contextDependencies: ContextDependencyList = null // context 队列
 
   mode: TypeOfMode // 工作类型， NoContext：同步渲染 ConcurrentMode：异步渲染
 
