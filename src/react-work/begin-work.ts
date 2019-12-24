@@ -177,7 +177,7 @@ function updateMemoComponent(current: Fiber, workInProgress: Fiber, Component: a
   }
 
   workInProgress.effectTag |= PerformedWork
-  const newChild: Fiber = createWorkInProgress(current, nextProps)
+  const newChild: Fiber = createWorkInProgress(currentChild, nextProps)
 
   newChild.ref = workInProgress.ref
   newChild.return = workInProgress

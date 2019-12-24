@@ -96,6 +96,7 @@ function markCommittedPriorityLevels(root: FiberRoot, earliestRemainingTime: Exp
 function didExpireAtExpirationTime(root: FiberRoot, currentTime: ExpirationTime) {
   const { expirationTime } = root
   if (expirationTime !== NoWork && currentTime <= expirationTime) {
+    // nextExpirationTimeToWorkOn 是整个 render 阶段优先级的参考值，更新它的话可以保证整个render阶段里过期的任务都能准确更新掉
     root.nextExpirationTimeToWorkOn = currentTime
   }
 }

@@ -84,7 +84,7 @@ function recomputeCurrentRendererTime(canUpdateSchedulerTime: boolean) {
   }
 }
 
-// 一条需要调度的 FiberRoot 链表
+// 一条需要调度的 FiberRoot 队列
 let firstScheduledRoot: FiberRoot = null
 let lastScheduledRoot: FiberRoot = null
 
@@ -264,7 +264,7 @@ function updateChildExpirationTime(workInProgress: Fiber, renderTime: Expiration
   workInProgress.childExpirationTime = newChildExpiration
 }
 
-// 遍历scheduleRoot 链表，清除掉已经完成调和的FiberRoot，找出当前优先级最高的 FiberRoot
+// 遍历 scheduleRoot 队列，清除掉已经完成调和的FiberRoot，找出当前优先级最高的 FiberRoot
 function findHighestPriorityRoot() {
   let highestPriorityWork: ExpirationTime = NoWork
   let highestPriorityRoot: FiberRoot = null
@@ -277,6 +277,7 @@ function findHighestPriorityRoot() {
     while (root !== null) {
       const remainingExpirationTime: ExpirationTime = root.expirationTime
 
+      // 清除掉已经完成调和的 FiberRoot
       if (remainingExpirationTime === NoWork) {
         if (root === root.nextScheduledRoot) { // 整个链表只有一个fiber root
           root.nextScheduledRoot = null
@@ -422,8 +423,8 @@ function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
   }
 }
 
-// 将当前 FiberRoot 加到 scheduleRoot 链表中
-// 如果已在链表中，更新 expirationTime
+// 将当前 FiberRoot 加到 scheduleRoot 队列中
+// 如果已在队列中，更新 expirationTime
 function addRootToSchedule(root: FiberRoot, expirationTime: ExpirationTime) {
   if (root.nextScheduledRoot === null) {
     root.expirationTime = expirationTime
@@ -466,7 +467,7 @@ function scheduleCallbackWithExpirationTime(expirationTime: ExpirationTime) {
 
 function performAsyncWork(didTimeout: boolean) {
   if (didTimeout) {
-    // 当前已到期，更新优先级小于当前优先级的 FiberRoot
+    // 当前已超时，更新过期时间小于当前优先级的 FiberRoot
     if (firstScheduledRoot !== null) {
       recomputeCurrentRendererTime(false)
 
@@ -496,6 +497,7 @@ function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
       && minExpirationTime <= nextFlushedExpirationTime
       && (currentRendererTime <= nextFlushedExpirationTime || !shouldYield())
     ) {
+      // 当前任务已经超时，就改为同步
       performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, currentRendererTime > nextFlushedExpirationTime)
       findHighestPriorityRoot()
       recomputeCurrentRendererTime(true)
@@ -824,7 +826,7 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
 
   const expirationTime = root.nextExpirationTimeToWorkOn
 
-  // 上一个任务因为时间片用完了而中断了，这个时候 nextUnitOfWork 是有工作的，
+  // 上一个任务因为时间片用完了而中断了，这个时候 nextUnitOfWork 是有工作的
   // 到了下一个时间切片，中途没有新的任务进来，那么这些全局变量都没有变过
   // 而如果有新的更新进来，则势必 nextExpirationTimeToWorkOn 或者 root 会变化，那么肯定需要重置变量
   if (expirationTime !== nextRenderExpirationTime || root !== nextRoot || nextUnitOfWork === null) {
