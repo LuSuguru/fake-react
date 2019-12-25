@@ -71,6 +71,9 @@ class Fiber {
   firstEffect: Fiber = null
   lastEffect: Fiber = null
 
+  // 有两种变化的可能
+  // state 的变化使优先级发生变化
+  // props 的变化使优先级发生变化
   expirationTime: ExpirationTime = NoWork // 优先级
   childExpirationTime: ExpirationTime = NoWork // 子优先级
 
@@ -212,7 +215,6 @@ function createFiberFromTypeAndProps(type: any, key: null | string, pendingProps
   fiber.elementType = type
   fiber.type = resolvedType
   fiber.expirationTime = expirationTime
-
   return fiber
 }
 

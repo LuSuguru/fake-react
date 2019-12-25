@@ -165,6 +165,8 @@ function updateMemoComponent(current: Fiber, workInProgress: Fiber, Component: a
   }
 
   const currentChild: Fiber = current.child
+
+  // 说明更新不是有当前 memo 的节点发起的，而是从上面节点发起
   if (updateExpirationTime < renderExpirationTime) {
     const prevProps = currentChild.memoizedProps
 
@@ -189,10 +191,10 @@ function updateMemoComponent(current: Fiber, workInProgress: Fiber, Component: a
 function updateSimpleMemoComponent(current: Fiber, workInProgress: Fiber, Component: any, nextProps: any, updateExpirationTime: ExpirationTime, renderExpirationTime: ExpirationTime): Fiber {
   if (current !== null) {
     const prevProps = current.memoizedProps
-
     if (shallowEqual(prevProps, nextProps) && current.ref === workInProgress.ref) {
       didReceiveUpdate = false
 
+      // 说明更新不是有当前 memo 的节点发起的，而是从上面节点发起
       if (updateExpirationTime < renderExpirationTime) {
         return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
       }
@@ -399,13 +401,12 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
     const oldProps = current.memoizedProps
     const newProps = workInProgress.pendingProps
 
-    // 新旧 props 是否相等
+    // 新旧 props 是否相等，useFiber() 后会出现 workInProgress 是从 current 拷贝过来的， oldProps === newProps
     if (oldProps !== newProps) {
       didReceiveUpdate = true
-      // 优先级是否较低
+      // 优先级是否较低，跳过优先级较低的 fiber
     } else if (updateExpirationTime < renderExpirationTime) {
       didReceiveUpdate = false
-
       // 插入上下文
       switch (workInProgress.tag) {
         case HostRoot:
@@ -432,7 +433,8 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
     didReceiveUpdate = false
   }
 
-  workInProgress.expirationTime = NoWork // 将当前 fiber 的更新时间清零
+  // 当前 fiber 处理之前，将当前 fiber 的更新时间清零
+  workInProgress.expirationTime = NoWork
 
   switch (workInProgress.tag) {
     case IndeterminateComponent: {
