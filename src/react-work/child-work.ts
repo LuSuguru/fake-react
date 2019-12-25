@@ -249,7 +249,9 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
 
     while (child != null) {
       if (child.key === element.key) {
+
         if (child.tag === Fragment ? element.type === REACT_FRAGMENT_TYPE : child.elementType === element.type) {
+          // 可以复用之前的 fiber 节点
           deleteRemainingChildren(returnFiber, child.sibling)
 
           const existing = useFiber(child, element.type === REACT_FRAGMENT_TYPE ? element.props.children : element.props)
@@ -258,6 +260,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
 
           return existing
         } else {
+          // 找到之前的节点了，但是不能复用，全部删除
           deleteRemainingChildren(returnFiber, child)
           break
         }

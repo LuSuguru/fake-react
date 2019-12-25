@@ -42,7 +42,6 @@ const classComponentUpdater: ReactUpdateQueue = {
     const expirationTime = computeExpirationTimeForFiber(currentTime, fiber)
     const update = new Update(expirationTime, ForceUpdate, null, callback)
 
-
     flushPassiveEffects()
     enqueueUpdate(fiber, update)
     scheduleWork(fiber, expirationTime)
