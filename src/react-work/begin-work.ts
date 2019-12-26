@@ -402,11 +402,14 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
     const newProps = workInProgress.pendingProps
 
     // 新旧 props 是否相等，useFiber() 后会出现 workInProgress 是从 current 拷贝过来的， oldProps === newProps
+    // debugger
     if (oldProps !== newProps) {
       didReceiveUpdate = true
+      console.log(1, workInProgress)
       // 优先级是否较低，跳过优先级较低的 fiber
     } else if (updateExpirationTime < renderExpirationTime) {
       didReceiveUpdate = false
+      console.log(2, workInProgress)
       // 插入上下文
       switch (workInProgress.tag) {
         case HostRoot:

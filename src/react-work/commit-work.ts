@@ -455,6 +455,7 @@ function commitLifeCycles(current: Fiber, finishedWork: Fiber) {
       }
 
       const { updateQueue } = finishedWork
+
       // 调用 callback
       commitUpdateQueue(updateQueue, instance)
       return
