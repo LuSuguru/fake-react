@@ -270,11 +270,11 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
 
       child = child.sibling
     }
-
+    // console.log(expirationTime)
     const created = createFiberFromElement(element, returnFiber.mode, expirationTime)
     created.ref = element.ref
     created.return = returnFiber
-
+    // console.log(created)
     return created
   }
 
