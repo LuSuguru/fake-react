@@ -36,7 +36,7 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
       return
     }
 
-    // 清除 effect fiber
+    // 清除 effect fiber，加到父节点的 effectList 中
     const last = returnFiber.lastEffect
     if (last !== null) {
       last.nextEffect = childToDelete
