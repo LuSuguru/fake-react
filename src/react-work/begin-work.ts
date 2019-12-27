@@ -401,7 +401,7 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
     const oldProps = current.memoizedProps
     const newProps = workInProgress.pendingProps
 
-    // 新旧 props 是否相等，useFiber() 后会出现 workInProgress 是从 current 拷贝过来的， oldProps === newProps
+    // 新旧 props 是否相等，相等的话说明该 fiber 没变化
     if (oldProps !== newProps) {
       didReceiveUpdate = true
       // 优先级是否较低，跳过优先级较低的 fiber

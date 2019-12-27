@@ -332,7 +332,10 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
     let newIdx: number = 0
     let nextOldFiber: Fiber = null
 
+    // 通过 index 可以迅速做一次比较，第二次再使用传统的map 做 diff
+    // 一般变化不多的情况下，第一次比较就可以解决掉大多数问题
     for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
+      // 保证是同一个 index
       if (oldFiber.index > newIdx) {
         nextOldFiber = oldFiber
         oldFiber = null
