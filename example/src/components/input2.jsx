@@ -2,7 +2,7 @@ import { React } from 'fake-react'
 
 const { PureComponent } = React
 
-export default class extends PureComponent {
+export default class Input extends PureComponent {
   state = {
     value: ''
   }

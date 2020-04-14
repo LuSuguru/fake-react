@@ -401,6 +401,8 @@ function beginWork(current: Fiber, workInProgress: Fiber, renderExpirationTime: 
     const oldProps = current.memoizedProps
     const newProps = workInProgress.pendingProps
 
+    debugger
+
     // 新旧 props 是否相等，相等的话说明该 fiber 没变化
     if (oldProps !== newProps) {
       didReceiveUpdate = true

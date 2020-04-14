@@ -10,9 +10,9 @@ const { Fragment } = React
 function Test() {
   return (
     <Fragment>
-      {/* <App />
-      <App2 /> */}
-      <App3 />
+      {/* <App /> */}
+      <App2 />
+      {/* <App3 /> */}
     </Fragment>)
 }
 

@@ -17,7 +17,7 @@
 - [源码解析十二 `reconciler childFiber`](./doc/child-fiber.md)
 - [源码解析十三 `completeUnitOfWork`](./doc/completeUnitOfWork.md)
 - [源码解析十四 `completeWork`](./doc/completeWork.md)
-- [源码解析十五 `commitRoot`](./doc/commitWork.md)
+- [源码解析十五 `commitRoot`](./doc/commitRoot.md)
 - [源码解析十六 `requestIdleCallback`的`polyfill`](./doc/requestIdleCallback.md)
 - [源码解析十七 异步渲染](./doc/async-render.md)
 - [源码解析十八 事件系统](./doc/event-init.md)
