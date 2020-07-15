@@ -396,7 +396,7 @@ const Effect = {
 }
 
 const ImperativeHandle = {
-  imperativeHandleEffect<T>(create: () => T, ref: Ref) {
+  imperativeHandleEffect<T>(create: () => T, ref: Ref<T>) {
     if (isFunction(ref)) {
       const refCallback = ref as (inst: T | null) => void
       const inst = create()
