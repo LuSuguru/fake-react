@@ -9,12 +9,13 @@
   && minExpirationTime <= nextFlushedExpirationTime
 ```
 
-异步，还多了两个判断
+异步，还多了一个判断
 `shouldYield()`也是异步模块里的函数，用来判断时间切片是否到期，如果到期了返回`true`，未到期返回`false`
-再看`currentRendererTime <= nextFlushedExpirationTime`，前面说过，优先级和到期时间是可以相互转化的，优先级越高的到期时间越小，这里我们用到期时间理解，下一个任务的到期时间已经小于当前时间。此时这个任务已经超时，需要立即执行
+
+再看这个条件要满足 true 即前面为 true，且 currentRenderTime <= nextFlushedExpirationTime,前面说过，优先级和到期时间是可以相互转化的，优先级越高的到期时间越小，这里我们用到期时间理解，下一个任务的到期时间已经小于当前时间。此时这个任务已超时，所以这个条件是用来判断是否超时的
 
 ```javaScript
-  && (currentRendererTime <= nextFlushedExpirationTime || !shouldYield()
+  && !(shouldYield() && currentRendererTime > nextFlushedExpirationTime)
 ```
 
 大循环的里面，都是调用了`performWorkOnRoot`，将当前的任务作为参数传进去，关键在于第三个参数，在同步的时候传了`false`，说明此时是个同步任务，再看异步时，`currentRendererTime > nextFlushedExpirationTime`，超时情况下进来，这个值是`false`，当做同步任务处理

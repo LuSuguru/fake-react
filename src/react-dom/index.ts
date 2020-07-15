@@ -7,6 +7,7 @@ import ReactRoot from './react-root'
 function createRootFromContainer(container: any): ReactRoot {
   let rootSibling: ChildNode = null
 
+  // 删除现在挂载容器的所有子dom，使其成为一个空节点
   while ((rootSibling = container.lastChild)) {
     container.remove(rootSibling)
   }

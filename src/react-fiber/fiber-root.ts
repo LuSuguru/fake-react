@@ -15,11 +15,11 @@ class FiberRoot {
   containerInfo: Element  // 容器节点
   current: Fiber // 当前根节点的 fiber
 
-  // 最老和最新的被挂起的任务的优先级
+  // 最晚和最新的被挂起的任务的优先级
   earliestSuspendedTime: ExpirationTime = NoWork
   latestSuspendedTime: ExpirationTime = NoWork
 
-  // 最老和最新的不确定是否挂起的任务的优先级
+  // 最晚和最新的不确定是否挂起的任务的优先级
   earliestPendingTime: ExpirationTime = NoWork
   latestPendingTime: ExpirationTime = NoWork
 

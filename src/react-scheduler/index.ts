@@ -357,7 +357,7 @@ function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): Fiber
   let node: Fiber = fiber.return
   let root: FiberRoot = null
 
-  if (node === null && fiber.tag === HostRoot) {
+  if (fiber === null && fiber.tag === HostRoot) {
     root = fiber.stateNode
   } else {
     while (node !== null) {
@@ -458,11 +458,12 @@ function scheduleCallbackWithExpirationTime(expirationTime: ExpirationTime) {
     }
   }
 
-  callbackExpirationTime = expirationTime
   const currentMs = now() - originalStartTimeMs
   const expirationTimeMs = expirationTimeToMS(expirationTime)
   const timeout = expirationTimeMs - currentMs
+
   callbackID = scheduleDeferredCallback(performAsyncWork, { timeout })
+  callbackExpirationTime = expirationTime
 }
 
 function performAsyncWork(didTimeout: boolean) {
@@ -495,7 +496,8 @@ function performWork(minExpirationTime: ExpirationTime, isYieldy: boolean) {
       nextFlushedRoot !== null
       && nextFlushedExpirationTime !== NoWork
       && minExpirationTime <= nextFlushedExpirationTime
-      && (currentRendererTime <= nextFlushedExpirationTime || !shouldYield())
+      // 未超时
+      && !(shouldYield() && currentRendererTime > nextFlushedExpirationTime)
     ) {
       // 当前任务已经超时，就改为同步
       performWorkOnRoot(nextFlushedRoot, nextFlushedExpirationTime, currentRendererTime > nextFlushedExpirationTime)
