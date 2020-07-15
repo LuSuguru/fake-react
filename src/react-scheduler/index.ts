@@ -829,7 +829,7 @@ function renderRoot(root: FiberRoot, isYieldy: boolean) {
   const expirationTime = root.nextExpirationTimeToWorkOn
 
   // 上一个任务因为时间片用完了而中断了，这个时候 nextUnitOfWork 是有工作的
-  // 到了下一个时间切片，中途没有新的任务进来，那么这些全局变量都没有变过
+  // 到了下一个时间切片，中途没有新的任务进来，那么这些全局变量都没有变过，可以直接从中断的点开始
   // 而如果有新的更新进来，则势必 nextExpirationTimeToWorkOn 或者 root 会变化，那么肯定需要重置变量
   if (expirationTime !== nextRenderExpirationTime || root !== nextRoot || nextUnitOfWork === null) {
     resetStack()
