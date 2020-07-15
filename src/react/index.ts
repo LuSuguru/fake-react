@@ -45,6 +45,7 @@ function lazy(ctor: Function): LazyComponent {
     _result: null,
   }
 }
+
 function memo(type: any, compare?: Function) {
   return {
     $$typeof: REACT_MEMO_TYPE,
@@ -52,7 +53,6 @@ function memo(type: any, compare?: Function) {
     compare: compare === undefined ? null : compare,
   }
 }
-
 
 function createContext<T>(defaultValue: T, calculateChangedBits?: (a: T, b: T) => number): ReactContext<T> {
   if (calculateChangedBits === undefined) {

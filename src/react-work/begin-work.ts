@@ -206,8 +206,7 @@ function updateSimpleMemoComponent(current: Fiber, workInProgress: Fiber, Compon
 function updateFunctionComponent(current: Fiber, workInProgress: Fiber, Component: Function, nextProps: any, renderExpirationTime: ExpirationTime): Fiber {
   prepareToReadContext(workInProgress, renderExpirationTime)
 
-  let nextChildren: any = null
-  nextChildren = renderWithHooks(current, workInProgress, Component, nextProps, null, renderExpirationTime)
+  const nextChildren: any = renderWithHooks(current, workInProgress, Component, nextProps, null, renderExpirationTime)
 
   if (current !== null && !didReceiveUpdate) {
     bailoutHooks(current, workInProgress, renderExpirationTime)

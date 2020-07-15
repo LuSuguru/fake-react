@@ -357,7 +357,7 @@ function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): Fiber
   let node: Fiber = fiber.return
   let root: FiberRoot = null
 
-  if (fiber === null && fiber.tag === HostRoot) {
+  if (node === null && fiber.tag === HostRoot) {
     root = fiber.stateNode
   } else {
     while (node !== null) {

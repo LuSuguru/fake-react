@@ -37,7 +37,7 @@ interface Update<S, A> {
 }
 
 interface UpdateQueue<S, A> {
-  last: Update<S, A>, // update的环形链表
+  last: Update<S, A>, // 环形链表
   dispatch: ((a: A) => any),
   eagerReducer: ((s: S, a: A) => S), // 记录当前的reducer，在dispatch时用于提前计算state
   eagerState: S, // 计算当前的state，在dispath中做为提前计算的基值

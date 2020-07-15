@@ -70,6 +70,4 @@ export function getStateFromUpdate<State>(workInProgress: Fiber, update: Update<
       return prevState
     }
   }
-
-  return prevState
 }

@@ -40,7 +40,7 @@ let workInProgressHook: Hook = null
 let nextWorkInProgressHook: Hook = null
 
 let remainingExpirationTime: ExpirationTime = NoWork
-let componentUpdateQueue: FunctionComponentUpdateQueue = null // 环形链表形成的更新队列
+let componentUpdateQueue: FunctionComponentUpdateQueue = null // 环形链表形成的组件更新队列，存储 UseEffect,useLayoutEffect,useImperativeHandle 的调用
 let sideEffectTag: SideEffectTag = 0
 
 function mountWorkInProgressHook(): Hook {
@@ -153,6 +153,7 @@ function dispatchAction<S, A>(fiber: Fiber, queue: UpdateQueue<S, A>, action: A)
         update.eagerReducer = eagerReducer
         update.eagerState = eagerState
 
+        // 不触发render
         if (Object.is(eagerState, currentState)) {
           return
         }
