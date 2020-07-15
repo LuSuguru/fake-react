@@ -1,4 +1,5 @@
 import { ReactContext } from '../react-context/fiber-context'
+import { Ref } from '../react-type/hook-type'
 import ReactCurrentDispatcher from './rect-current-dispatcher'
 
 function resolveDispatcher(): any {
@@ -46,6 +47,11 @@ function useMemo(create: () => any, inputs: any[] | void | null) {
   return dispatcher.useMemo(create, inputs)
 }
 
+function useImperativeHandle<T>(ref: Ref<T>, create: () => T, inputs: any[] | void | null) {
+  const dispatcher = resolveDispatcher()
+  return dispatcher.useImperativeHandle(ref, create, inputs)
+}
+
 export {
   useContext,
   useState,
@@ -55,4 +61,5 @@ export {
   useLayoutEffect,
   useCallback,
   useMemo,
+  useImperativeHandle,
 }

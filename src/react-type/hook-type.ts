@@ -25,6 +25,7 @@ interface Dispatcher {
   useLayoutEffect(create: () => (() => void) | void, deps: any[] | void | null): void,
   useCallback<T>(callback: T, deps: any[] | void | null): T,
   useMemo<T>(nextCreate: () => T, deps: any[] | void | null): T
+  useImperativeHandle<T>(ref: Ref<T>, create: () => T, deps: any[] | void | null): void
 }
 
 interface Update<S, A> {
@@ -62,6 +63,8 @@ interface FunctionComponentUpdateQueue {
   lastEffect: Effect | null,
 }
 
+type Ref<T> = { current: T | null } | ((inst: T | null) => void) | null | void
+
 export {
   Update,
   UpdateQueue,
@@ -71,4 +74,5 @@ export {
   Hook,
   Effect,
   FunctionComponentUpdateQueue,
+  Ref,
 }

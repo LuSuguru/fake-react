@@ -15,13 +15,14 @@ import {
   MountLayout,
   MountPassive,
   NoHookEffect,
+  Ref,
   UnmountMutation,
   UnmountPassive,
   Update,
   UpdateQueue,
 } from '../react-type/hook-type'
 import { markWorkInProgressReceivedUpdate } from '../react-work/begin-work'
-import { isFunction } from '../utils/getType'
+import { isEmpty, isFunction } from '../utils/getType'
 import ReactCurrentDispatcher from './rect-current-dispatcher'
 
 let didScheduleRenderPhaseUpdate: boolean = false
@@ -39,7 +40,7 @@ let workInProgressHook: Hook = null
 let nextWorkInProgressHook: Hook = null
 
 let remainingExpirationTime: ExpirationTime = NoWork
-let componentUpdateQueue: FunctionComponentUpdateQueue = null
+let componentUpdateQueue: FunctionComponentUpdateQueue = null // 环形链表形成的更新队列
 let sideEffectTag: SideEffectTag = 0
 
 function mountWorkInProgressHook(): Hook {
@@ -394,6 +395,34 @@ const Effect = {
   },
 }
 
+const ImperativeHandle = {
+  imperativeHandleEffect<T>(create: () => T, ref: Ref) {
+    if (isFunction(ref)) {
+      const refCallback = ref as (inst: T | null) => void
+      const inst = create()
+      refCallback(inst)
+
+      return () => { refCallback(null) }
+    } else if (!isEmpty(ref)) {
+      const refObject = ref as { current: T | null }
+      const inst = create()
+      refObject.current = inst
+
+      return () => { refObject.current = null }
+    }
+  },
+
+  mountImperativeHandle<T>(ref: Ref<T>, create: () => T, deps: any[]) {
+    const effectDeps = !isEmpty(deps) ? deps.concat([ref]) : null
+    return Effect.mountEffectImpl(UpdateTag, UnmountMutation | MountLayout, ImperativeHandle.imperativeHandleEffect.bind(null, create, ref), effectDeps)
+  },
+
+  updateImperativeHandle<T>(ref: Ref<T>, create: () => T, deps: any[]) {
+    const effectDeps = !isEmpty(deps) ? deps.concat([ref]) : null
+    return Effect.updateEffectImpl(UpdateTag, UnmountMutation | MountLayout, ImperativeHandle.imperativeHandleEffect.bind(null, create, ref), effectDeps)
+  },
+}
+
 const Callback = {
   mountCallback<T>(callback: T, deps?: any[]): T {
     const hook = mountWorkInProgressHook()
@@ -477,6 +506,8 @@ const HooksDispatcherOnMount: Dispatcher = {
   useMemo: Memo.mountMemo,
   useRef: Ref.mountRef,
   useLayoutEffect: Effect.mountLayoutEffect,
+
+  useImperativeHandle: ImperativeHandle.mountImperativeHandle,
 }
 
 const HooksDispatcherOnUpdate: Dispatcher = {
@@ -491,6 +522,8 @@ const HooksDispatcherOnUpdate: Dispatcher = {
   useMemo: Memo.updateMemo,
   useRef: Ref.updateRef,
   useLayoutEffect: Effect.updateLayoutEffect,
+
+  useImperativeHandle: ImperativeHandle.updateImperativeHandle,
 }
 
 const HooksDispatcherOnEmpty: Dispatcher = {
@@ -505,6 +538,7 @@ const HooksDispatcherOnEmpty: Dispatcher = {
   useMemo: () => { throw new Error('请在function中使用') },
   useRef: () => { throw new Error('请在function中使用') },
   useLayoutEffect: () => { throw new Error('请在function中使用') },
+  useImperativeHandle: () => { throw new Error('请在function中使用') },
 }
 
 function bailoutHooks(current: Fiber, workInProgress: Fiber, expirationTime: ExpirationTime) {
