@@ -683,6 +683,7 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber) {
 
   prepareForCommit(root.containerInfo)
 
+  // 处理 snapshot 生命周期，钩子
   commitTask(commitBeforeMutationLifecycles, firstEffect)
 
   // 第一阶段，提交 dom 的操作

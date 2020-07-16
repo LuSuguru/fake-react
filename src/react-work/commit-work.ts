@@ -255,6 +255,7 @@ function commitWork(_current: Fiber, finishedWork: Fiber) {
     case ForwardRef:
     case MemoComponent:
     case SuspenseComponent: {
+      // useLayoutEffect 的 destroy()
       commitHookEffectList(UnmountMutation, MountMutation, finishedWork)
       return
     }
@@ -294,7 +295,7 @@ function commitUnmount(current: Fiber) {
     case ForwardRef:
     case MemoComponent:
     case SimpleMemoComponent: {
-      // useEffect
+      // useEffect or useLayoutEffect
       const updateQueue: FunctionComponentUpdateQueue = current.updateQueue as any
       if (updateQueue !== null) {
         const { lastEffect } = updateQueue
@@ -438,6 +439,7 @@ function commitLifeCycles(current: Fiber, finishedWork: Fiber) {
     case FunctionComponent:
     case ForwardRef:
     case SimpleMemoComponent:
+      // useLayoutEffect 的 create()
       commitHookEffectList(UnmountLayout, MountLayout, finishedWork)
       break
     case ClassComponent: {

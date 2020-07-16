@@ -45,7 +45,7 @@ class Fiber {
   elementType: any = null
   // 异步组件resolved之后返回的内容，一般是`function`或者`class`
   type: any = null
-  // 自身特性，如：class就是当前 的组件对象，hostComponent 就是 dom 元素
+  // 状态节点，如：class就是当前 的组件对象，hostComponent 就是 dom 元素
   stateNode: any = null
 
   return: Fiber = null // 父节点

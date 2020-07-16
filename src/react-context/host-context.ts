@@ -7,6 +7,8 @@ import { createStack, pop, push, StackCursor } from './stack'
 declare class NoContext { }
 const NO_CONTEXT: NoContext = {}
 
+// 维护一个 DOM 环境的上下文环境
+
 const contextStackCursor: StackCursor<HostContext | NoContext> = createStack(NO_CONTEXT)
 const contextFiberStackCursor: StackCursor<Fiber | NoContext> = createStack(NO_CONTEXT)
 const rootInstanceStackCursor: StackCursor<Container | NoContext> = createStack(NO_CONTEXT)

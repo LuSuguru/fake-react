@@ -210,7 +210,7 @@ function scheduleCallNode(newNode: CallbackNode, expirationTime: number) {
   }
 }
 
-function scheduleDeferredCallback(callback: Function, options?: any): CallbackNode {
+function scheduleDeferredCallback(callback: Function, options?: { timeout: number }): CallbackNode {
   const startTime = currentEventStartTime !== -1 ? currentEventStartTime : now()
   let expirationTime: number = 0
 
