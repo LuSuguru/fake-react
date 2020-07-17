@@ -1,5 +1,6 @@
 import { getClosestInstanceFromNode } from '../../react-dom/dom/dom-component-tree'
 import { Fiber } from '../../react-fiber/fiber'
+import { FiberRoot } from '../../react-fiber/fiber-root'
 import { isFiberMounted } from '../../react-fiber/fiber-tree-reflection'
 import { AnyNativeEvent, TopLevelType } from '../../react-type/event-type'
 import { HostRoot } from '../../react-type/tag-type'
@@ -97,7 +98,7 @@ function findRootContainerNode(inst: Fiber) {
     return null
   }
 
-  return inst.stateNode.containerInfo
+  return inst.stateNode.containerInfo as FiberRoot
 }
 
 function dispatchEvent(topLevelType: TopLevelType, nativeEvent: AnyNativeEvent) {

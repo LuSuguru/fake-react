@@ -12,9 +12,9 @@ const namesToPlugins: NamesToPlugins = {}
 let eventPluginOrder: PluginName[] = null
 
 // event plugin modules
-export const registrationNameModules = {} // 存储有phasedRegistrationNames或者registrationName的插件的事件对应的pluginModule
-export const registrationNameDependencies = {} // 存储有phasedRegistrationNames或者registrationName的插件的事件对应的dependencies
-export const plugins: Array<PluginModule<AnyNativeEvent>> = [] // 按照eventPluginOrder顺序存储的pluginModule[]
+export const registrationNameModules = {} // 存储 包含phasedRegistrationNames或者registrationName 的 plugin
+export const registrationNameDependencies = {} // 存储 包含phasedRegistrationNames或者registrationName 的 Plugin 中 eventTypes.dependencies
+export const plugins: Array<PluginModule<AnyNativeEvent>> = [] // 按照eventPluginOrder 顺序存储的 plugin
 
 function publishRegistrationName(registrationName: string, pluginModule: PluginModule<AnyNativeEvent>, eventName: string) {
   registrationNameModules[registrationName] = pluginModule

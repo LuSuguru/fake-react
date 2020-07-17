@@ -63,6 +63,7 @@ function executeDispatchesAndReleaseTopLevel(event: SyntheticEvent) {
     executeDispatchesInOrder(event)
   }
 
+  // 放入事件池
   if (!event.isPersistent()) {
     (event.constructor as any).release(event)
   }

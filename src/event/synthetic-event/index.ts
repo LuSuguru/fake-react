@@ -12,6 +12,7 @@ function functionThatReturnsFalse() {
   return false
 }
 
+// 合成事件基类
 class SyntheticEvent {
   static Interface = {
     type: null,
@@ -130,6 +131,7 @@ class SyntheticEvent {
   }
 }
 
+// 事件池
 export function addPool(Event: any): StaticSyntheticEvent {
   Event.eventPool = []
 

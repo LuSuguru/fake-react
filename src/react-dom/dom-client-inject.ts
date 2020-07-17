@@ -9,6 +9,8 @@ import { injection as EventPluginHubInjection } from '../event/plugin-hub'
 import { batchedUpdates, flushInteractiveUpdates, interactiveUpdates } from '../react-scheduler'
 import { restoreControlledState } from './dom/dom-component'
 
+
+// 规定插件的注入顺序
 EventPluginHubInjection.injectEventPluginOrder([
   'SimpleEventPlugin',
   'EnterLeaveEventPlugin',
@@ -17,6 +19,7 @@ EventPluginHubInjection.injectEventPluginOrder([
   'BeforeInputEventPlugin',
 ])
 
+// 注入事件插件
 EventPluginHubInjection.injectEventPluginsByName({
   SimpleEventPlugin,
   EnterLeaveEventPlugin,

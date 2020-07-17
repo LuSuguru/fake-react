@@ -2,7 +2,6 @@ import { Fiber } from '../react-fiber/fiber'
 import { HostComponent } from '../react-type/tag-type'
 import SyntheticEvent from './synthetic-event'
 
-
 function getParent(inst: Fiber) {
   do {
     inst = inst.return
@@ -57,7 +56,6 @@ export function isAncestor(instA: Fiber, instB: Fiber) {
   }
   return false
 }
-
 
 export function getParentInstance(inst: Fiber) {
   return getParent(inst)

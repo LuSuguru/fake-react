@@ -1,6 +1,5 @@
 import { NoEffect, Placement } from '../react-type/effect-type'
 import { HostRoot } from '../react-type/tag-type'
-import { ReactElement } from '../react/react'
 import { Component } from '../react/react-component'
 import { Fiber } from './fiber'
 

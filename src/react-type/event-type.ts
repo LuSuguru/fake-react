@@ -4,13 +4,15 @@ import { Fiber } from '../react-fiber/fiber'
 export type TopLevelType = string
 
 export interface DispatchConfig {
+  // props名，区分冒泡和捕获，与 registrationName 互斥
   phasedRegistrationNames?: {
     bubbled: string,
     captured: string,
   },
-  dependencies: TopLevelType[],
-  registrationName?: string,
-  isInteractive?: boolean,
+  dependencies: TopLevelType[], // 依赖的原生事件名，需要注册
+
+  registrationName?: string, // props名，不区分冒泡和捕获，与 phasedRegistrationNames 互斥
+  isInteractive?: boolean, // 是否高优先级反馈
 }
 
 export interface StaticSyntheticEvent {
