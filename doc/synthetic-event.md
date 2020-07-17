@@ -2,7 +2,8 @@
 前面提到过，`react`自己合成了事件对象，那么它是怎么做的呢？
 
 ### `SyntheticEvent`
-`SyntheticEvent`是整个`event`类的抽象基类，其余的具体`event`类都继承这个类实现。所以先看下基类的代码，它抽象了生成整个`event`所需属性的过程。在构造函数中遍历静态的`Interface`，拿到`nativeEvent`里这些属性真实的值，注入到实例上：
+- `SyntheticEvent`是整个`event`类的抽象基类，其余的具体`event`类都继承这个类实现
+- 所以先看下基类的代码，`Interface`相当于整个事件对象的模板，在初始化事件对象时，我们在构造函数中遍历静态的`Interface`，拿到原生对象（nativeEvent）里这些属性真实的值，注入到我们的合成事件对象上，我们在基类中抽象了生成整个`event`所需属性的过程：
 
 ```javaScript
 class SyntheticEvent {
@@ -65,7 +66,7 @@ class SyntheticFocusEvent extends SyntheticEvent {
 
 ### 对象池
 
-在创建`event`对象时，`react`采用了对象池的概念，每个 `event`在继承完后,都会通过`addPool()`给其加上对象池
+在创建`event`对象时，为了减少内存开销，最大化利用资源，`react`采用了对象池的概念，每个 `event`在继承完后，都会通过`addPool()`具备对象池的能力
 
 ```javaScript
 export function addPool(Event: any): StaticSyntheticEvent {
@@ -85,7 +86,7 @@ export function addPool(Event: any): StaticSyntheticEvent {
 export default addPool(SyntheticFocusEvent)
 ```
 
-在创建`event`对象时，会调用`release()`将其塞入对象池数组中
+在执行完事件函数后，会通过 release 对当前的 事件对象重置，并重新释放到对象池中
 
 ```javaScript
   Event.release = function(event: SyntheticEvent) {
@@ -97,7 +98,7 @@ export default addPool(SyntheticFocusEvent)
   }
 ```
 
-在读取`event`对象时，会调用`getPooled()`，若对象池中还有对象，可以直接取出来复用，减少了垃圾生成和新对象内存的分配，大大提高了性能
+在读取`event`对象时，会调用`getPooled()`，若对象池中还有对象，可以直接取出来复用
 
 ```javaScript
   Event.release = function(event: SyntheticEvent) {

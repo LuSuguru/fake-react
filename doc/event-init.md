@@ -9,7 +9,11 @@
 - 使用对象池来管理合成事件对象的创建和销毁，减少了垃圾生成和新对象内存的分配，大大提高了性能
 
 ### 实现
-整个事件系统是基于动态注入插件到中心，基于中心分发来实现的。以下是官方源码中整个系统的轮廓图，将不同功能的插件注入到`EventPluginHub`，通过`ReactEventListener`和`ReactEventEmitter`注册原生事件，在`application`中获取相应事件具体的处理逻辑，事件触发时`EventPluginHub`将拿到的原生事件信息经过各个插件做加工，合成事件对象，传入`application`具体的事件逻辑并调用：
+整个事件系统是基于动态注入插件到中心，基于中心分发来实现的。
+
+这里的插件，我理解为对各种类别的事件的一种配置，通过插件系统，我们既可以注入 DOM 事件的插件,也可以注入 Native 事件的插件，做到灵活插拔
+
+以下是官方源码中整个系统的轮廓图，将不同功能的插件注入到`EventPluginHub`，通过`ReactEventListener`和`ReactEventEmitter`注册原生事件，在`application`中获取相应事件具体的处理逻辑，事件触发时`EventPluginHub`将拿到的原生事件信息经过各个插件做加工，合成事件对象，传入`application`具体的事件逻辑并调用：
 
 ```javaScript
  * Overview of React and the event system:

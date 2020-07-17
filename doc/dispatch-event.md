@@ -111,7 +111,7 @@ function handleTopLevel(bookKeeping: BookKeeping) {
 整个获取`SyntheticEvent`的过程也就是遍历已经`inject`的`plugin`，调用它们各自的`extractEvents`拿到`SyntheticEvent`，那么，`extractEvents`是如何生成`event`的呢？具体的逻辑如下：
 - 通过传入的事件名，选择对应的具体的`SyntheticEvent`子类，如`touch`事件对应的`SyntheticEvent`是`SyntheticTouchEvent`
 - 通过事件池拿到`event`对象
-- 模拟冒泡、捕获的过程，按照顺序取出`props`的事件监听函数，绑定到`event`的属性上
+- 模拟冒泡、捕获的过程，按照顺序取出`props`的事件监听函数及相应的 fiber ，绑定到`event`的 _dispatchListeners 和 _dispatchInstances 上
 - 返回`event`
 
 ### 冒泡、捕获处理
