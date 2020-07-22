@@ -57,7 +57,7 @@ const ReactDOM = {
 生成`FiberRoot`后，我们调用了`updateContainer()`，这里才是真正开始渲染的入口，
 无论是`ReactDOM.render`,还是`setState`，在或者`hook`，它们都做了3件事：
 1. 更新调度器的当前优先级，并获得当前`Fiber`优先级
-2. 生成一个更新单元`update`，并把它插到更新队列的尾端。这里是通过`ReactDOM.render()`传入的`React Element`和`callback`
+2. 生成一个更新单元`update`，并把它插到当前`Fiber`更新队列的尾端。这里是通过`ReactDOM.render()`传入的`React Element`和`callback`
 3. 通过`update`和`expirationTime`调用`scheduleWork`启动一个调度任务
 
 ``` javascript
