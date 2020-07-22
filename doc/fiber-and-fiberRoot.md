@@ -4,7 +4,7 @@
 我们的整个调和过程，都是围绕`Fiber`树展开的
 
 ## `stack reconciler` 和 `fiber reconciler`
-在`stack reconciler中，整个VDOM树 如下图：
+在`stack reconciler`中，整个VDOM树 如下图：
 
 <img src="./fiber-and-fiberRoot/vdom_tree.png" width="350" height="290"/>
 
@@ -23,7 +23,7 @@
 
 <img src="./fiber-and-fiberRoot/fiber.png" width="490" height="260"/>
 
-以上的3点都要求整个调度的过程可拆分，可中断。中断后，在恢复时，对于之前的节点，可能当时优先级不高，跳过了，但是现在在新的时间下，可能优先级有所改变，因此对这些节点需要重新进行调度，为了满足这样的需求，在新的架构中，`React`将整个树结构用链表来实现，每个节点都记录了它的关系信息，有了关系信息，就可以很轻易的通过某一个节点，复现整个树。，新的`Fiber`树如下图
+以上的3点都要求整个调度的过程可拆分，可中断。中断后，在恢复时，对于之前的节点，可能当时优先级不高，跳过了，但是现在在新的时间下，可能优先级有所改变，因此对这些节点需要重新进行调度，为了满足这样的需求，在新的架构中，`React`将整个树结构用链表来实现，每个节点都记录了它的关系信息，有了关系信息，就可以很轻易的通过某一个节点，复现整个树。新的`Fiber`树如下图
 
 <img src="./fiber-and-fiberRoot/fiber_tree.png" width="650" height="500"/>
 
@@ -115,7 +115,7 @@ class Fiber {
 
   mode: TypeOfMode // 工作类型， NoContext：同步渲染 ConcurrentMode：异步渲染
 
-  effectTag: SideEffectTag = NoEffect // 标记当前节点的一些效果
+  effectTag: SideEffectTag = NoEffect // 标记当前节点的更新类型
 
   nextEffect: Fiber = null 
   firstEffect: Fiber = null
@@ -136,7 +136,10 @@ class Fiber {
 ```
 
 ### `workInProgress`
-`WorkInProgress` 是`Fiber`进行调度时的一个副本，与`Fiber`通过`alternate`相互连接，调度完成后用整个`WorkInProgress`树替代当前的`Fiber`树
+`WorkInProgress` 是`Fiber`进行调度时生成的一个副本，与`Fiber`通过`alternate`相互连接，
+
+#### 为什么需要副本
+由于现在的任务都是可中断的，如果直接在原树上操作，若此时需要中断，归还控制权，那么更新到一半的`Fiber`树该怎么办，保留，回滚?为了解决这个问题，在`Fiber reconciler`中，`Mount`或者`Update`时，都会基于当前 `Fiber`树生成一棵新的`WorkInProgress`树（副本树），调度完成后用整个`WorkInProgress`树替代当前的`Fiber`树，成为当前的`Fiber`树
 
 ```javaScript
 function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
