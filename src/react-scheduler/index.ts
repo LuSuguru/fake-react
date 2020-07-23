@@ -483,6 +483,7 @@ function performAsyncWork(didTimeout: boolean) {
 }
 
 /**
+ * 确保异步同步模式下尽可能多的执行任务
  * @param minExpirationTime 超时优先级
  * @param isYieldy 是否异步
  */

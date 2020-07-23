@@ -2,6 +2,7 @@ import { React } from 'fake-react'
 import useStates from './hook/useStates'
 import Input from './components/input'
 import ToDoItem from './components/to-do-item'
+import Test from './components/test'
 import { formatDate } from './utils'
 import './styles/page.less'
 
@@ -63,7 +64,11 @@ function ToDoList() {
         onDelete={onDelete}
         onAdd={onAdd}
         disabled={state.deleteList.length === 0} />
-      <ul>
+
+      {state.list.length === 0 && <Test />}
+      <Test />
+
+      {/* <ul>
         {state.list.map(({ content, date, key }, index) => (
           <ToDoItem
             date={date}
@@ -73,7 +78,7 @@ function ToDoList() {
             {content}
           </ToDoItem>
         ))}
-      </ul>
+      </ul> */}
     </div>
   )
 }
