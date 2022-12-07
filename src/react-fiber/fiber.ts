@@ -58,7 +58,8 @@ class Fiber {
   pendingProps: any // 未处理的 props,可以理解为 new props
   memoizedProps: any = null // 当前节点的 props,可以理解为 old props
 
-  updateQueue: UpdateQueue<any> = null // 当前节点的任务队列
+  /** 当前节点的任务队列 */
+  updateQueue: UpdateQueue<any> = null
   memoizedState: any = null // 当前节点的state
 
   contextDependencies: ContextDependencyList = null // context 列表
@@ -77,7 +78,8 @@ class Fiber {
   expirationTime: ExpirationTime = NoWork // 优先级
   childExpirationTime: ExpirationTime = NoWork // 子优先级
 
-  alternate: Fiber = null // 用于调度时的快照
+  /** 用于调度时的快照 */
+  alternate: Fiber = null
 
   constructor(tag: WorkTag, pendingProps: any, key: string | null, mode: TypeOfMode) {
     this.tag = tag

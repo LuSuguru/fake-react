@@ -43,6 +43,7 @@ class FiberRoot {
 
   firstBatch: Batch = null
 
+  /** 下一个需要调度的 root */
   nextScheduledRoot: FiberRoot = null
 
   constructor(containerInfo: Element, isConcurrent: boolean) {

@@ -65,6 +65,9 @@ function ensureWorkInProcessQueueIsAClone<State>(workInProgress: Fiber, queue: U
   return queue
 }
 
+/**
+ * 将更新对象 update 查到队尾
+ */
 export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
   const { alternate } = fiber
 

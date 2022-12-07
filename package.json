@@ -18,12 +18,11 @@
     "url": "https://github.com/LuSuguru/learn-react/issues"
   },
   "homepage": "https://github.com/LuSuguru/learn-react#readme",
-  "dependencies": {},
   "devDependencies": {
     "cz-conventional-changelog": "2.1.0",
-    "rollup-plugin-typescript": "^1.0.0",
-    "tslib": "^1.9.3",
-    "typescript": "^3.3.3333"
+    "rollup-plugin-typescript": "^1.0.1",
+    "tslib": "^1.14.1",
+    "typescript": "^4.9.3"
   },
   "config": {
     "commitizen": {

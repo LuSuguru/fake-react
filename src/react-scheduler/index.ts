@@ -84,12 +84,14 @@ function recomputeCurrentRendererTime(canUpdateSchedulerTime: boolean) {
   }
 }
 
-// 一条需要调度的 FiberRoot 队列
+// 一条需要调度的 FiberRoot 队列，环形链表
 let firstScheduledRoot: FiberRoot = null
 let lastScheduledRoot: FiberRoot = null
 
-let nextFlushedRoot: FiberRoot = null // 当前需要调和的 FiberRoot
-let nextFlushedExpirationTime: ExpirationTime = NoWork // 全局过期时间
+/** 当前需要执行调度的 root */
+let nextFlushedRoot: FiberRoot = null
+/** 当前调度的Root 的过期时间 */
+let nextFlushedExpirationTime: ExpirationTime = NoWork
 let lowestPriorityPendingInteractiveExpirationTime: ExpirationTime = NoWork
 
 let hasUnhandledError: boolean = false
@@ -340,11 +342,13 @@ function requestCurrentTime(): ExpirationTime {
   return currentSchedulerTime
 }
 
-// 更新当前 Fiber的 expirationTime
-// 从当前往上遍历，找到 FiberRoot
-// 每个遍历过的 Fiber 都更新其 childExpirationTime
+/**
+ * 从当前 Fiber 往上走，找到根节点 FiberRoot 
+ * 更新当前 Fiber的 expirationTime
+ * 每个遍历过的 Fiber 都更新其 childExpirationTime
+ */
 function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): FiberRoot {
-  let alternate: Fiber = fiber.alternate
+  let { alternate } = fiber
 
   // 更新自身及副本的优先级
   if (fiber.expirationTime < expirationTime) {
@@ -382,6 +386,9 @@ function scheduleWorkToRoot(fiber: Fiber, expirationTime: ExpirationTime): Fiber
   return root
 }
 
+/**
+ * 调度入口
+ */
 function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
   const root: FiberRoot = scheduleWorkToRoot(fiber, expirationTime)
 
@@ -392,8 +399,7 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
   markPendingPriorityLevel(root, expirationTime)
 
   if (!isWorking || isCommitting || nextRoot !== root) {
-    const rootExpirationTime = root.expirationTime
-    requestWork(root, rootExpirationTime)
+    requestWork(root, root.expirationTime)
   }
 
   if (nestedUpdateCount > NESTED_UPDATE_LIMIT) {
@@ -423,8 +429,10 @@ function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
   }
 }
 
-// 将当前 FiberRoot 加到 scheduleRoot 队列中
-// 如果已在队列中，更新 expirationTime
+/**
+ * 将当前 FiberRoot 加到 scheduleRoot 队列中
+ * 如果已在队列中，更新 expirationTime
+ */
 function addRootToSchedule(root: FiberRoot, expirationTime: ExpirationTime) {
   if (root.nextScheduledRoot === null) {
     root.expirationTime = expirationTime
