@@ -306,15 +306,18 @@ function ChildReconciler(shouldTrackSideEffects: boolean) {
   }
 
   function reconcileSingleTextNode(returnFiber: Fiber, currentFirstChild: Fiber, textContent: string, expirationTime: ExpirationTime): Fiber {
+    // 可以复用当前的 fiber
     if (currentFirstChild !== null && currentFirstChild.tag === HostText) {
       deleteRemainingChildren(returnFiber, currentFirstChild.sibling)
 
+      // 更新当前 fiber 的内容
       const existing = useFiber(currentFirstChild, textContent)
       existing.return = returnFiber
 
       return existing
     }
 
+    // 不能复用，旧节点全部删除
     deleteRemainingChildren(returnFiber, currentFirstChild)
     const created = createFiberFromText(textContent, returnFiber.mode, expirationTime)
     created.return = returnFiber

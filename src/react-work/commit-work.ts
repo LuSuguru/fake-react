@@ -115,6 +115,10 @@ function getHostSibling(fiber: Fiber): any {
   }
 }
 
+/**
+ * 执行 hook effect list
+ * 包括 useEffect，useLayoutEffect，useImperativeHandle
+ */
 function commitHookEffectList(unMountTag: HookEffectTag, mountTag: HookEffectTag, finishedWork: Fiber) {
   const updateQueue: FunctionComponentUpdateQueue = finishedWork.updateQueue as any
   const lastEffect: HookEffect = updateQueue !== null ? updateQueue.lastEffect : null

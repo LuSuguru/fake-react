@@ -58,8 +58,11 @@ let lastCommittedRootDuringThisBatch: FiberRoot = null
 let callbackExpirationTime: ExpirationTime = NoWork // 异步记录时间
 let callbackID: CallbackNode // 异步回调对象
 
+/** 调度是否开始，整个调度分为 update，commit 两阶段 */
 let isRendering: boolean = false
+/** 判断是否在工作中， 无论是 update 还是 commit 都为 true */
 let isWorking: boolean = false
+/** 判断当前是否为 commit 阶段 */
 let isCommitting: boolean = false
 
 const originalStartTimeMs: number = now()
@@ -105,6 +108,7 @@ let nextRenderExpirationTime: ExpirationTime = NoWork
 let nextLatestAbsoluteTimeoutMs: number = -1
 let nextRenderDidError: boolean = false
 
+/** commit 阶段下一个需要调度的节点 */
 let nextEffect: Fiber = null
 
 let rootWithPendingPassiveEffects: FiberRoot = null
@@ -244,7 +248,7 @@ function computeExpirationTimeForFiber(currentTime: ExpirationTime, fiber: Fiber
 
 // 更新当前节点的 childExpirationTime
 function updateChildExpirationTime(workInProgress: Fiber, renderTime: ExpirationTime) {
-  if (renderTime !== Never && workInProgress.childExpirationTime === Never) { // 子节点hidden的，直接跳过
+  if (renderTime !== Never && workInProgress.childExpirationTime === Never) { // 子节点 hidden 的，直接跳过
     return
   }
   let newChildExpiration: ExpirationTime = NoWork

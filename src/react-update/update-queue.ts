@@ -124,7 +124,7 @@ export function processUpdateQueue<State>(workInProgress: Fiber, queue: UpdateQu
 
     // update 的优先级较低
     if (updateExpirationTime < renderExpirationTime) {
-      // 更新新的 update 链表起点
+      // 更新 新的 update 链表起点
       if (newFirstUpdate === null) {
         newFirstUpdate = update
         newBaseState = resultState

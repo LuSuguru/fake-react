@@ -13,7 +13,9 @@ interface Batch {
 
 class FiberRoot {
   containerInfo: Element  // 容器节点
-  current: Fiber // 当前根节点的 fiber
+
+  /** 当前根节点的 fiber */
+  current: Fiber
 
   // 最晚和最新的被挂起的任务的优先级
   earliestSuspendedTime: ExpirationTime = NoWork

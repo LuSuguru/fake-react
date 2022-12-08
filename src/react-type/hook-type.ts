@@ -44,10 +44,14 @@ interface UpdateQueue<S, A> {
 }
 
 interface Hook {
-  memoizedState: any, // 当前的state
-  baseState: any, // 记录低优先级的第一个跳过的state
-  baseUpdate: Update<any, any>, // 记录低优先级的第一个跳过的update
-  queue: UpdateQueue<any, any>, // 更新队列
+  /** 当前的state */
+  memoizedState: any,
+  /** 记录低优先级的第一个跳过的state */
+  baseState: any,
+  /** 记录低优先级的第一个跳过的update */
+  baseUpdate: Update<any, any>,
+  /** 更新队列 */
+  queue: UpdateQueue<any, any>,
   next: Hook,
 }
 
@@ -60,6 +64,7 @@ interface Effect {
 }
 
 interface FunctionComponentUpdateQueue {
+  /** 环形链表形成的组件更新队列，存储 UseEffect,useLayoutEffect,useImperativeHandle 的调用 */
   lastEffect: Effect | null,
 }
 

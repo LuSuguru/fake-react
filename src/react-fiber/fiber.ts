@@ -48,10 +48,14 @@ class Fiber {
   // 状态节点，如：class就是当前 的组件对象，hostComponent 就是 dom 元素
   stateNode: any = null
 
-  return: Fiber = null // 父节点
-  child: Fiber = null // 子节点
-  sibling: Fiber = null // 右边的兄弟节点
-  index: number = 0 // 索引值
+  /** 父节点 */
+  return: Fiber = null
+  /** 子节点 */
+  child: Fiber = null 
+  /** 右边的兄弟节点 */
+  sibling: Fiber = null 
+  /** 索引值 */ 
+  index: number = 0 
 
   ref: any = null
 

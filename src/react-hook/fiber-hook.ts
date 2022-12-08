@@ -32,15 +32,19 @@ let numberOfReRenders: number = 0
 let renderExpirationTime: ExpirationTime = NoWork
 let currentlyRenderingFiber: Fiber = null
 
-let currentHook: Hook = null // 当前的hook
+// 当前的 hook
+let currentHook: Hook = null
+// 下一个 hook
 let nextCurrentHook: Hook = null
 
+// 第一个工作中的 hook
 let firstWorkInProgressHook: Hook = null
 let workInProgressHook: Hook = null
 let nextWorkInProgressHook: Hook = null
 
 let remainingExpirationTime: ExpirationTime = NoWork
-let componentUpdateQueue: FunctionComponentUpdateQueue = null // 环形链表形成的组件更新队列，存储 UseEffect,useLayoutEffect,useImperativeHandle 的调用
+/** 环形链表形成的组件更新队列，存储 UseEffect,useLayoutEffect,useImperativeHandle 的调用 */
+let componentUpdateQueue: FunctionComponentUpdateQueue = null
 let sideEffectTag: SideEffectTag = 0
 
 function mountWorkInProgressHook(): Hook {
@@ -149,11 +153,11 @@ function dispatchAction<S, A>(fiber: Fiber, queue: UpdateQueue<S, A>, action: A)
         const currentState: S = queue.eagerState
         const eagerState = eagerReducer(currentState, action)
 
-        // 存储提前计算的结果，如果在更新阶段reducer没有发生变化，可以直接使用eager state，不需要重新调用eager reducer在调用一遍
+        // 存储提前计算的结果，如果在更新阶段 reducer 没有发生变化，可以直接使用 eager state，不需要重新调用 eager reducer
         update.eagerReducer = eagerReducer
         update.eagerState = eagerState
 
-        // 不触发render
+        // 会做一次最外层引用的浅比较，相同不触发 render
         if (Object.is(eagerState, currentState)) {
           return
         }
