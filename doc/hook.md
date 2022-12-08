@@ -1,6 +1,6 @@
 # 源码解析二十三 `hook`的结构与本质
 
-`React`在 16.8 中更新了`Hook`，支持在 `FunctionComponent`中加入状态，以及一种全新的复用逻辑的方式。这里不细细阐述它的用法，直戳它的实现。
+`React`在 16.8 中更新了`Hook`，支持在 `FunctionComponent`中加入状态，以及一种全新的复用逻辑的方式。
 
 无论使用哪种方式创建组件，在`react`中都会转化为`fiber`节点，每个`fiber`都有其`state`和`updateQueue`，用来管理自身状态以及更新队列。在之前，`FunctionComponent`又被称为无状态组件，顾名思义，它的`state`和`updateQueue`都为`null`，而`hook`的实现，就与这两个属性有关
 
@@ -10,7 +10,7 @@
 
 ### `hook`的结构
 
-为了让`function`能让`class`那样`setState()`操控自身的状态，必然需要`state`和`updateQueue`这两个属性，这个可以充分利用`fiber`自身的`memoizedState`和`updateQueue`来实现。但是，这会带来一个问题，`state`和`fiber`高度耦合，相互关联，如果要复用某套关于某个状态的逻辑，必然会把跟其相关的`fiber`牵扯进来，这必然会导致冗余。类似的实现如`hoc`和`render props`，都会创建一个无用的`fiber`。复用逻辑的成本很大
+为了让`function`能让`class`那样`setState()`操控自身的状态，必然需要`state`和`updateQueue`这两个属性，这个可以充分利用`fiber`自身的`memoizedState`和`updateQueue`来实现。但是，这会带来一个问题，`state`和`fiber`高度耦合，相互关联，如果要复用关于某个状态的逻辑，会把相关的`fiber`牵扯进来，这必然导致冗余。类似的实现如`hoc`和`render props`，都会创建一个无用的`fiber`。复用逻辑的成本很大
 
 所以，在`hook`的设计中，每个`hook`代表一个独立的状态单元，拥有其`state`和`updateQueue`，可以随意塞入到任何的`fiber`中，相互之间没有联系，复用时只需要引入相应的`hook`就好
 
